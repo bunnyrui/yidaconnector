@@ -111,6 +111,11 @@ openyida sample yida-custom-page custom-page-template   # 完整页面模板（d
 openyida sample yida-custom-page design-tokens          # 设计 token 参考（颜色/间距/字体规范）
 ```
 
+## 常见场景示例
+
+- 自定义页面附件上传：见 [AttachmentField 上传指南](references/attachment-upload-guide.md)
+- 对应最小代码示例：见 [attachment-upload.js](examples/attachment-upload.js)
+
 ## API 速查
 
 ### 表单数据（`this.utils.yida.<方法>(params)`）

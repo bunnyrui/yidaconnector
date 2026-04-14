@@ -60,6 +60,7 @@
 const { checkUpdate } = require('../lib/core/check-update');
 const { version: currentVersion } = require('../package.json');
 const { t } = require('../lib/core/i18n');
+const { warn, fail } = require('../lib/core/chalk');
 
 // 异步检查更新，fire-and-forget，不阻塞主流程
 const updateCheckPromise = checkUpdate(currentVersion);
@@ -323,8 +324,8 @@ async function main() {
       } else if (subCommand === 'logout') {
         authLogout();
       } else {
-        console.error(t('cli.auth_usage'));
-        console.error(t('cli.auth_example'));
+        warn(t('cli.auth_usage'));
+        warn(t('cli.auth_example'));
         process.exit(1);
       }
       break;
@@ -338,14 +339,14 @@ async function main() {
       if (subCommand === 'list') {
         const cookieData = loadCookieData();
         if (!cookieData || !cookieData.cookies) {
-          console.error(t('org.no_login'));
+          warn(t('org.no_login'));
           process.exit(1);
         }
         await listOrganizations(cookieData);
       } else if (subCommand === 'switch') {
         const cookieData = loadCookieData();
         if (!cookieData || !cookieData.cookies) {
-          console.error(t('org.no_login'));
+          warn(t('org.no_login'));
           process.exit(1);
         }
 
@@ -359,8 +360,8 @@ async function main() {
           await interactiveSwitch(cookieData);
         }
       } else {
-        console.error(t('cli.org_usage'));
-        console.error(t('cli.org_example'));
+        warn(t('cli.org_usage'));
+        warn(t('cli.org_example'));
         process.exit(1);
       }
       break;
@@ -397,8 +398,8 @@ async function main() {
       const skipLint = args.includes('--skip-lint');
       const filteredArgs = args.filter(arg => arg !== '--skip-lint');
       if (filteredArgs.length < 3) {
-        console.error(t('cli.publish_usage'));
-        console.error(t('cli.publish_example'));
+        warn(t('cli.publish_usage'));
+        warn(t('cli.publish_example'));
         process.exit(1);
       }
       const [sourceFile, appType, formUuid] = filteredArgs;
@@ -414,8 +415,8 @@ async function main() {
 
     case 'verify-short-url': {
       if (args.length < 3) {
-        console.error(t('cli.verify_usage'));
-        console.error(t('cli.verify_example'));
+        warn(t('cli.verify_usage'));
+        warn(t('cli.verify_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -425,8 +426,8 @@ async function main() {
 
     case 'save-share-config': {
       if (args.length < 4) {
-        console.error(t('cli.share_usage'));
-        console.error(t('cli.share_example'));
+        warn(t('cli.share_usage'));
+        warn(t('cli.share_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -436,8 +437,8 @@ async function main() {
 
     case 'get-page-config': {
       if (args.length < 2) {
-        console.error(t('cli.page_config_usage'));
-        console.error(t('cli.page_config_example'));
+        warn(t('cli.page_config_usage'));
+        warn(t('cli.page_config_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -447,8 +448,8 @@ async function main() {
 
     case 'update-form-config': {
       if (args.length < 4) {
-        console.error(t('cli.form_config_usage'));
-        console.error(t('cli.form_config_example'));
+        warn(t('cli.form_config_usage'));
+        warn(t('cli.form_config_example'));
         process.exit(1);
       }
       process.argv = [process.argv[0], process.argv[1], ...args];
@@ -458,8 +459,8 @@ async function main() {
 
     case 'update-app': {
       if (args.length < 2) {
-        console.error(t('cli.update_app_usage'));
-        console.error(t('cli.update_app_example'));
+        warn(t('cli.update_app_usage'));
+        warn(t('cli.update_app_example'));
         process.exit(1);
       }
       const { run: runUpdateApp } = require('../lib/app/update-app');
@@ -469,8 +470,8 @@ async function main() {
 
     case 'data': {
       if (args.length < 2) {
-        console.error('用法: openyida data <action> <resource> [args] [options]');
-        console.error('示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20');
+        warn('用法: openyida data <action> <resource> [args] [options]');
+        warn('示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20');
         process.exit(1);
       }
       const { run: runDataManagement } = require('../lib/core/query-data');
@@ -486,9 +487,9 @@ async function main() {
 
     case 'export': {
       if (args.length < 1) {
-        console.error(t('cli.export_usage'));
-        console.error(t('cli.export_example1'));
-        console.error(t('cli.export_example2'));
+        warn(t('cli.export_usage'));
+        warn(t('cli.export_example1'));
+        warn(t('cli.export_example2'));
         process.exit(1);
       }
       const { run: runExport } = require('../lib/app/export-app');
@@ -498,9 +499,9 @@ async function main() {
 
     case 'import': {
       if (args.length < 1) {
-        console.error(t('cli.import_usage'));
-        console.error(t('cli.import_example1'));
-        console.error(t('cli.import_example2'));
+        warn(t('cli.import_usage'));
+        warn(t('cli.import_example1'));
+        warn(t('cli.import_example2'));
         process.exit(1);
       }
       const { run: runImport } = require('../lib/app/import-app');
@@ -510,8 +511,8 @@ async function main() {
 
     case 'get-permission': {
       if (args.length < 2) {
-        console.error(t('cli.get_permission_usage'));
-        console.error(t('cli.get_permission_example'));
+        warn(t('cli.get_permission_usage'));
+        warn(t('cli.get_permission_example'));
         process.exit(1);
       }
       const { run: runGetPermission } = require('../lib/permission/get-permission');
@@ -521,8 +522,8 @@ async function main() {
 
     case 'save-permission': {
       if (args.length < 2) {
-        console.error(t('cli.save_permission_usage'));
-        console.error(t('cli.save_permission_example'));
+        warn(t('cli.save_permission_usage'));
+        warn(t('cli.save_permission_example'));
         process.exit(1);
       }
       const { run: runSavePermission } = require('../lib/permission/save-permission');
@@ -532,8 +533,8 @@ async function main() {
 
     case 'configure-process': {
       if (args.length < 3) {
-        console.error(t('cli.configure_process_usage'));
-        console.error(t('cli.configure_process_example'));
+        warn(t('cli.configure_process_usage'));
+        warn(t('cli.configure_process_example'));
         process.exit(1);
       }
       const { run: runConfigureProcess } = require('../lib/process/configure-process');
@@ -543,8 +544,8 @@ async function main() {
 
     case 'create-process': {
       if (args.length < 2) {
-        console.error(t('cli.create_process_usage'));
-        console.error(t('cli.create_process_example'));
+        warn(t('cli.create_process_usage'));
+        warn(t('cli.create_process_example'));
         process.exit(1);
       }
       const { run: runCreateProcess } = require('../lib/process/create-process');
@@ -558,14 +559,14 @@ async function main() {
 
       if (subCommand === 'preview') {
         if (subArgs.length < 2) {
-          console.error(t('cli.process_preview_usage'));
-          console.error(t('cli.process_preview_example'));
+          warn(t('cli.process_preview_usage'));
+          warn(t('cli.process_preview_example'));
           process.exit(1);
         }
         const { run: runPreviewProcess } = require('../lib/process/preview-process');
         await runPreviewProcess(subArgs);
       } else {
-        console.error(t('cli.process_usage'));
+        warn(t('cli.process_usage'));
         process.exit(1);
       }
       break;
@@ -647,8 +648,8 @@ async function main() {
 
       const modulePath = connectorSubCommands[subCommand];
       if (!modulePath) {
-        console.error(`未知的 connector 子命令: ${subCommand}`);
-        console.error('使用 openyida connector --help 查看可用子命令');
+        warn(`未知的 connector 子命令: ${subCommand}`);
+        warn('使用 openyida connector --help 查看可用子命令');
         process.exit(1);
       }
 
@@ -668,7 +669,7 @@ async function main() {
       const subArgs = args.slice(1);  // 路由层消费 subCommand，传递剩余参数
 
       if (!subCommand || subCommand === '--help' || subCommand === '-h') {
-        console.error(t('cli.integration_help'));
+        warn(t('cli.integration_help'));
         break;
       }
 
@@ -676,8 +677,8 @@ async function main() {
         const { run: runIntegration } = require('../lib/integration/integration-create');
         await runIntegration(subArgs);
       } else {
-        console.error(t('cli.integration_unknown', subCommand));
-        console.error(t('cli.integration_help_hint'));
+        warn(t('cli.integration_unknown', subCommand));
+        warn(t('cli.integration_help_hint'));
         process.exit(1);
       }
       break;
@@ -720,8 +721,8 @@ async function main() {
     }
 
     default: {
-      console.error(t('cli.unknown_command', command));
-      console.error(t('cli.run_help'));
+      warn(t('cli.unknown_command', command));
+      warn(t('cli.run_help'));
       process.exit(1);
     }
   }
@@ -730,6 +731,6 @@ async function main() {
 main()
   .then(() => updateCheckPromise)
   .catch((err) => {
-    console.error(t('cli.exec_failed', err.message));
+    warn(t('cli.exec_failed', err.message));
     process.exit(1);
   });

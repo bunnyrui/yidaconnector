@@ -163,8 +163,8 @@ async function main() {
 
   switch (command) {
     case 'env': {
-      const { run } = require('../lib/core/env');
-      run();
+      const { run } = require('../lib/core/env-cmd');
+      await run(args);
       break;
     }
 

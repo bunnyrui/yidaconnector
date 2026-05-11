@@ -3,7 +3,7 @@ name: openyida
 description: >
   宜搭 AI 应用开发总入口技能。通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）+ 宜搭低代码平台，实现一句话生成完整应用。
   包含应用创建、表单设计、自定义页面开发、页面发布、登录态管理等完整开发流程。
-  当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"、等关键词时，使用此技能；以下情况不要触发：只是在讨论通用前端/后端代码、非宜搭平台产品、或只需要解释概念而不操作宜搭资源。
+  当用户提到"宜搭"、"yida"、"低代码"、"创建应用"、"创建表单"、"发布页面"、"搭建"、"系统"等关键词时，使用此技能；以下情况不要触发：只是讨论通用前端/后端代码、非宜搭平台产品、或只需要解释概念而不操作宜搭资源。
 ---
 
 # 宜搭 AI 应用开发指南
@@ -85,7 +85,7 @@ openyida login --check-only --json
 | 当前生效环境 | 显示项目根目录路径 |
 | 登录态检测 | 显示是否已登录、域名、组织 ID |
 
-> **若显示"未登录"，先执行 `openyida login`。AI 对话框环境中默认先尝试本地 CDP 浏览器登录；若返回二维码 handoff，必须在对话框直接渲染 `qr_image_markdown`，或原样粘贴 `agent_response_markdown`；不要只展示 `qr_image_file` 路径或 `qr_url`。用户用钉钉扫码确认后执行 `poll_command` 写入 CLI Cookie 缓存。页面登录完成后必须再次执行 `openyida login --check-only --json` 验证缓存写入。不要在只读验证通过前执行真实资源创建。**
+> **若显示"未登录"，先执行 `openyida login`。Codex 中默认返回内置浏览器 handoff：用 Browser Use 打开 `login_url`，让钉钉/宜搭页面承接扫码和组织选择。若 Browser Use 不能直接打开外部 URL，先打开临时本地 redirect 页面再跳转到 `login_url`。页面登录完成后必须再次执行 `openyida login --check-only --json` 验证缓存写入。不要在只读验证通过前执行真实资源创建。**
 
 ---
 

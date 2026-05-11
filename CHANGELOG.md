@@ -8,6 +8,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.5.9] - 2026-05-09
+
+### Changed
+- 发布 `2026.5.9` 正式版，汇总 `2026.5.9-beta.5` 至 `2026.5.9-beta.9` 的登录、二维码 handoff、自定义页面生成校验、悟空技能包构建与发布流程优化
+
 ## [2026.5.9-beta.9] - 2026-05-09
 
 ### Changed
@@ -212,7 +217,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 优化 Babel 编译错误提示信息
 - 修复 `SKILL.md` 编号问题
 
-[Unreleased]: https://github.com/openyida/openyida/compare/v2026.04.20...HEAD
+[Unreleased]: https://github.com/openyida/openyida/compare/v2026.5.9...HEAD
+[2026.5.9]: https://github.com/openyida/openyida/compare/v2026.04.20...v2026.5.9
+[2026.5.9-beta.9]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.8...v2026.5.9-beta.9
+[2026.5.9-beta.8]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.7...v2026.5.9-beta.8
+[2026.5.9-beta.7]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.6...v2026.5.9-beta.7
+[2026.5.9-beta.6]: https://github.com/openyida/openyida/compare/v2026.5.9-beta.5...v2026.5.9-beta.6
+[2026.5.9-beta.5]: https://github.com/openyida/openyida/compare/v2026.04.20...v2026.5.9-beta.5
 [2026.04.20]: https://github.com/openyida/openyida/compare/v2026.04.02-beta.12...v2026.04.20
 [2026.04.02-beta.12]: https://github.com/openyida/openyida/compare/v2026.04.01...v2026.04.02-beta.12
 [2026.04.01]: https://github.com/openyida/openyida/compare/v2026.03.28...v2026.04.01

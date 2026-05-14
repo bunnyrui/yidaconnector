@@ -167,6 +167,7 @@ openyida/
 openyida create-app "CRM"
 openyida create-app --name "CRM" --desc "Customer management" --theme deepBlue
 openyida app-list --size 20
+openyida corp-efficiency
 openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json
 openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
 openyida get-schema APP_XXX FORM_XXX
@@ -267,6 +268,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | Command | Description |
 |---------|-------------|
 | `openyida app-list [--size N]` | List Yida applications |
+| `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency metrics, detail report entries, and related notification actions |
 | `openyida create-app "<name>"\|--name <name> [options] [--open\|--no-open]` | Create an application and output `appType` |
 | `openyida update-app <appType> --name "..."` | Update application metadata |
 | `openyida export <appType> [output]` | Export an application migration package |

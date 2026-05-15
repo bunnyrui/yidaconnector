@@ -44,16 +44,27 @@ description: 将 JSX 源码编译发布到宜搭自定义页面。Babel 转 ES5 
 ## 命令
 
 ```bash
-openyida publish <源文件路径> <appType> <formUuid> [--compat] [--health-check]
+openyida publish <源文件路径> <appType> <formUuid> [--compat] [--health-check] [--force]
 ```
 
 | 参数 | 必填 | 说明 |
 |------|------|------|
 | `源文件路径` | 是 | JSX 源码路径，推荐 `project/pages/src/my-page.oyd.jsx` |
 | `appType` | 是 | 应用 ID |
-| `formUuid` | 是 | 自定义页面 ID |
+| `formUuid` | 是 | 自定义页面 ID，必须是 `openyida list-forms <appType>` 返回的 `formType=display` 目标，不要使用数据底表或流程表单 ID |
 | `--compat` / `--modern` | 否 | 对普通 `.jsx` 也强制启用 OpenYida 兼容构建；`.oyd.jsx` 默认自动启用 |
 | `--health-check` | 否 | 发布成功后请求页面 URL，回显 HTTP 健康检查结果，避免只看到 200 接口返回但首屏坏掉 |
+| `--force` | 否 | 显式绕过发布目标类型保护；只有确认目标是自定义页面但导航接口暂时无法识别时才使用 |
+
+## 发布目标确认
+
+发布前先确认目标页面，避免把 JSX 覆盖到数据底表：
+
+```bash
+openyida list-forms <appType> --keyword <页面名>
+```
+
+只选择 `formType=display` 的 `formUuid` 作为发布目标。源码里用于 `this.utils.yida` 读写数据的普通表单常量（如 `FORM_SKILL`、`FORM_DATA`、`FORM_TABLE`）通常是数据底表，不能作为 `openyida publish` 的第三个参数。
 
 ## OpenYida 兼容编译
 
@@ -99,6 +110,7 @@ body { background-color: #f2f3f5; }
 | OpenYida 兼容构建失败 | 查看 `check-page --json` 的 `build.errors`，通常是不支持的 Hook、非空 useEffect deps、未支持 import |
 | Babel 编译失败 | 检查 JSX 语法；如果是现代 React authoring，确认文件是 `.oyd.jsx` 或发布时加 `--compat` |
 | UglifyJS 压缩失败 | 检查是否有 ES6+ 语法未被 Babel 转译，确认 export function 格式正确 |
+| 发布目标不是自定义展示页面 | 运行 `openyida list-forms <appType> --keyword <页面名>`，改用 `formType=display` 的页面 ID；不要对数据底表追加 `--force` |
 | saveFormSchema 接口失败（401） | 执行 `openyida login` 重新登录后重试 |
 | corpId 不匹配 | 询问用户是否切换组织或创建新应用，不得强行发布 |
 | 发布后页面空白 | 检查 `renderJsx` 函数是否正确导出，检查浏览器控制台报错 |

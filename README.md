@@ -289,7 +289,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida build-page <sourceFile> [--output file\|--write]` | Build/fix Yida-compatible page source from OpenYida authoring JSX |
 | `openyida check-page <sourceFile> [--compat] [--json]` | Check page compatibility; `.oyd.jsx` is compatibility-built before linting |
 | `openyida compile <sourceFile> [--compat]` | Compile a custom page locally; `.oyd.jsx` sources are compatibility-built first |
-| `openyida publish <sourceFile> <appType> <formUuid> [--compat] [--health-check] [--open\|--no-open]` | Compile and publish a custom page |
+| `openyida publish <sourceFile> <appType> <formUuid> [--compat] [--health-check] [--force] [--open\|--no-open]` | Compile and publish a custom display page; by default the target must be `formType=display` |
 | `openyida update-form-config <appType> <formUuid> <isRenderNav> <title>` | Update page/form display configuration |
 
 ### Data, Permissions, and Sharing

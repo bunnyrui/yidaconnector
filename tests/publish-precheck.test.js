@@ -3,13 +3,23 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { findDuplicateSourceMismatches } = require('../lib/app/publish');
+
+jest.mock('../lib/app/form-navigation', () => ({
+  fetchFormPageList: jest.fn(),
+}));
+
+const { fetchFormPageList } = require('../lib/app/form-navigation');
+const {
+  findDuplicateSourceMismatches,
+  verifyPublishTarget,
+} = require('../lib/app/publish');
 
 describe('publish prechecks', () => {
   let workspace;
 
   beforeEach(() => {
     workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-publish-precheck-'));
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -33,5 +43,32 @@ describe('publish prechecks', () => {
     expect(mismatches).toEqual([
       { sourcePath, duplicatePath: artifactPath },
     ]);
+  });
+
+  test('allows publishing only to display custom pages', async () => {
+    fetchFormPageList.mockResolvedValue([
+      { formUuid: 'FORM-DATA', formName: 'Skill 信息底表', formType: 'receipt' },
+      { formUuid: 'FORM-PAGE', formName: 'Skill 广场首页', formType: 'display' },
+    ]);
+
+    await expect(verifyPublishTarget('APP_XXX', 'FORM-PAGE', {})).resolves.toEqual({
+      ok: true,
+      target: { formUuid: 'FORM-PAGE', formName: 'Skill 广场首页', formType: 'display' },
+    });
+
+    await expect(verifyPublishTarget('APP_XXX', 'FORM-DATA', {})).resolves.toEqual({
+      ok: false,
+      reason: 'wrong_type',
+      target: { formUuid: 'FORM-DATA', formName: 'Skill 信息底表', formType: 'receipt' },
+    });
+  });
+
+  test('supports an explicit force bypass for unusual publish targets', async () => {
+    await expect(verifyPublishTarget('APP_XXX', 'FORM-DATA', {}, { force: true })).resolves.toEqual({
+      ok: true,
+      skipped: true,
+    });
+
+    expect(fetchFormPageList).not.toHaveBeenCalled();
   });
 });

@@ -15,6 +15,7 @@ description: 宜搭登录态管理。扫码登录，Cookie 持久化到 .cache/c
 - 执行任何宜搭操作前，必须先运行 `openyida env` 确认环境和登录态
 - Cookie 失效时，重新登录后必须验证新 Cookie 可用（运行任意查询命令确认）
 - **本技能不读写 memory**：登录态通过 `.cache/cookies.json` 持久化，不依赖跨会话的 memory 状态
+- 用户提到登录"海外宜搭/国际版/日本宜搭/全球宜搭/Global YiDA"等海外语义时，必须给登录命令加 `--intl`（或 `--global` / `--overseas`），否则会生成中国钉钉的二维码，海外 DingTalk 无法扫码
 
 ## 适用场景
 
@@ -89,6 +90,34 @@ openyida login --agent-qr
 ```
 
 该命令返回 `need_qr_scan` JSON，包含可直接渲染的 `qr_image_markdown` 和 `agent_response_markdown`。扫码后执行 `poll_command`。兼容旧命令 `openyida login --codex-qr`。
+
+### 海外宜搭 / Global YiDA 登录
+
+海外用户使用 DingTalk International（`login.dingtalk.io`）扫码，中国钉钉账号无法扫码海外二维码、反之亦然。海外登录必须显式声明环境，否则默认走国内 `login.dingtalk.com`。
+
+**触发条件**（用户表达任意一项即视为海外场景，必须加 `--intl`）：
+
+- 中文：海外、海外版、国际、国际版、全球、全球版、海外宜搭、国际宜搭、全球宜搭、日本、日本宜搭
+- 英文：overseas、international、global、abroad、intl、Global YiDA
+
+**命令示例**（任选一种 flag 皆等价）：
+
+```bash
+openyida login --intl                  # 推荐写法
+openyida login --global                # 别名
+openyida login --overseas              # 别名
+openyida login --agent-qr --intl       # AI 工具二维码 + 海外环境
+openyida login --env intl              # 通用 --env 形式
+```
+
+也可以先持久切换环境，后续登录命令默认走海外：
+
+```bash
+openyida env switch intl               # 或者 openyida env switch 海外
+openyida login                          # 此后默认海外
+```
+
+`--intl` 标志会在生成二维码时使用 `login.dingtalk.io`，海外 DingTalk 可正常扫码。
 
 ## 输出
 

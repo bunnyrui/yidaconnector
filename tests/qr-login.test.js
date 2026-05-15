@@ -105,6 +105,21 @@ describe('terminal QR code rendering', () => {
     });
   });
 
+  test('keeps selected environment in QR poll command', () => {
+    expect(__test__.buildCodexPollCommand('/tmp/session.json', 'ding-main', 'intl')).toBe(
+      "openyida login --agent-poll '/tmp/session.json' --env 'intl' --corp-id 'ding-main'"
+    );
+
+    const result = __test__.buildNeedQrScanResult({
+      qrUrl: 'https://login.dingtalk.io/oauth2/qr_confirm.htm?code=abc',
+      qrImageFile: null,
+      sessionFile: '/tmp/session.json',
+      targetCorpId: null,
+      envName: 'intl',
+    });
+    expect(result.poll_command).toBe("openyida login --agent-poll '/tmp/session.json' --env 'intl'");
+  });
+
   test('resolveQrcodeModule tries package name before adjacent install paths', () => {
     const qrcode = { toString: jest.fn() };
     const requireFn = jest.fn((request) => {
@@ -456,5 +471,41 @@ describe('DingTalk OAuth organization selection', () => {
       'https://yida.company.example',
       'https://login.dingtalk.com/oauth2/challenge'
     )).toBe('https://yida.company.example');
+  });
+});
+
+describe('isDingtalkOAuthChallengeUrl', () => {
+  test('recognizes dingtalk.com OAuth URLs', () => {
+    expect(__test__.isDingtalkOAuthChallengeUrl(
+      'https://login.dingtalk.com/oauth2/challenge'
+    )).toBe(true);
+  });
+
+  test('recognizes dingtalk.io OAuth challenge URL', () => {
+    expect(__test__.isDingtalkOAuthChallengeUrl(
+      'https://login.dingtalk.io/oauth2/challenge'
+    )).toBe(true);
+  });
+
+  test('recognizes dingtalk.io OAuth auth URL with redirect_uri', () => {
+    expect(__test__.isDingtalkOAuthChallengeUrl(
+      'https://login.dingtalk.io/oauth2/auth?redirect_uri=xxx'
+    )).toBe(true);
+  });
+
+  test('rejects dingtalk.io URL with non-oauth2 path', () => {
+    expect(__test__.isDingtalkOAuthChallengeUrl(
+      'https://login.dingtalk.io/other-path'
+    )).toBe(false);
+  });
+
+  test('rejects non-dingtalk domains', () => {
+    expect(__test__.isDingtalkOAuthChallengeUrl(
+      'https://login.example.com/oauth2/challenge'
+    )).toBe(false);
+  });
+
+  test('returns false for invalid URLs', () => {
+    expect(__test__.isDingtalkOAuthChallengeUrl('not-a-url')).toBe(false);
   });
 });

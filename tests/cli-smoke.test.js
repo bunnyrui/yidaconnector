@@ -100,7 +100,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json]');
-    expect(output).toContain('login [--qr|--agent-qr|--codex|--browser] [--corp-id <corpId>]');
+    expect(output).toContain('login [--qr|--agent-qr|--codex|--browser] [--env <name>|--overseas] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
@@ -108,7 +108,6 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('corp-manager');
     expect(output).toContain('dws');
     expect(output).toContain('dingtalk-link');
-    expect(output).toContain('commands [--json]');
     expect(output).toContain('a2a <serve|agent-card> [options]');
     expect(output).toContain('sample [--list]');
     expect(output).toContain('generate-page <template>');

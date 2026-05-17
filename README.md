@@ -242,6 +242,8 @@ Use `npm run test:e2e:real:cleanup` to list recorded disposable resources. OpenY
 openyida connector smart-create --curl "curl https://api.example.com/users"
 openyida connector list
 openyida integration create APP_XXX FORM_XXX "Sync customer data"
+openyida integration create APP_XXX FORM_XXX "Approval result notify" \
+  --events processFinish --approval-actions agree,disagree --receivers 123456
 openyida create-report APP_XXX "Sales Dashboard" .cache/openyida/reports/charts.json
 openyida append-chart APP_XXX REPORT_XXX .cache/openyida/reports/chart.json
 ```
@@ -258,13 +260,13 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida env setup` | Choose a customer-friendly login environment preset: public, overseas, Alibaba intranet, or private deployment |
 | `openyida env <list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
 | `openyida commands [--json]` | Emit the machine-readable command manifest |
-| `openyida login [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--overseas\|--yidaapps] [--corp-id <corpId>]` | Log in to Yida |
+| `openyida login [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps] [--corp-id <corpId>]` | Log in to Yida |
 | `openyida logout` | Log out or switch account |
 | `openyida auth <status\|login\|refresh\|logout>` | Manage login status |
 | `openyida org list` | List accessible organizations |
 | `openyida org switch --corp-id <corpId>` | Switch organization without logging in again |
 
-Environment selectors such as `--env intl`, `--overseas`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run.
+Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run. The `intl` preset targets Global YiDA at `https://www.yidaapps.com` and uses DingTalk International OAuth at `https://login.dingtalk.io`; use `openyida login --browser --intl` when you need cookies accepted by Global YiDA business APIs.
 
 ### Applications
 
@@ -319,12 +321,14 @@ Environment selectors such as `--env intl`, `--overseas`, and `--yidaapps` can b
 | `openyida create-report <appType> "<name>" <charts.json> [--open\|--no-open]` | Create a Yida report |
 | `openyida append-chart <appType> <reportId> <charts.json> [--open\|--no-open]` | Append a chart to an existing report |
 | `openyida connector <sub-command>` | Manage HTTP connectors, actions, tests, and auth accounts |
-| `openyida integration create <appType> <formUuid> <flowName> [options]` | Create an integration automation flow |
+| `openyida integration create <appType> <formUuid> <flowName> [options]` | Create an integration automation flow, including form and approval-process events |
 | `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List automation flows in an app, optionally filtered by form/status |
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable an automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable an automation flow |
 | `openyida dws <command> [args]` | Access DingTalk CLI capabilities such as contacts, calendar, todo, and approval |
 | `openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink URLs for opening pages in DingTalk; use `--legacy-scheme` only when old `dingtalk://` links are required |
+
+`openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`.
 
 ### Utilities
 
@@ -446,6 +450,8 @@ Thanks to everyone who has contributed to OpenYida. Read the [Contributing Guide
 <p>
   <a href="https://github.com/yize"><img src="https://github.com/yize.png?size=48" width="48" height="48" alt="九神" title="九神" /></a>
   <a href="https://github.com/alex-mm"><img src="https://github.com/alex-mm.png?size=48" width="48" height="48" alt="天晟" title="天晟" /></a>
+  <a href="https://github.com/DDlixin1"><img src="https://github.com/DDlixin1.png?size=48" width="48" height="48" alt="DDlixin1" title="DDlixin1" /></a>
+  <a href="https://github.com/fcloud"><img src="https://github.com/fcloud.png?size=48" width="48" height="48" alt="Aiden Wu" title="Aiden Wu" /></a>
   <a href="https://github.com/nicky1108"><img src="https://github.com/nicky1108.png?size=48" width="48" height="48" alt="nicky1108" title="nicky1108" /></a>
   <a href="https://github.com/angelinheys"><img src="https://github.com/angelinheys.png?size=48" width="48" height="48" alt="angelinheys" title="angelinheys" /></a>
   <a href="https://github.com/yipengmu"><img src="https://github.com/yipengmu.png?size=48" width="48" height="48" alt="yipengmu" title="yipengmu" /></a>

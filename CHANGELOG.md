@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.5.17-1] - 2026-05-17
+
+### Added
+- `openyida integration create` 支持审批完成事件 `processFinish` 与审批节点事件 `activityTask`，可通过 `--approval-actions` 和 `--approval-node-ids` 配置审批动作与节点过滤。
+- 海外 / Global YiDA 登录链路补充 `FEForceLogin=true`、`corp_id` Cookie 解析、中文与日本/全球等环境别名，以及 `yida-login` 技能说明。
+
+### Changed
+- README 补充 Global YiDA 登录参数与集成自动化审批事件示例。
+
 ## [2026.5.17] - 2026-05-17
 
 ### Changed

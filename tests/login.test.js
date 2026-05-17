@@ -81,6 +81,33 @@ describe('extractInfoFromCookies', () => {
     expect(result.corpId).toBe('mycorp');
     expect(result.userId).toBe('myuser');
   });
+
+  test('海外版从独立的 corp_id cookie 提取 corpId（无 tianshu_corp_user 时）', () => {
+    // 海外 YiDA (yidaapps.com) 设置独立 corp_id cookie，不写合并的 tianshu_corp_user
+    const cookies = [
+      { name: 'tianshu_csrf_token', value: '1476ad85-f647-466b-b77f-cc02cd596912' },
+      { name: 'corp_id', value: 'dingd3873f8e79a7a819c126026dc61154d0' },
+      { name: 'pub_uid', value: 'a098nc6nxOd%2BJZWEncFBiQ%3D%3D' },
+    ];
+
+    const result = extractInfoFromCookies(cookies);
+    expect(result.csrfToken).toBe('1476ad85-f647-466b-b77f-cc02cd596912');
+    expect(result.corpId).toBe('dingd3873f8e79a7a819c126026dc61154d0');
+    // userId 加密在 pub_uid 里客户端无法解密，海外环境保持 null
+    expect(result.userId).toBeNull();
+  });
+
+  test('两种 cookie 同存在时，tianshu_corp_user 优先于独立 corp_id', () => {
+    const cookies = [
+      { name: 'tianshu_csrf_token', value: 'tok' },
+      { name: 'tianshu_corp_user', value: 'cnCorp_cnUser' },
+      { name: 'corp_id', value: 'overseasCorp' },
+    ];
+
+    const result = extractInfoFromCookies(cookies);
+    expect(result.corpId).toBe('cnCorp');
+    expect(result.userId).toBe('cnUser');
+  });
 });
 
 //─ loadCookieData─────────────────────────────────
@@ -329,6 +356,21 @@ describe('env-manager 海外登录环境', () => {
     expect(resolveEnvNameAlias('international')).toBe('intl');
   });
 
+  test('内置 INTERNATIONAL_LOGIN_URL 回调到 yidaapps.com 且包含 FEForceLogin=true', () => {
+    const { INTERNATIONAL_LOGIN_URL } = require('../lib/core/env-manager');
+    const parsedUrl = new URL(INTERNATIONAL_LOGIN_URL);
+    const redirectUri = parsedUrl.searchParams.get('redirect_uri');
+
+    expect(parsedUrl.origin).toBe('https://login.dingtalk.io');
+    expect(parsedUrl.pathname).toBe('/oauth2/auth');
+    expect(parsedUrl.searchParams.get('FEForceLogin')).toBe('true');
+    expect(parsedUrl.searchParams.get('client_id')).toBe('suite9xvlxxerybljwheo');
+    expect(parsedUrl.searchParams.get('scope')).toBe('openid corpid');
+    expect(parsedUrl.searchParams.get('lang')).toBe('en_US');
+    expect(redirectUri).toContain('https://www.yidaapps.com/dingtalk_sso_call_back');
+    expect(redirectUri).toContain(encodeURIComponent('https://www.yidaapps.com/workPlatform'));
+  });
+
   test('旧版 intl 内置环境自动迁移到 yidaapps 登录链路', () => {
     const {
       loadEnvsConfig,
@@ -362,23 +404,86 @@ describe('env-manager 海外登录环境', () => {
     }
   });
 
-  test('海外 OAuth 登录 URL 使用 login.dingtalk.io 并回调到 YiDA', () => {
+  test('buildDingtalkOAuthLoginUrl 默认不带 FEForceLogin，仅在 forceLogin=true 时注入', () => {
     const { buildDingtalkOAuthLoginUrl } = require('../lib/core/env-manager');
-    const loginUrl = buildDingtalkOAuthLoginUrl({
+
+    const defaultUrl = new URL(buildDingtalkOAuthLoginUrl({
+      loginOrigin: 'https://login.dingtalk.com',
+      baseUrl: 'https://www.aliwork.com',
+    }));
+    expect(defaultUrl.searchParams.has('FEForceLogin')).toBe(false);
+
+    const forcedUrl = new URL(buildDingtalkOAuthLoginUrl({
       loginOrigin: 'https://login.dingtalk.io',
       baseUrl: 'https://www.yidaapps.com',
       lang: 'en_US',
-    });
-    const parsedUrl = new URL(loginUrl);
-    const redirectUri = parsedUrl.searchParams.get('redirect_uri');
+      forceLogin: true,
+    }));
+    const redirectUri = forcedUrl.searchParams.get('redirect_uri');
 
-    expect(parsedUrl.origin).toBe('https://login.dingtalk.io');
-    expect(parsedUrl.pathname).toBe('/oauth2/auth');
-    expect(parsedUrl.searchParams.get('client_id')).toBe('suite9xvlxxerybljwheo');
-    expect(parsedUrl.searchParams.get('scope')).toBe('openid corpid');
-    expect(parsedUrl.searchParams.get('lang')).toBe('en_US');
+    expect(forcedUrl.searchParams.get('FEForceLogin')).toBe('true');
+    expect(forcedUrl.origin).toBe('https://login.dingtalk.io');
+    expect(forcedUrl.pathname).toBe('/oauth2/auth');
+    expect(forcedUrl.searchParams.get('client_id')).toBe('suite9xvlxxerybljwheo');
+    expect(forcedUrl.searchParams.get('scope')).toBe('openid corpid');
+    expect(forcedUrl.searchParams.get('lang')).toBe('en_US');
     expect(redirectUri).toContain('https://www.yidaapps.com/dingtalk_sso_call_back');
     expect(redirectUri).toContain(encodeURIComponent('https://www.yidaapps.com/workPlatform'));
+  });
+
+  test('isYidaServiceHost 识别 yidaapps.com 和子域名', () => {
+    const { isYidaServiceHost } = require('../lib/core/env-manager');
+
+    expect(isYidaServiceHost('www.yidaapps.com')).toBe(true);
+    expect(isYidaServiceHost('foo.yidaapps.com')).toBe(true);
+    expect(isYidaServiceHost('yidaapps.com')).toBe(false);
+    expect(isYidaServiceHost('evil-yidaapps.com')).toBe(false);
+  });
+
+  test('中文别名解析到对应内置环境', () => {
+    const { resolveEnvNameAlias } = require('../lib/core/env-manager');
+
+    // 海外别名 → intl
+    expect(resolveEnvNameAlias('海外')).toBe('intl');
+    expect(resolveEnvNameAlias('海外版')).toBe('intl');
+    expect(resolveEnvNameAlias('国际')).toBe('intl');
+    expect(resolveEnvNameAlias('国际版')).toBe('intl');
+    expect(resolveEnvNameAlias('全球')).toBe('intl');
+    expect(resolveEnvNameAlias('全球版')).toBe('intl');
+    expect(resolveEnvNameAlias('海外宜搭')).toBe('intl');
+    expect(resolveEnvNameAlias('国际宜搭')).toBe('intl');
+    expect(resolveEnvNameAlias('全球宜搭')).toBe('intl');
+    expect(resolveEnvNameAlias('日本')).toBe('intl');
+    expect(resolveEnvNameAlias('日本宜搭')).toBe('intl');
+    expect(resolveEnvNameAlias('海外YiDA')).toBe('intl');
+    expect(resolveEnvNameAlias('日本YiDA')).toBe('intl');
+
+    // 国内别名 → public
+    expect(resolveEnvNameAlias('国内')).toBe('public');
+    expect(resolveEnvNameAlias('国内版')).toBe('public');
+    expect(resolveEnvNameAlias('中国')).toBe('public');
+    expect(resolveEnvNameAlias('国内宜搭')).toBe('public');
+
+    // 阿里内网别名 → alibaba
+    expect(resolveEnvNameAlias('阿里')).toBe('alibaba');
+    expect(resolveEnvNameAlias('阿里内网')).toBe('alibaba');
+    expect(resolveEnvNameAlias('内网')).toBe('alibaba');
+  });
+
+  test('前后空白和大小写归一化', () => {
+    const { resolveEnvNameAlias } = require('../lib/core/env-manager');
+
+    expect(resolveEnvNameAlias('  海外  ')).toBe('intl');
+    expect(resolveEnvNameAlias('GLOBAL')).toBe('intl');
+    expect(resolveEnvNameAlias('Overseas')).toBe('intl');
+    expect(resolveEnvNameAlias('海外YIDA')).toBe('intl');
+  });
+
+  test('未知名称原样透传', () => {
+    const { resolveEnvNameAlias } = require('../lib/core/env-manager');
+
+    expect(resolveEnvNameAlias('custom-env')).toBe('custom-env');
+    expect(resolveEnvNameAlias('某个未知环境')).toBe('某个未知环境');
   });
 });
 

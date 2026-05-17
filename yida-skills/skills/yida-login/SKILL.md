@@ -100,7 +100,15 @@ openyida login --agent-qr
 - 中文：海外、海外版、国际、国际版、全球、全球版、海外宜搭、国际宜搭、全球宜搭、日本、日本宜搭
 - 英文：overseas、international、global、abroad、intl、Global YiDA
 
-**命令示例**（任选一种 flag 皆等价）：
+**推荐流程（已知能稳定调通业务 API）**：
+
+```bash
+openyida env switch intl     # 持久切到 intl，后续命令默认走海外
+openyida login --browser     # 浏览器登录拿 cookies（写入 cookies-intl.json）
+openyida app-list            # 验证 API 调通
+```
+
+**也支持的命令形式**（任选一种 flag 皆等价）：
 
 ```bash
 openyida login --intl                  # 推荐写法
@@ -110,14 +118,9 @@ openyida login --agent-qr --intl       # AI 工具二维码 + 海外环境
 openyida login --env intl              # 通用 --env 形式
 ```
 
-也可以先持久切换环境，后续登录命令默认走海外：
+`--intl` 标志会在生成二维码时使用 `login.dingtalk.io`，海外 DingTalk 可扫码完成 OAuth。
 
-```bash
-openyida env switch intl               # 或者 openyida env switch 海外
-openyida login                          # 此后默认海外
-```
-
-`--intl` 标志会在生成二维码时使用 `login.dingtalk.io`，海外 DingTalk 可正常扫码。
+**Known limitation（海外环境）**：CLI 二维码登录（`--qr` / `--agent-qr`）拿到的 session cookies 当前不被 `www.yidaapps.com` 业务 API 完整认可——OAuth 链路本身能完成（可拿到 csrf_token / corp_id），但接下来调 `app-list` / `create-app` / `create-form` 等 API 时服务端返回 `errorCode:302 LOGIN FAILED`。在该问题修复前，海外环境优先用 `--browser` 模式登录；浏览器登录拿到的 cookies 可正常调用所有业务 API。
 
 ## 输出
 

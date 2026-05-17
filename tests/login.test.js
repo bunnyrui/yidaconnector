@@ -81,6 +81,33 @@ describe('extractInfoFromCookies', () => {
     expect(result.corpId).toBe('mycorp');
     expect(result.userId).toBe('myuser');
   });
+
+  test('海外版从独立的 corp_id cookie 提取 corpId（无 tianshu_corp_user 时）', () => {
+    // 海外 YiDA (yidaapps.com) 设置独立 corp_id cookie，不写合并的 tianshu_corp_user
+    const cookies = [
+      { name: 'tianshu_csrf_token', value: '1476ad85-f647-466b-b77f-cc02cd596912' },
+      { name: 'corp_id', value: 'dingd3873f8e79a7a819c126026dc61154d0' },
+      { name: 'pub_uid', value: 'a098nc6nxOd%2BJZWEncFBiQ%3D%3D' },
+    ];
+
+    const result = extractInfoFromCookies(cookies);
+    expect(result.csrfToken).toBe('1476ad85-f647-466b-b77f-cc02cd596912');
+    expect(result.corpId).toBe('dingd3873f8e79a7a819c126026dc61154d0');
+    // userId 加密在 pub_uid 里客户端无法解密，海外环境保持 null
+    expect(result.userId).toBeNull();
+  });
+
+  test('两种 cookie 同存在时，tianshu_corp_user 优先于独立 corp_id', () => {
+    const cookies = [
+      { name: 'tianshu_csrf_token', value: 'tok' },
+      { name: 'tianshu_corp_user', value: 'cnCorp_cnUser' },
+      { name: 'corp_id', value: 'overseasCorp' },
+    ];
+
+    const result = extractInfoFromCookies(cookies);
+    expect(result.corpId).toBe('cnCorp');
+    expect(result.userId).toBe('cnUser');
+  });
 });
 
 //─ loadCookieData─────────────────────────────────

@@ -445,13 +445,15 @@ Scan the QR code to join the OpenYida DingTalk user group for updates and suppor
 
 Thanks to everyone who has contributed to OpenYida. Read the [Contributing Guide](./CONTRIBUTING.md) to get involved.
 
+Latest contributors: [DDlixin1](https://github.com/DDlixin1), [fcloud](https://github.com/fcloud).
+
 <!-- openyida-contributors:start -->
 
 <p>
   <a href="https://github.com/yize"><img src="https://github.com/yize.png?size=48" width="48" height="48" alt="九神" title="九神" /></a>
   <a href="https://github.com/alex-mm"><img src="https://github.com/alex-mm.png?size=48" width="48" height="48" alt="天晟" title="天晟" /></a>
   <a href="https://github.com/DDlixin1"><img src="https://github.com/DDlixin1.png?size=48" width="48" height="48" alt="DDlixin1" title="DDlixin1" /></a>
-  <a href="https://github.com/fcloud"><img src="https://github.com/fcloud.png?size=48" width="48" height="48" alt="Aiden Wu" title="Aiden Wu" /></a>
+  <a href="https://github.com/fcloud"><img src="https://github.com/fcloud.png?size=48" width="48" height="48" alt="Aiden Wu (fcloud)" title="Aiden Wu (fcloud)" /></a>
   <a href="https://github.com/nicky1108"><img src="https://github.com/nicky1108.png?size=48" width="48" height="48" alt="nicky1108" title="nicky1108" /></a>
   <a href="https://github.com/angelinheys"><img src="https://github.com/angelinheys.png?size=48" width="48" height="48" alt="angelinheys" title="angelinheys" /></a>
   <a href="https://github.com/yipengmu"><img src="https://github.com/yipengmu.png?size=48" width="48" height="48" alt="yipengmu" title="yipengmu" /></a>

@@ -466,6 +466,13 @@ describe('DingTalk OAuth organization selection', () => {
     )).toBe('https://yida-group.alibaba-inc.com');
   });
 
+  test('derives yidaapps base URL from DingTalk international OAuth redirect', () => {
+    expect(__test__.deriveAliworkBaseUrl(
+      'https://login.dingtalk.io/oauth2/auth?redirect_uri=https%3A%2F%2Fwww.yidaapps.com%2Fdingtalk_sso_call_back%3Fcontinue%3Dhttps%253A%252F%252Fwww.yidaapps.com%252FworkPlatform',
+      'https://login.dingtalk.io/oauth2/challenge'
+    )).toBe('https://www.yidaapps.com');
+  });
+
   test('keeps configured base URL when redirect is not a Yida service host', () => {
     expect(__test__.deriveAliworkBaseUrl(
       'https://yida.company.example',

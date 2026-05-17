@@ -291,6 +291,7 @@ function applyLoginEnvironmentFlags(cliArgs) {
     '--overseas': 'intl',
     '--international': 'intl',
     '--global': 'intl',
+    '--yidaapps': 'intl',
     '--alibaba': 'alibaba',
     '--internal': 'alibaba',
     '--intranet': 'alibaba',
@@ -317,6 +318,11 @@ function applyLoginEnvironmentFlags(cliArgs) {
   return filteredArgs;
 }
 
+function applyGlobalEnvironmentFlags() {
+  const filteredArgs = applyLoginEnvironmentFlags(args);
+  args.splice(0, args.length, ...filteredArgs);
+}
+
 // 解析全局 --quiet 开关：从 args 中剔除并设置 YIDA_QUIET=1，让 chalk.js
 // 的所有装饰输出（banner/step/info/...）变 no-op，AI 即可直接 `... --quiet | jq`。
 function applyQuietFlag() {
@@ -329,6 +335,7 @@ function applyQuietFlag() {
 
 async function main() {
   applyQuietFlag();
+  applyGlobalEnvironmentFlags();
 
   if (!command || command === '--help' || command === '-h') {
     handleFirstRunGuide();

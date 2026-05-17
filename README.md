@@ -258,11 +258,13 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida env setup` | Choose a customer-friendly login environment preset: public, overseas, Alibaba intranet, or private deployment |
 | `openyida env <list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
 | `openyida commands [--json]` | Emit the machine-readable command manifest |
-| `openyida login [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--overseas] [--corp-id <corpId>]` | Log in to Yida |
+| `openyida login [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--overseas\|--yidaapps] [--corp-id <corpId>]` | Log in to Yida |
 | `openyida logout` | Log out or switch account |
 | `openyida auth <status\|login\|refresh\|logout>` | Manage login status |
 | `openyida org list` | List accessible organizations |
 | `openyida org switch --corp-id <corpId>` | Switch organization without logging in again |
+
+Environment selectors such as `--env intl`, `--overseas`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run.
 
 ### Applications
 

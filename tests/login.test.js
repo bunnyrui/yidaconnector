@@ -212,7 +212,11 @@ describe('saveCookieCache 文件写入', () => {
 
 describe('cdp-browser-login 工具函数', () => {
   const { deriveBaseUrl, findBrowserExecutable } = require('../lib/auth/cdp-browser-login');
-  const { deriveBaseUrlFromUrl } = require('../lib/core/env-manager');
+  const {
+    deriveBaseUrlFromUrl,
+    inferLoginUrlForBaseUrl,
+    resolveLoginUrl,
+  } = require('../lib/core/env-manager');
   const originalChromePath = process.env.OPENYIDA_CHROME_PATH;
 
   afterEach(() => {
@@ -230,6 +234,15 @@ describe('cdp-browser-login 工具函数', () => {
     ], 'https://www.aliwork.com/workPlatform');
 
     expect(result).toBe('https://custom.aliwork.com');
+  });
+
+  test('deriveBaseUrl 支持 yidaapps.com 服务域名', () => {
+    const result = deriveBaseUrl([
+      { name: 'tianshu_csrf_token', domain: '.yidaapps.com' },
+      { name: 'yida_user_cookie', domain: 'www.yidaapps.com' },
+    ], 'https://www.yidaapps.com/workPlatform');
+
+    expect(result).toBe('https://www.yidaapps.com');
   });
 
   test('deriveBaseUrl 支持阿里内网宜搭服务域名', () => {
@@ -254,6 +267,25 @@ describe('cdp-browser-login 工具函数', () => {
       'https://yida-group.alibaba-inc.com/workPlatform',
       'https://login.dingtalk.com/oauth2/challenge'
     )).toBe('https://yida-group.alibaba-inc.com');
+  });
+
+  test('deriveBaseUrlFromUrl 可从 DingTalk 国际 OAuth redirect_uri 反推 yidaapps base URL', () => {
+    const loginUrl = inferLoginUrlForBaseUrl('https://www.yidaapps.com');
+
+    expect(deriveBaseUrlFromUrl(
+      loginUrl,
+      'https://login.dingtalk.io/oauth2/challenge'
+    )).toBe('https://www.yidaapps.com');
+  });
+
+  test('resolveLoginUrl 在 OPENYIDA_ENDPOINT 指向 yidaapps.com 时使用 login.dingtalk.io', () => {
+    process.env.OPENYIDA_ENDPOINT = 'https://www.yidaapps.com';
+    const loginUrl = resolveLoginUrl();
+    const parsedUrl = new URL(loginUrl);
+    const redirectUri = parsedUrl.searchParams.get('redirect_uri');
+
+    expect(parsedUrl.origin).toBe('https://login.dingtalk.io');
+    expect(redirectUri).toContain('https://www.yidaapps.com/dingtalk_sso_call_back');
   });
 
   test('deriveBaseUrl 在无专属域名时回退到登录 URL origin', () => {
@@ -290,18 +322,51 @@ describe('env-manager 海外登录环境', () => {
     const config = loadEnvsConfig(path.join(os.tmpdir(), `openyida-env-missing-${Date.now()}`));
 
     expect(config.environments).toHaveProperty('intl');
-    expect(config.environments.intl.baseUrl).toBe('https://www.aliwork.com');
+    expect(config.environments.intl.baseUrl).toBe('https://www.yidaapps.com');
     expect(config.environments.intl.loginUrl).toBe(INTERNATIONAL_LOGIN_URL);
     expect(config.environments.intl.cookieFile).toBe('cookies-intl.json');
     expect(resolveEnvNameAlias('overseas')).toBe('intl');
     expect(resolveEnvNameAlias('international')).toBe('intl');
   });
 
+  test('旧版 intl 内置环境自动迁移到 yidaapps 登录链路', () => {
+    const {
+      loadEnvsConfig,
+      INTERNATIONAL_LOGIN_URL,
+      buildDingtalkOAuthLoginUrl,
+    } = require('../lib/core/env-manager');
+    const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-env-legacy-intl-'));
+    const cacheDir = path.join(tmpRoot, '.cache');
+    fs.mkdirSync(cacheDir, { recursive: true });
+    fs.writeFileSync(path.join(cacheDir, 'openyida-envs.json'), JSON.stringify({
+      current: 'intl',
+      environments: {
+        intl: {
+          baseUrl: 'https://www.aliwork.com',
+          loginUrl: buildDingtalkOAuthLoginUrl({
+            loginOrigin: 'https://login.dingtalk.io',
+            baseUrl: 'https://www.aliwork.com',
+            lang: 'en_US',
+          }),
+          cookieFile: 'cookies-intl.json',
+        },
+      },
+    }), 'utf-8');
+
+    try {
+      const config = loadEnvsConfig(tmpRoot);
+      expect(config.environments.intl.baseUrl).toBe('https://www.yidaapps.com');
+      expect(config.environments.intl.loginUrl).toBe(INTERNATIONAL_LOGIN_URL);
+    } finally {
+      fs.rmSync(tmpRoot, { recursive: true, force: true });
+    }
+  });
+
   test('海外 OAuth 登录 URL 使用 login.dingtalk.io 并回调到 YiDA', () => {
     const { buildDingtalkOAuthLoginUrl } = require('../lib/core/env-manager');
     const loginUrl = buildDingtalkOAuthLoginUrl({
       loginOrigin: 'https://login.dingtalk.io',
-      baseUrl: 'https://www.aliwork.com',
+      baseUrl: 'https://www.yidaapps.com',
       lang: 'en_US',
     });
     const parsedUrl = new URL(loginUrl);
@@ -312,8 +377,8 @@ describe('env-manager 海外登录环境', () => {
     expect(parsedUrl.searchParams.get('client_id')).toBe('suite9xvlxxerybljwheo');
     expect(parsedUrl.searchParams.get('scope')).toBe('openid corpid');
     expect(parsedUrl.searchParams.get('lang')).toBe('en_US');
-    expect(redirectUri).toContain('https://www.aliwork.com/dingtalk_sso_call_back');
-    expect(redirectUri).toContain(encodeURIComponent('https://www.aliwork.com/workPlatform'));
+    expect(redirectUri).toContain('https://www.yidaapps.com/dingtalk_sso_call_back');
+    expect(redirectUri).toContain(encodeURIComponent('https://www.yidaapps.com/workPlatform'));
   });
 });
 

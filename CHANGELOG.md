@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.5.17] - 2026-05-17
+
+### Changed
+- 海外 `intl` 内置环境切换为 `https://www.yidaapps.com`，登录链路使用 `login.dingtalk.io` OAuth 回调到 YiDA Apps。
+- 新增全局 `--yidaapps` 环境选择别名，并让登录相关环境选择参数可用于 `env` 等非登录命令。
+
+### Fixed
+- 旧版 `intl` 配置会自动迁移到新的 yidaapps 登录链路，避免继续回调到 aliwork 公网地址。
+- 从 DingTalk 国际 OAuth URL 反推服务域名时支持 `yidaapps.com`，提升国际站登录与 Cookie base URL 识别稳定性。
+
 ## [2026.5.13] - 2026-05-13
 
 ### Highlights

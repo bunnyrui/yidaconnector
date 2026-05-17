@@ -100,7 +100,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json]');
-    expect(output).toContain('login [--qr|--agent-qr|--codex|--browser] [--env <name>|--overseas] [--corp-id <corpId>]');
+    expect(output).toContain('login [--qr|--agent-qr|--codex|--browser] [--env <name>|--overseas|--yidaapps] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
@@ -212,10 +212,25 @@ describe('CLI offline smoke', () => {
     expect(parsed).toHaveProperty('login.diagnostics.baseUrlFound');
   });
 
+  test('global environment flags apply to non-login commands', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const output = runOkWithEnv(['env', '--json', '--yidaapps'], {
+        CODEX_SHELL: '1',
+      }, workspace);
+      const parsed = JSON.parse(output);
+      expect(parsed).toHaveProperty('login.diagnostics.currentEnv', 'intl');
+      expect(parsed.login.diagnostics.configuredCookieFile).toContain('cookies-intl.json');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
   test('env list routes to multi-environment management command', () => {
     const output = runOk(['env', 'list']);
     expect(output).toContain('public');
     expect(output).toContain('https://www.aliwork.com');
+    expect(output).toContain('https://www.yidaapps.com');
     expect(output).toContain('alibaba');
     expect(output).toContain('https://yida-group.alibaba-inc.com');
   });

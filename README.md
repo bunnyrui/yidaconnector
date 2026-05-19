@@ -69,7 +69,7 @@ OpenYida detects the active agent environment, workspace path, login state, and 
 openyida login
 ```
 
-In Codex, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
+In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
 
 The explicit QR polling command remains available:
 
@@ -97,7 +97,7 @@ Build an IPD workflow for chip production, including approval nodes and dashboar
 Generate a public landing page and publish it to my Yida app.
 ```
 
-The agent can then call OpenYida commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, Qoder, and Wukong environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
+The agent can then call OpenYida commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, QoderWork, Qoder, and Wukong environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
 
 ## Wukong Installation
 
@@ -123,6 +123,7 @@ export PATH="$HOME/.real/.bin/node/bin:$PATH"
 | [OpenCode](https://opencode.ai) | Full support |
 | [Cursor](https://cursor.com/) | Full support |
 | [Visual Studio Code](https://code.visualstudio.com/) | Full support |
+| [QoderWork](https://qoder.com) | Full support |
 | [Qoder](https://qoder.com) | Full support |
 | [Wukong](https://dingtalk.com/wukong) | Full support |
 

@@ -200,6 +200,24 @@ openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-impo
 openyida get-permission APP_XXX FORM_XXX
 ```
 
+`configure-process` 的流程 JSON 中，审批人可配置为发起人、指定成员、指定角色、部门主管或直属主管，例如：
+
+```json
+{
+  "nodes": [
+    {
+      "type": "approval",
+      "name": "主管审批",
+      "approver": {
+        "type": "user",
+        "users": [{ "id": "manager7350", "name": "九神" }],
+        "multiApproverType": "all"
+      }
+    }
+  ]
+}
+```
+
 When creating or updating test data with `openyida data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
 Temporary JSON, CSV, and one-off import scripts should live under `.cache/openyida/` so generated run artifacts do not clutter the repository root.
 
@@ -290,6 +308,9 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 |---------|-------------|
 | `openyida create-form create <appType> "<name>" <fields.json> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
 | `openyida create-form update <appType> <formUuid> <changes.json> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
+| `openyida create-form patch <appType> <formUuid> <patch.json> [--open\|--no-open]` | Apply controlled schema patches for designer-only form settings |
+| `openyida create-form rule <appType> <formUuid> <rules.json> [--open\|--no-open]` | Configure field show/hide linkage and onChange auto-assignment rules |
+| `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <datasource.json> [--open\|--no-open]` | Bind URL/search data sources to SelectField/MultiSelectField-style option fields |
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Append options to a SelectField/RadioField/CheckboxField/MultiSelectField |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms in an application |
 | `openyida get-schema <appType> <formUuid\|--all> [--field <labelOrFieldId>]` | Fetch one form schema, batch export all, or pick a single field's full props |
@@ -310,7 +331,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, fixed-domain records, and domain settings |
 | `openyida get-permission <appType> <formUuid>` | Query form permission configuration |
-| `openyida save-permission <appType> <formUuid> [options]` | Save form permission configuration |
+| `openyida save-permission <appType> <formUuid> [options]` | Save form permission configuration, including raw `--field-permission <json>` |
 | `openyida corp-manager <sub-command>` | Manage platform admins, sub-admins, app admins, and address book visibility |
 | `openyida verify-short-url <appType> <formUuid> <url>` | Verify a short URL |
 | `openyida save-share-config <appType> <formUuid> <url> <isOpen> [openAuth]` | Save public access or sharing configuration |

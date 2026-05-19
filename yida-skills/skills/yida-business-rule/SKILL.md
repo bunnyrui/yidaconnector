@@ -18,6 +18,7 @@ description: 宜搭表单业务关联规则/高级函数配置技能。用于用
 
 | 场景 | 使用技能 |
 |------|---------|
+| 字段显隐联动、字段 onChange 自动赋值 | `yida-create-form-page` 的 `create-form rule` |
 | 常规提交后跨表联动、长期维护、节点编排 | `yida-integration` |
 | 用户明确要求高级函数/业务关联规则 | **本技能** |
 | 字段默认值、计算字段、自定义校验 | `yida-formula` |

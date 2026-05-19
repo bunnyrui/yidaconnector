@@ -114,7 +114,7 @@ openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/order/process-de
 | --- | --- | --- | --- |
 | `type` | String | 是 | 固定 `"approval"` |
 | `name` | String | 是 | 节点名称 |
-| `approver` | String | 是 | 审批人，目前支持 `"originator"`（发起人） |
+| `approver` | String/Object | 是 | 审批人。`"originator"` 表示发起人；Object 支持 `user`、`role`、`deptLeader`、`directLeader`，也可传入宜搭流程设计器的原始审批人配置 |
 | `description` | String | 否 | 节点描述 |
 | `formConfig` | Object | 否 | 字段权限配置 |
 | `routeRules` | Array | 否 | 跳转规则 |
@@ -192,6 +192,97 @@ openyida configure-process "APP_XXX" "FORM-YYY" .cache/openyida/order/process-de
 ```
 
 `jumpTo` 的值为目标审批节点的 `name`，或 `"结束"` 表示跳到流程结束。
+
+### 审批人配置
+
+#### 发起人本人
+
+```json
+{
+  "type": "approval",
+  "name": "发起人确认",
+  "approver": "originator"
+}
+```
+
+#### 指定成员
+
+`id` 使用宜搭/钉钉通讯录中的 userId。可通过组织成员查询、应用成员配置或已知人员表获取。
+
+```json
+{
+  "type": "approval",
+  "name": "主管审批",
+  "approver": {
+    "type": "user",
+    "users": [
+      { "id": "manager7350", "name": "九神" }
+    ],
+    "multiApproverType": "all"
+  }
+}
+```
+
+#### 指定角色
+
+`roleType` 默认为 `"YIDA"`；钉钉角色可传 `"DINGTALK"`。多个角色会按 `roleType` 生成宜搭流程需要的 `multiRoles`。
+
+```json
+{
+  "type": "approval",
+  "name": "财务审批",
+  "approver": {
+    "type": "role",
+    "roles": [
+      { "id": "ROLE-FINANCE", "name": "财务", "roleType": "YIDA" }
+    ],
+    "multiApproverType": "or"
+  }
+}
+```
+
+#### 部门主管 / 直属主管
+
+```json
+{
+  "type": "approval",
+  "name": "部门主管审批",
+  "approver": {
+    "type": "deptLeader",
+    "source": "originator",
+    "level": 1,
+    "needLeaderReplace": true,
+    "ignoreNoLeaderDept": false
+  }
+}
+```
+
+直属主管使用 `"type": "directLeader"`，其余参数相同。`multiApproverType` 可选 `"all"`、`"or"`、`"oneByOne"`。
+
+### 原始审批人配置（高级）
+
+当 DSL 不能覆盖某个租户/版本的特殊审批规则时，可在节点上提供原始审批配置，OpenYida 会透传到 `processJson` 和 `viewJson`：
+
+```json
+{
+  "type": "approval",
+  "name": "部门负责人审批",
+  "approver": {
+    "approvalType": "ext_target_approval_originator",
+    "approvals": [["originator"]],
+    "approverRules": {
+      "type": "ext_target_approval_originator",
+      "mode": "ApprovalNode_rules_only",
+      "approverList": [{ "type": "ext_target_approval" }],
+      "multiApproverType": "all",
+      "conditionalMode": "conditional",
+      "description": "发起人本人"
+    }
+  }
+}
+```
+
+说明：不同租户/版本下某些高级规则（接口人、第三方服务、连接器、权限矩阵等）的 `approverRules` 结构可能不同。遇到 DSL 暂未覆盖的类型时，先在宜搭流程设计器中配置一个样例并导出/抓取对应结构，再用该对象固化到流程定义中。
 
 ## AI 自动生成流程特性（必须遵守）
 

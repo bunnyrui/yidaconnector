@@ -160,3 +160,70 @@ describe('add-option mode in source code', () => {
     expect(sourceCode).toContain('existingDataSource.push(newItem)');
   });
 });
+
+describe('patch mode in source code', () => {
+  test('parseArgs recognizes patch mode', () => {
+    expect(sourceCode).toContain("mode === 'patch'");
+    expect(sourceCode).toContain('patchJsonOrFile');
+  });
+
+  test('mainPatch function is defined and routed', () => {
+    expect(sourceCode).toContain('async function mainPatch(');
+    expect(sourceCode).toContain("parsedArgs.mode === 'patch'");
+    expect(sourceCode).toContain('mainPatch(parsedArgs');
+  });
+
+  test('patch mode supports field props and JSON pointer operations', () => {
+    expect(sourceCode).toContain("action === 'field-props'");
+    expect(sourceCode).toContain('applyJsonPointerOperation(schema, operation)');
+  });
+});
+
+describe('rule mode in source code', () => {
+  test('parseArgs recognizes rule mode', () => {
+    expect(sourceCode).toContain("mode === 'rule'");
+    expect(sourceCode).toContain('rulesJsonOrFile');
+  });
+
+  test('mainRule function is defined and routed', () => {
+    expect(sourceCode).toContain('async function mainRule(');
+    expect(sourceCode).toContain("parsedArgs.mode === 'rule'");
+    expect(sourceCode).toContain('mainRule(parsedArgs');
+  });
+
+  test('rule mode generates action source and binds field onChange', () => {
+    expect(sourceCode).toContain('function applyFormRules(');
+    expect(sourceCode).toContain('openyidaApplyRules');
+    expect(sourceCode).toContain('openyidaRuleChange_');
+    expect(sourceCode).toContain("const eventName = 'onChange'");
+  });
+
+  test('rule mode supports visibility and set value rules', () => {
+    expect(sourceCode).toContain("type: 'visibility'");
+    expect(sourceCode).toContain("type: 'setValue'");
+    expect(sourceCode).toContain('openyidaRuleSetBehavior');
+    expect(sourceCode).toContain('openyidaRuleSetValue');
+    expect(sourceCode).toContain("operator: 'always'");
+  });
+});
+
+describe('bind-datasource mode in source code', () => {
+  test('parseArgs recognizes bind-datasource aliases', () => {
+    expect(sourceCode).toContain("mode === 'bind-datasource'");
+    expect(sourceCode).toContain("mode === 'datasource'");
+    expect(sourceCode).toContain('dataSourceJsonOrFile');
+  });
+
+  test('mainBindDataSource is defined and routed', () => {
+    expect(sourceCode).toContain('async function mainBindDataSource(');
+    expect(sourceCode).toContain("parsedArgs.mode === 'bind-datasource'");
+    expect(sourceCode).toContain('mainBindDataSource(parsedArgs');
+  });
+
+  test('datasource binding updates searchConfig and defaultDataSource', () => {
+    expect(sourceCode).toContain('function applySelectDataSourceConfig(');
+    expect(sourceCode).toContain('props.searchConfig = {');
+    expect(sourceCode).toContain('props.defaultDataSource = Object.assign');
+    expect(sourceCode).toContain("action: 'bind-datasource'");
+  });
+});

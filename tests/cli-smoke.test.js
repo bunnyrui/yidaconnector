@@ -140,6 +140,9 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('login');
     expect(commands).toContain('corp-efficiency');
     expect(commands).toContain('create-form.create');
+    expect(commands).toContain('create-form.patch');
+    expect(commands).toContain('create-form.rule');
+    expect(commands).toContain('create-form.bind-datasource');
     expect(commands).toContain('list-forms');
     expect(commands).toContain('build-page');
     expect(commands).toContain('connector.smart-create');

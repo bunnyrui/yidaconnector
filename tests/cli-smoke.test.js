@@ -108,6 +108,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('list-forms');
     expect(output).toContain('connector');
     expect(output).toContain('corp-manager');
+    expect(output).toContain('agent-center');
     expect(output).toContain('dws');
     expect(output).toContain('dingtalk-link');
     expect(output).toContain('a2a <serve|agent-card> [options]');
@@ -139,6 +140,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('env');
     expect(commands).toContain('login');
     expect(commands).toContain('corp-efficiency');
+    expect(commands).toContain('nav-group');
     expect(commands).toContain('create-form.create');
     expect(commands).toContain('create-form.patch');
     expect(commands).toContain('create-form.rule');
@@ -147,6 +149,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('build-page');
     expect(commands).toContain('connector.smart-create');
     expect(commands).toContain('corp-manager');
+    expect(commands).toContain('agent-center');
     expect(commands).toContain('dingtalk-link');
     expect(commands).toContain('commands');
     expect(commands).toContain('a2a');
@@ -607,6 +610,7 @@ describe('CLI offline smoke', () => {
       { args: ['process', 'preview'], expected: 'process preview' },
       { args: ['connector', 'missing-subcommand'], expected: 'connector' },
       { args: ['corp-manager', 'list'], expected: 'corp-manager' },
+      { args: ['agent-center', 'cancel'], expected: 'agent-center' },
     ];
 
     for (const item of cases) {

@@ -172,10 +172,12 @@ openyida copy
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid> [--health-check]` |
 | `yida-page-config` | `skills/yida-page-config/SKILL.md` | 页面公开访问/组织内分享配置 | `openyida verify-short-url <appType> <formUuid> <url>` |
 | `yida-basic-info` | `skills/yida-basic-info/SKILL.md` | 组织基本信息、资源容量、额度和域名设置查询 | `openyida basic-info overview` |
+| `yida-nav-group` | `skills/yida-nav-group/SKILL.md` | 应用左侧导航分组管理（查询/创建/重命名/删除/移动/显隐） | `openyida nav-group list <appType>` |
 | `yida-form-permission` | `skills/yida-form-permission/SKILL.md` | 表单权限查询与保存 | `openyida get-permission <appType> <formUuid>` |
 | `yida-app-permission` | `skills/yida-app-permission/SKILL.md` | 应用级管理员设置（主管理员/数据管理员/开发成员） | `openyida app-permission get <appType>` |
 | `yida-i18n` | `skills/yida-i18n/SKILL.md` | 应用多语言管理（语言配置、词条、翻译、升级） | `openyida i18n overview <appType>` |
 | `yida-corp-manager` | `skills/yida-corp-manager/SKILL.md` | 平台管理员、应用管理员、子管理员与通讯录权限 | `openyida corp-manager <子命令>` |
+| `yida-agent-center` | `skills/yida-agent-center/SKILL.md` | 代理中心：在职流程代理、离职代理、撤销和部分流程范围 | `openyida agent-center <子命令>` |
 | `yida-form-detail` | `skills/yida-form-detail/SKILL.md` | 表单详情页 formDetail 样式优化 | 详见 SKILL.md |
 | `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/流程/任务数据查询与变更 | `openyida data query form <appType> <formUuid>` |
 | `yida-corp-efficiency` | `skills/yida-corp-efficiency/SKILL.md` | 平台管理企业效能概览、查看明细报表、报表接口模板、学习成果和通知群动作 | `openyida corp-efficiency` |

@@ -705,6 +705,13 @@ async function main() {
       break;
     }
 
+    case 'nav-group':
+    case 'group': {
+      const { run: runNavGroup } = require('../lib/app/nav-group');
+      await runNavGroup(args);
+      break;
+    }
+
     case 'app-permission': {
       const { run: runAppPermission } = require('../lib/app-permission/app-permission');
       await runAppPermission(args);
@@ -916,6 +923,12 @@ async function main() {
     case 'corp-manager': {
       const { run: runCorpManager } = require('../lib/corp-manager/corp-manager');
       await runCorpManager(args);
+      break;
+    }
+
+    case 'agent-center': {
+      const { run: runAgentCenter } = require('../lib/agent-center/agent-center');
+      await runAgentCenter(args);
       break;
     }
 

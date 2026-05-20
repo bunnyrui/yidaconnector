@@ -297,6 +297,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency metrics, detail report entries, and related notification actions |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create an application and output `appType` |
 | `openyida update-app <appType> --name "..."` | Update application metadata |
+| `openyida nav-group <list\|create\|rename\|delete\|move\|hide\|show> <appType> ...` | Manage sidebar navigation groups and move pages between groups |
 | `openyida app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary admins, data admins, and developer members |
 | `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language configuration |
 | `openyida export <appType> [output]` | Export an application migration package |
@@ -329,6 +330,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms |
 | `openyida data check <appType> <formUuid> <rules.json>` | Detect anomalous process-form records |
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
+| `openyida agent-center <sub-command>` | Manage Yida process delegation and departure delegation |
 | `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, fixed-domain records, and domain settings |
 | `openyida get-permission <appType> <formUuid>` | Query form permission configuration |
 | `openyida save-permission <appType> <formUuid> [options]` | Save form permission configuration, including raw `--field-permission <json>` |

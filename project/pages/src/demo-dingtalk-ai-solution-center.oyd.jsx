@@ -31,6 +31,7 @@ var _customState = {
 };
 
 var APP_TYPE = 'APP_WXXZPD6QF8B2NNWGJG3J';
+var TAILWIND_CDN = 'https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js';
 
 var FORM_CONFIG = {
   customer: {
@@ -82,6 +83,34 @@ var FORM_CONFIG = {
       assets: 'multiSelectField_ahzwfzczy',
       owner: 'employeeField_ahzwge548',
       status: 'selectField_ahzwhgu72'
+    }
+  },
+  solutionRepository: {
+    formUuid: 'FORM-00F624E4358D4CF9BD4A383192112A258J1A',
+    fields: {
+      solutionName: 'textField_bzr111bpp',
+      scenarios: 'textareaField_bzr12t49j',
+      industry: 'textareaField_bzr135lje',
+      usedCustomers: 'textareaField_bzr140f14',
+      potentialCustomers: 'textareaField_bzr158akh',
+      technologies: 'textareaField_bzr16f2wl',
+      deliveryTeam: 'textareaField_bzr17xeua',
+      deliveryOwner: 'textField_bzr18hhau',
+      contributor: 'textField_bzr19i9jq',
+      maturity: 'selectField_bzr1ayp85',
+      tokenUsage: 'selectField_bzr1bb7as',
+      saGroup: 'textField_bzr1clzse',
+      commercialScale: 'numberField_bzr1db655',
+      detailTitle: 'textField_bzr2eethi',
+      detailUrl: 'textField_bzr2frnd8',
+      skillName: 'textField_bzr2ghm6r',
+      skillTitle: 'textField_bzr2ho5dz',
+      skillUrl: 'textField_bzr2i68nt',
+      skillMaturity: 'selectField_bzr2ja8vf',
+      registeredAt: 'dateField_bzr2kkt6w',
+      sourceRecordId: 'textField_bzr2l466n',
+      sourceIndex: 'numberField_bzr2mp452',
+      syncedAt: 'dateField_bzr2nufna'
     }
   },
   demoInstance: {
@@ -175,8 +204,66 @@ export function forceUpdate() {
   this.setState({ timestamp: new Date().getTime() });
 }
 
+export function ensureTailwind() {
+  var self = this;
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return Promise.resolve();
+  }
+  if (window.__saSolutionTailwindReady) {
+    return Promise.resolve();
+  }
+  if (window.__saSolutionTailwindLoading) {
+    return window.__saSolutionTailwindLoading;
+  }
+  this.injectTailwindSource();
+  window.__saSolutionTailwindLoading = this.utils.loadScript(TAILWIND_CDN)
+    .then(function() {
+      window.__saSolutionTailwindReady = true;
+      self.forceUpdate();
+    })
+    .catch(function() {
+      window.__saSolutionTailwindFailed = true;
+      self.injectTailwindFallback();
+      self.forceUpdate();
+    });
+  return window.__saSolutionTailwindLoading;
+}
+
+export function injectTailwindSource() {
+  if (typeof document === 'undefined' || document.getElementById('sa-solution-tailwind-source')) {
+    return;
+  }
+  var style = document.createElement('style');
+  style.id = 'sa-solution-tailwind-source';
+  style.type = 'text/tailwindcss';
+  style.innerHTML = [
+    '@import "tailwindcss/theme";',
+    '@import "tailwindcss/preflight";',
+    '@import "tailwindcss/utilities";',
+    '@theme { --color-ding-blue: #2563EB; --color-ding-ink: #0F172A; --color-ding-mint: #059669; }'
+  ].join('\n');
+  document.head.appendChild(style);
+}
+
+export function injectTailwindFallback() {
+  if (typeof document === 'undefined' || document.getElementById('sa-solution-tailwind-fallback')) {
+    return;
+  }
+  var style = document.createElement('style');
+  style.id = 'sa-solution-tailwind-fallback';
+  style.innerHTML = [
+    '.sa-btn{height:36px;border-radius:8px;border:1px solid #CBD5E1;background:#fff;padding:0 14px;font-size:13px;font-weight:800;cursor:pointer;}',
+    '.sa-btn-primary{background:#2563EB;border-color:#2563EB;color:#fff;}',
+    '.sa-card{border:1px solid #DDE5F0;border-radius:8px;background:#fff;box-sizing:border-box;}',
+    '.sa-nav-btn{width:100%;min-height:42px;border:0;border-radius:8px;background:transparent;color:#CBD5E1;text-align:left;cursor:pointer;font-family:inherit;}',
+    '.sa-nav-btn-active{background:rgba(96,165,250,.16);color:#fff;}'
+  ].join('');
+  document.head.appendChild(style);
+}
+
 export function didMount() {
   var self = this;
+  this.ensureTailwind();
   this.syncNavFromUrl();
   if (typeof window !== 'undefined' && window.addEventListener) {
     _customState._popStateHandler = function() {
@@ -205,7 +292,8 @@ export function isYidaDataConfigured() {
     FORM_CONFIG.customer.formUuid &&
     FORM_CONFIG.visit.formUuid &&
     FORM_CONFIG.demoInstance.formUuid &&
-    FORM_CONFIG.riskCustomer.formUuid
+    FORM_CONFIG.riskCustomer.formUuid &&
+    FORM_CONFIG.solutionRepository.formUuid
   );
 }
 
@@ -252,9 +340,10 @@ export function loadDashboardData() {
     self.fetchFormRows('demoInstance'),
     self.fetchFormRows('riskCustomer'),
     self.fetchFormRows('weeklyReport'),
-    self.fetchFormRows('meetingNote')
+    self.fetchFormRows('meetingNote'),
+    self.fetchFormRows('solutionRepository')
   ]).then(function(results) {
-    var data = buildDashboardDataFromRows(results[0], results[1], results[2], results[3], results[4], results[5]);
+    var data = buildDashboardDataFromRows(results[0], results[1], results[2], results[3], results[4], results[5], results[6]);
     self.setCustomState({
       dashboardData: data,
       dataLoading: false,
@@ -313,10 +402,12 @@ export function selectIndustry(key) {
 }
 
 export function selectSolution(key) {
+  var industryKey = getIndustryKeyForSolution(key) || _customState.activeIndustry;
   this.setCustomState({
+    activeIndustry: industryKey,
     selectedSolution: key,
     diagnosisMode: 'solution',
-    diagnosisResult: buildDiagnosisResult(_customState.diagnosisText || '', _customState.activeIndustry, findSolutionByKey(key))
+    diagnosisResult: buildDiagnosisResult(_customState.diagnosisText || '', industryKey, findSolutionByKey(key))
   });
 }
 
@@ -460,7 +551,7 @@ export function createDemo() {
       buildTaskStatus: '待搭建',
       buildTaskRecordId: recordId || ''
     });
-    self.utils.toast({ title: 'OpenYida 搭建任务已写入 Demo 实例表', type: 'success' });
+    self.utils.toast({ title: 'Demo 任务已写入实例表', type: 'success' });
   }).catch(function(err) {
     var message = err && err.message ? err.message : '搭建任务写入失败';
     self.setCustomState({
@@ -489,7 +580,7 @@ export function submitBuildTask(buildSpec, buildPrompt) {
   formData[fields.pageUrl] = '';
   formData[fields.duration] = 0;
   formData[fields.createdAt] = new Date().getTime();
-  formData[fields.feedback] = limitText('OpenYida buildSpec 和执行 Prompt 已生成，等待 runner 消费。', 190);
+  formData[fields.feedback] = limitText('AI 搭建规格和执行 Prompt 已生成，等待执行。', 190);
   formData[fields.buildSpec] = JSON.stringify(buildSpec, null, 2);
   formData[fields.buildPrompt] = buildPrompt;
   formData[fields.tasks] = buildSpec.tasks.map((task) => {
@@ -566,12 +657,12 @@ export function copyPrompt(label) {
 export function copyBuildPrompt() {
   var prompt = _customState.buildPrompt || '';
   if (!prompt) {
-    this.utils.toast({ title: '请先生成 OpenYida 搭建任务', type: 'warning' });
+    this.utils.toast({ title: '请先生成 Demo 任务', type: 'warning' });
     return;
   }
   if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(prompt).then(() => {
-      this.utils.toast({ title: 'OpenYida 执行 Prompt 已复制', type: 'success' });
+      this.utils.toast({ title: 'AI 搭建执行 Prompt 已复制', type: 'success' });
     }).catch((err) => {
       var message = err && err.message ? err.message : '复制失败';
       this.utils.toast({ title: message, type: 'error' });
@@ -681,8 +772,11 @@ function getRouteState() {
   navKey = isKnownNavKey(navKey) ? navKey : '';
   industryKey = isKnownIndustryKey(industryKey) ? industryKey : '';
   solutionKey = isKnownSolutionKey(solutionKey) ? solutionKey : '';
-  if (solutionKey && !industryKey) {
-    industryKey = getIndustryKeyForSolution(solutionKey);
+  if (solutionKey) {
+    var routeSolutionIndustry = getIndustryKeyForSolution(solutionKey);
+    if (!industryKey || industryKey !== routeSolutionIndustry) {
+      industryKey = routeSolutionIndustry || industryKey;
+    }
   }
   if (industryKey && !solutionKey) {
     solutionKey = industryDefaultSolutions[industryKey] || '';
@@ -709,6 +803,10 @@ function updateRouteState(nextState) {
   }
   if (!isKnownSolutionKey(solutionKey)) {
     solutionKey = industryDefaultSolutions[industryKey] || 'inspection';
+  }
+  var solutionIndustryKey = getIndustryKeyForSolution(solutionKey);
+  if (solutionIndustryKey && solutionIndustryKey !== industryKey) {
+    industryKey = solutionIndustryKey;
   }
   try {
     var url = new URL(window.location.href);
@@ -906,7 +1004,7 @@ function createBuildSpec(result, activeSolution) {
 
 function buildTaskOutput(name, index, playbook, solution) {
   if (index === 0) {
-    return '执行 openyida env，创建「' + solution.title + '」样板应用。';
+    return '确认执行环境，创建「' + solution.title + '」样板应用。';
   }
   if (index === 1) {
     return '创建 ' + playbook.assets.slice(0, 4).join('、') + '。';
@@ -1079,8 +1177,121 @@ function buildMockDashboardData() {
     managerMetrics: managerMetrics,
     teamRows: teamRows,
     riskCustomers: riskCustomers,
-    visitActionCount: 9
+    visitActionCount: 9,
+    solutionRepository: buildSolutionRepositoryData([])
   };
+}
+
+function getMaturityScore(text) {
+  var value = displayValue(text);
+  if (value.indexOf('M3') >= 0 || value.indexOf('规模化') >= 0 || value.indexOf('成熟') >= 0) {
+    return 3;
+  }
+  if (value.indexOf('M2') >= 0 || value.indexOf('孵化') >= 0 || value.indexOf('共创') >= 0) {
+    return 2;
+  }
+  if (value.indexOf('M1') >= 0) {
+    return 1;
+  }
+  return 0;
+}
+
+function inferRepositoryIndustryKey(item) {
+  var text = [
+    item.name,
+    item.industry,
+    item.scenarios,
+    item.technologies,
+    item.usedCustomers,
+    item.potentialCustomers
+  ].join(' ');
+  if (!text) {
+    return '';
+  }
+  if (text.indexOf('制造') >= 0 || text.indexOf('设备') >= 0 || text.indexOf('质量') >= 0 || text.indexOf('工厂') >= 0 || text.indexOf('半导体') >= 0 || text.indexOf('汽车') >= 0) {
+    return 'manufacturing';
+  }
+  if (text.indexOf('酒店') >= 0 || text.indexOf('物业') >= 0 || text.indexOf('报修') >= 0 || text.indexOf('园区') >= 0) {
+    return 'property';
+  }
+  return inferIndustryKey(text);
+}
+
+function buildRepositoryItem(row) {
+  var item = {
+    name: displayValue(readField(row, 'solutionRepository', 'solutionName', '未命名方案')),
+    maturity: displayValue(readField(row, 'solutionRepository', 'maturity', '待评估')),
+    industry: displayValue(readField(row, 'solutionRepository', 'industry', '')),
+    scenarios: displayValue(readField(row, 'solutionRepository', 'scenarios', '')),
+    technologies: displayValue(readField(row, 'solutionRepository', 'technologies', '')),
+    usedCustomers: displayValue(readField(row, 'solutionRepository', 'usedCustomers', '')),
+    potentialCustomers: displayValue(readField(row, 'solutionRepository', 'potentialCustomers', '')),
+    contributor: displayValue(readField(row, 'solutionRepository', 'contributor', '')),
+    tokenUsage: displayValue(readField(row, 'solutionRepository', 'tokenUsage', '')),
+    url: displayValue(readField(row, 'solutionRepository', 'detailUrl', '')),
+    sourceIndex: Number(readField(row, 'solutionRepository', 'sourceIndex', 0)) || 0
+  };
+  item.industryKey = inferRepositoryIndustryKey(item);
+  item.maturityScore = getMaturityScore(item.maturity);
+  return item;
+}
+
+function buildSolutionRepositoryData(rows) {
+  var sourceRows = rows && rows.length ? rows : [];
+  var items = sourceRows.map((row) => buildRepositoryItem(row)).filter((item) => !!item.name);
+  var techCounter = {};
+  items.forEach((item) => {
+    displayList(item.technologies).forEach((tech) => {
+      var key = tech.replace(/\s+/g, '');
+      if (key) {
+        techCounter[key] = (techCounter[key] || 0) + 1;
+      }
+    });
+  });
+  var topTechnologies = Object.keys(techCounter)
+    .map((key) => ({ label: key, count: techCounter[key] }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 4);
+  var matureCount = items.filter((item) => item.maturityScore >= 3).length;
+  var aiReadyCount = items.filter((item) => {
+    var text = item.technologies + item.scenarios + item.name;
+    return text.indexOf('悟空') >= 0 || text.indexOf('AI') >= 0 || text.indexOf('宜搭') >= 0 || text.indexOf('AI表格') >= 0;
+  }).length;
+  var tokenCount = items.filter((item) => item.tokenUsage.indexOf('有') >= 0).length;
+
+  return {
+    total: items.length,
+    matureCount: matureCount,
+    aiReadyCount: aiReadyCount,
+    tokenCount: tokenCount,
+    topTechnologies: topTechnologies,
+    items: items
+  };
+}
+
+function scoreRepositoryItem(item, industryKey) {
+  var score = item.maturityScore * 18;
+  if (item.industryKey && item.industryKey === industryKey) {
+    score += 60;
+  }
+  if (item.technologies.indexOf('悟空') >= 0 || item.name.indexOf('悟空') >= 0) {
+    score += 12;
+  }
+  if (item.technologies.indexOf('宜搭') >= 0 || item.technologies.indexOf('AI表格') >= 0) {
+    score += 8;
+  }
+  if (item.url) {
+    score += 5;
+  }
+  return score;
+}
+
+function getRepositoryRecommendations(repository, industryKey) {
+  var items = (repository && repository.items ? repository.items : []).slice();
+  return items
+    .map((item) => Object.assign({}, item, { matchScore: scoreRepositoryItem(item, industryKey) }))
+    .sort((a, b) => b.matchScore - a.matchScore)
+    .slice(0, 4);
 }
 
 function normalizeRows(res) {
@@ -1307,7 +1518,7 @@ function buildMeetingNoteMap(meetingNotes) {
   return map;
 }
 
-function buildDashboardDataFromRows(customers, visits, demos, risks, weeklyReports, meetingNotes) {
+function buildDashboardDataFromRows(customers, visits, demos, risks, weeklyReports, meetingNotes, solutionRows) {
   var totalVisits = visits.length;
   var prepared = 0;
   var noted = 0;
@@ -1360,7 +1571,8 @@ function buildDashboardDataFromRows(customers, visits, demos, risks, weeklyRepor
     ],
     teamRows: buildTeamRows(customers, visits, demos, risks, weeklyReports),
     riskCustomers: buildRiskRows(risks),
-    visitActionCount: missingNext
+    visitActionCount: missingNext,
+    solutionRepository: buildSolutionRepositoryData(solutionRows || [])
   };
 }
 
@@ -1370,12 +1582,30 @@ export function renderNavItem(item) {
   return (
     <button
       key={item.key}
+      className={active ? 'sa-nav-btn sa-nav-btn-active flex items-center gap-3 px-3 py-2 text-sm font-semibold' : 'sa-nav-btn flex items-center gap-3 px-3 py-2 text-sm font-semibold hover:bg-white/10'}
       style={Object.assign({}, styles.navItem, active ? styles.navItemActive : {})}
       onClick={(e) => { self.selectNav(item.key); }}
     >
-      <span style={Object.assign({}, styles.navIcon, active ? styles.navIconActive : {})}>{item.icon}</span>
-      <span style={styles.navText}>{item.label}</span>
-      {item.badge ? <span style={styles.navBadge}>{item.badge}</span> : null}
+      <span className={active ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-xs font-black text-white' : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/10 text-xs font-black text-slate-200'} style={Object.assign({}, styles.navIcon, active ? styles.navIconActive : {})}>{item.icon}</span>
+      <span className="min-w-0 flex-1 truncate" style={styles.navText}>{item.label}</span>
+      {item.badge ? <span className="rounded-full bg-amber-400 px-2 py-0.5 text-xs font-black text-slate-950" style={styles.navBadge}>{item.badge}</span> : null}
+    </button>
+  );
+}
+
+export function renderMobileNavItem(item) {
+  var self = this;
+  var active = _customState.activeNav === item.key;
+  return (
+    <button
+      key={item.key}
+      className={active ? 'rounded-lg border border-blue-200 bg-blue-50 p-3 text-left text-blue-700' : 'rounded-lg border border-slate-200 bg-white p-3 text-left text-slate-700'}
+      style={Object.assign({}, styles.mobileNavItem, active ? styles.mobileNavItemActive : {})}
+      onClick={(e) => { self.selectNav(item.key); }}
+    >
+      <span style={styles.mobileNavIcon}>{item.icon}</span>
+      <span style={styles.mobileNavLabel}>{item.label}</span>
+      {item.badge ? <span style={styles.mobileNavBadge}>{item.badge}</span> : null}
     </button>
   );
 }
@@ -1446,6 +1676,142 @@ export function renderSolutionCard(item) {
   );
 }
 
+export function renderRepositorySolution(item) {
+  var self = this;
+  var customers = item.usedCustomers || item.potentialCustomers || '待补充客户';
+  var meta = [item.maturity, item.contributor].filter((value) => !!value).join(' · ');
+  return (
+    <button
+      key={item.name + item.sourceIndex}
+      style={styles.repositoryCard}
+      onClick={(e) => {
+        if (item.url && typeof window !== 'undefined' && window.open) {
+          window.open(item.url, '_blank');
+        } else {
+          self.utils.toast({ title: '该方案还没有沉淀链接', type: 'warning' });
+        }
+      }}
+    >
+      <div style={styles.repositoryCardTop}>
+        <span style={styles.repositoryBadge}>{item.maturityScore >= 3 ? 'M3' : item.maturityScore >= 2 ? 'M2' : 'M1'}</span>
+        <span style={styles.repositoryScore}>{item.matchScore} 匹配</span>
+      </div>
+      <div style={styles.repositoryTitle}>{item.name}</div>
+      <div style={styles.repositoryDesc}>{customers}</div>
+      <div style={styles.repositoryMeta}>{meta || 'SA 方案库'}</div>
+    </button>
+  );
+}
+
+export function renderSolutionRepositoryHome(isMobile) {
+  var self = this;
+  var dashboard = this.getDashboardData();
+  var repository = dashboard.solutionRepository || buildSolutionRepositoryData([]);
+  var recommendations = getRepositoryRecommendations(repository, _customState.activeIndustry);
+  var statStyle = isMobile ? Object.assign({}, styles.repositoryStats, { gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }) : styles.repositoryStats;
+  var gridStyle = isMobile ? Object.assign({}, styles.repositoryGrid, { gridTemplateColumns: '1fr' }) : styles.repositoryGrid;
+  var stats = [
+    { label: '方案资产', value: repository.total },
+    { label: 'M3 成熟', value: repository.matureCount },
+    { label: 'AI Ready', value: repository.aiReadyCount },
+    { label: '需算粒', value: repository.tokenCount }
+  ];
+  return (
+    <section style={styles.repositoryPanel}>
+      <div style={styles.repositoryHeader}>
+        <div>
+          <div style={styles.eyebrow}>AI 表格同步</div>
+          <h2 style={styles.repositoryHeading}>解决方案沉淀表</h2>
+        </div>
+        <div style={styles.headerActions}>
+          <button
+            style={styles.secondaryButton}
+            onClick={(e) => {
+              if (typeof window !== 'undefined' && window.open) {
+                window.open('https://www.aliwork.com/' + APP_TYPE + '/workbench/' + FORM_CONFIG.solutionRepository.formUuid, '_blank');
+              }
+            }}
+          >
+            打开沉淀表
+          </button>
+          <button style={styles.primaryButton} onClick={(e) => { self.selectNav('solutions'); }}>查看方案包</button>
+        </div>
+      </div>
+      <div style={statStyle}>
+        {stats.map((item) => (
+          <div key={item.label} style={styles.repositoryStat}>
+            <strong>{item.value}</strong>
+            <span>{item.label}</span>
+          </div>
+        ))}
+      </div>
+      <div style={styles.repositoryTechRow}>
+        {(repository.topTechnologies || []).length ? repository.topTechnologies.map((item) => (
+          <span key={item.label} style={styles.smallTag}>{item.label} · {item.count}</span>
+        )) : <span style={styles.smallTag}>正在读取表单</span>}
+      </div>
+      <div style={gridStyle}>
+        {recommendations.length ? recommendations.map((item) => self.renderRepositorySolution(item)) : (
+          <div style={styles.repositoryEmpty}>方案沉淀表正在加载</div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export function renderExecutiveKpi(item) {
+  return (
+    <div key={item.label} className="sa-card relative min-h-28 overflow-hidden p-4" style={styles.executiveKpi}>
+      <div style={Object.assign({}, styles.executiveKpiAccent, { background: item.color })}></div>
+      <div className="text-3xl font-black leading-none text-slate-950" style={styles.executiveKpiValue}>{item.value}</div>
+      <div className="mt-2 text-sm font-black text-slate-700" style={styles.executiveKpiLabel}>{item.label}</div>
+      <div className="mt-1 text-xs leading-relaxed text-slate-500" style={styles.executiveKpiHint}>{item.hint}</div>
+    </div>
+  );
+}
+
+export function renderExecutiveSolution(item, index) {
+  var self = this;
+  var customers = item.usedCustomers || item.potentialCustomers || '待补客户';
+  var technologies = displayList(item.technologies).slice(0, 3);
+  return (
+    <button
+      key={item.name + index}
+      className="sa-card min-h-44 p-4 text-left transition hover:border-blue-300 hover:shadow-md"
+      style={styles.executiveSolutionCard}
+      onClick={(e) => {
+        if (item.url && typeof window !== 'undefined' && window.open) {
+          window.open(item.url, '_blank');
+        } else {
+          self.utils.toast({ title: '该方案还没有沉淀链接', type: 'warning' });
+        }
+      }}
+    >
+      <div className="mb-3 flex items-center justify-between" style={styles.executiveSolutionTop}>
+        <span style={styles.executiveSolutionIndex}>0{index + 1}</span>
+        <span style={styles.repositoryBadge}>{item.maturityScore >= 3 ? 'M3' : item.maturityScore >= 2 ? 'M2' : 'M1'}</span>
+      </div>
+      <div className="min-h-11 text-[15px] font-black leading-snug text-slate-950" style={styles.executiveSolutionTitle}>{item.name}</div>
+      <div className="mt-2 min-h-8 text-xs leading-relaxed text-slate-500" style={styles.executiveSolutionCustomer}>{customers}</div>
+      <div className="mt-3 flex flex-wrap gap-1.5" style={styles.executiveSolutionTags}>
+        {technologies.map((tag) => <span key={tag} style={styles.smallTag}>{tag}</span>)}
+      </div>
+    </button>
+  );
+}
+
+export function renderExecutiveStep(item) {
+  return (
+    <div key={item.title} className="grid grid-cols-[34px_minmax(0,1fr)] gap-3 border-b border-slate-100 pb-3" style={styles.executiveStep}>
+      <span style={styles.executiveStepNo}>{item.no}</span>
+      <div>
+        <div className="text-sm font-black text-slate-950" style={styles.executiveStepTitle}>{item.title}</div>
+        <div className="mt-1 text-xs leading-relaxed text-slate-500" style={styles.executiveStepDesc}>{item.desc}</div>
+      </div>
+    </div>
+  );
+}
+
 export function renderPrompt(item) {
   var self = this;
   var selected = (_customState.promptCart || []).indexOf(item.label) >= 0;
@@ -1510,7 +1876,7 @@ export function renderVisitPlan(item) {
       </div>
       <div style={styles.cardButtonRow}>
         <button style={styles.miniPrimaryButton} onClick={(e) => { self.prepareVisitPlan(item, 'diagnose'); }}>生成方案包</button>
-        <button style={styles.miniSecondaryButton} onClick={(e) => { self.prepareVisitPlan(item, 'build'); }}>搭建 Demo</button>
+        <button style={styles.miniSecondaryButton} onClick={(e) => { self.prepareVisitPlan(item, 'build'); }}>准备 Demo</button>
       </div>
     </div>
   );
@@ -1661,7 +2027,7 @@ export function renderDiagnosisResult() {
       <div style={styles.promptPreview}>{result.prompt}</div>
       <div style={styles.actionRow}>
         <button style={styles.primaryButton} onClick={(e) => { self.selectNav('solutions'); }}>查看方案包</button>
-        <button style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>进入 OpenYida 搭建</button>
+        <button style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>生成 Demo 任务</button>
       </div>
     </div>
   );
@@ -1669,116 +2035,161 @@ export function renderDiagnosisResult() {
 
 export function renderWorkbench(activeSolution, isMobile) {
   var self = this;
-  var contentStyle = isMobile ? styles.mobileMainGrid : styles.mainGrid;
+  var dashboard = this.getDashboardData();
+  var repository = dashboard.solutionRepository || buildSolutionRepositoryData([]);
+  var recommendations = getRepositoryRecommendations(repository, _customState.activeIndustry);
+  var heroSolution = recommendations[0] || {
+    name: activeSolution.title,
+    maturityScore: 3,
+    maturity: 'M3',
+    usedCustomers: '选择行业后自动推荐',
+    potentialCustomers: '',
+    technologies: '悟空、AI 表格、宜搭',
+    contributor: '',
+    url: ''
+  };
+  var executiveKpis = [
+    { label: '方案资产', value: repository.total || 31, hint: '来自解决方案沉淀表', color: '#2563EB' },
+    { label: '成熟可推', value: repository.matureCount || 19, hint: 'M3 可规模化复用', color: '#059669' },
+    { label: 'AI Ready', value: repository.aiReadyCount || 22, hint: '可接悟空与 AI 表格', color: '#7C3AED' },
+    { label: '资源待备', value: repository.tokenCount || 14, hint: '算粒/环境/材料', color: '#D97706' }
+  ];
+  var executiveSteps = [
+    { no: '01', title: '识别客户需求', desc: '从客户背景、会议纪要和拜访目标里提炼真实痛点。' },
+    { no: '02', title: '匹配方案资产', desc: '按行业、客户案例和成熟度拿到可复用方案。' },
+    { no: '03', title: '准备推进动作', desc: '补齐客户材料、算粒资源和 Demo 交付路径。' }
+  ];
   return (
-    <div style={contentStyle}>
-      <main style={styles.mainColumn}>
-        <section style={isMobile ? Object.assign({}, styles.heroPanel, styles.mobileHeroPanel) : styles.heroPanel}>
-          <div style={styles.heroCopy}>
-            <div style={styles.eyebrow}>悟空 × OpenYida</div>
-            <h1 style={isMobile ? Object.assign({}, styles.heroTitle, styles.mobileHeroTitle) : styles.heroTitle}>钉钉 AI 解决方案中心</h1>
-            <p style={isMobile ? Object.assign({}, styles.heroSubtitle, styles.mobileHeroSubtitle) : styles.heroSubtitle}>输入客户需求，生成可演示、可交付、可复用的行业方案。</p>
+    <div className="grid min-w-0 gap-4" style={styles.executiveHome}>
+      <section className={isMobile ? 'sa-card grid gap-4 bg-gradient-to-br from-white via-blue-50 to-emerald-50 p-5' : 'sa-card grid min-h-[220px] grid-cols-[minmax(0,1fr)_360px] gap-5 bg-gradient-to-br from-white via-blue-50 to-emerald-50 p-6'} style={isMobile ? Object.assign({}, styles.executiveHero, styles.mobileExecutiveHero) : styles.executiveHero}>
+        <div className="flex min-w-0 flex-col justify-center" style={styles.executiveHeroCopy}>
+          <div style={styles.eyebrow}>SA 作战台</div>
+          <h1 className="max-w-3xl text-4xl font-black leading-tight text-slate-950" style={isMobile ? Object.assign({}, styles.executiveHeroTitle, styles.mobileExecutiveHeroTitle) : styles.executiveHeroTitle}>从客户需求到方案推进，一次拜访就能闭环</h1>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600" style={styles.executiveHeroText}>SA 先看这个客户怎么打：推荐方案、客户材料、资源申请和 Demo 路径都围绕客户场景组织；操作尽量少填、少找、少切系统。</p>
+          <div className="mt-5 flex flex-wrap gap-3" style={styles.executiveHeroActions}>
+            <button className="sa-btn sa-btn-primary" style={styles.primaryButton} onClick={(e) => { self.runDiagnosis(); }}>开始客户诊断</button>
+            <button className="sa-btn" style={styles.secondaryButton} onClick={(e) => { self.selectNav('solutions'); }}>看方案资产</button>
+            <button className="sa-btn" style={styles.secondaryButton} onClick={(e) => { self.generateClientPack(); }}>生成客户物料</button>
           </div>
-          <div style={isMobile ? Object.assign({}, styles.heroActions, styles.mobileHeroActions) : styles.heroActions}>
-            <button style={styles.primaryButton} onClick={(e) => { self.runDiagnosis(); }}>生成推荐方案</button>
-            <button style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>创建宜搭样板</button>
+        </div>
+        <div className="sa-card flex min-h-44 flex-col justify-between border-blue-200 p-5" style={styles.executiveHeroFocus}>
+          <div className="text-xs font-black text-blue-600" style={styles.executiveFocusLabel}>当前最适合这个客户场景的方案</div>
+          <div className="mt-3 text-xl font-black leading-snug text-slate-950" style={styles.executiveFocusTitle}>{heroSolution.name}</div>
+          <div className="mt-3 text-xs font-bold leading-relaxed text-slate-500" style={styles.executiveFocusMeta}>{heroSolution.maturity || 'M3'} · {heroSolution.contributor || 'SA 方案库'} · {heroSolution.usedCustomers || heroSolution.potentialCustomers || '待补客户'}</div>
+          <div className="mt-4 flex flex-wrap gap-1.5" style={styles.executiveFocusTags}>
+            {displayList(heroSolution.technologies).slice(0, 4).map((tag) => <span key={tag} style={styles.smallTag}>{tag}</span>)}
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section style={styles.diagnosisPanel}>
-          <div style={styles.sectionHeader}>
+      <section className={isMobile ? 'grid gap-3' : 'grid grid-cols-4 gap-3'} style={isMobile ? styles.mobileBuildGrid : styles.executiveKpiGrid}>
+        {executiveKpis.map((item) => self.renderExecutiveKpi(item))}
+      </section>
+
+      <div className={isMobile ? 'grid gap-4' : 'grid grid-cols-[minmax(0,1fr)_340px] gap-4'} style={isMobile ? styles.mobileBuildGrid : styles.executiveContentGrid}>
+        <section className="sa-card p-4" style={styles.sectionPanel}>
+          <div className="mb-4 flex items-start justify-between gap-3" style={styles.sectionHeader}>
             <div>
-              <div style={styles.eyebrow}>客户需求诊断</div>
-              <h2 style={styles.sectionTitle}>从会议纪要到方案包</h2>
+              <div style={styles.eyebrow}>解决方案沉淀表</div>
+              <h2 style={styles.sectionTitle}>今天能推进的方案，一眼看清</h2>
             </div>
-            <span style={styles.statusPill}>{diagnosisLabels[_customState.diagnosisMode]}</span>
-          </div>
-          <textarea
-            style={styles.textarea}
-            defaultValue={_customState.diagnosisText}
-            onCompositionStart={(e) => { _customState._isComposing = true; }}
-            onCompositionEnd={(e) => {
-              _customState._isComposing = false;
-              self.handleDiagnosisChange(e);
-            }}
-            onChange={(e) => { self.handleDiagnosisChange(e); }}
-          />
-          <div style={styles.actionRow}>
-            <button style={styles.primaryButton} onClick={(e) => { self.runDiagnosis(); }}>{_customState.aiLoading ? '诊断中...' : 'AI 诊断'}</button>
-            <button style={styles.secondaryButton} onClick={(e) => { self.generateClientPack(); }}>生成客户材料</button>
-            <button style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>OpenYida 搭建</button>
-          </div>
-          {this.renderDiagnosisResult()}
-        </section>
-
-        <section style={isMobile ? styles.mobileBuildGrid : styles.metricGrid}>
-          {metricItems.map((item) => self.renderMetric(item))}
-        </section>
-
-        <section style={styles.sectionPanel}>
-          <div style={styles.sectionHeader}>
-            <div>
-              <div style={styles.eyebrow}>闭环工作流</div>
-              <h2 style={styles.sectionTitle}>SA 从需求到演示的 4 步</h2>
+            <div className="flex flex-wrap justify-end gap-2" style={styles.headerActions}>
+              <button
+                className="sa-btn"
+                style={styles.secondaryButton}
+                onClick={(e) => {
+                  if (typeof window !== 'undefined' && window.open) {
+                    window.open('https://www.aliwork.com/' + APP_TYPE + '/workbench/' + FORM_CONFIG.solutionRepository.formUuid, '_blank');
+                  }
+                }}
+              >
+                打开表单
+              </button>
+              <button className="sa-btn sa-btn-primary" style={styles.primaryButton} onClick={(e) => { self.selectNav('solutions'); }}>进入方案包</button>
             </div>
           </div>
-          <div style={isMobile ? styles.mobileBuildGrid : styles.pipelineGrid}>
-            {pipelineSteps.map((item) => self.renderPipelineStep(item))}
+          <div className={isMobile ? 'grid gap-3' : 'grid grid-cols-3 gap-3'} style={isMobile ? styles.mobileBuildGrid : styles.executiveSolutionGrid}>
+            {(recommendations.length ? recommendations.slice(0, 3) : [heroSolution]).map((item, index) => self.renderExecutiveSolution(item, index))}
           </div>
         </section>
 
-        <section style={styles.twoColumn}>
-          <div style={styles.sectionPanel}>
-            <div style={styles.sectionHeader}>
-              <div>
-                <div style={styles.eyebrow}>行业作战地图</div>
-                <h2 style={styles.sectionTitle}>按客户场景找切入点</h2>
-              </div>
-            </div>
-            <div style={styles.industryGrid}>
-              {industries.map((item) => self.renderIndustry(item))}
-            </div>
+        <aside className="sa-card p-4" style={styles.executiveDecisionPanel}>
+          <div style={styles.eyebrow}>SA 下一步动作</div>
+          <h2 style={styles.executiveDecisionTitle}>从拜访到推进，只保留三步</h2>
+          <div style={styles.executiveStepList}>
+            {executiveSteps.map((item) => self.renderExecutiveStep(item))}
           </div>
-
-          <div style={styles.sectionPanel}>
-            <div style={styles.sectionHeader}>
-              <div>
-                <div style={styles.eyebrow}>推荐方案</div>
-                <h2 style={styles.sectionTitle}>可执行方案包</h2>
-              </div>
-            </div>
-            <div style={styles.solutionGrid}>
-              {solutionCards.map((item) => self.renderSolutionCard(item))}
-            </div>
+          <div style={styles.executiveDecisionBox}>
+            <div style={styles.suggestionTitle}>本周建议</div>
+            <div style={styles.suggestionText}>优先推进 M3 成熟方案，拜访前先检查算粒、Demo 和客户材料是否齐备；M1 方案放入共创池，不作为本次客户主推。</div>
           </div>
-        </section>
+        </aside>
+      </div>
 
-        <section style={styles.detailPanel}>
-          <div style={styles.detailHeader}>
-            <div>
-              <div style={styles.eyebrow}>当前方案</div>
-              <h2 style={styles.detailTitle}>{activeSolution.title}</h2>
-              <p style={styles.detailDesc}>{activeSolution.longDesc}</p>
-            </div>
-            <div style={styles.detailScore}>
-              <span style={styles.detailScoreValue}>{activeSolution.score}</span>
-              <span style={styles.detailScoreLabel}>成熟度</span>
-            </div>
+      <section className="sa-card p-4" style={styles.sectionPanel}>
+        <div className="mb-4 flex items-start justify-between gap-3" style={styles.sectionHeader}>
+          <div>
+            <div style={styles.eyebrow}>客户物料</div>
+            <h2 style={styles.sectionTitle}>SA 不用翻文档，一键拿到本次拜访材料</h2>
           </div>
+          <button className="sa-btn" style={styles.secondaryButton} onClick={(e) => { self.selectNav('materials'); }}>进入物料库</button>
+        </div>
+        <div className={isMobile ? 'grid gap-3' : 'grid grid-cols-3 gap-3'}>
+          <button className="sa-card p-4 text-left transition hover:border-blue-300 hover:shadow-md" style={styles.assetBlock} onClick={(e) => { self.generateClientPack(); }}>
+            <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-xs font-black text-white">案</div>
+            <div className="text-sm font-black text-slate-950">客户版方案</div>
+            <div className="mt-2 text-xs leading-relaxed text-slate-500">价值主张、业务闭环、演示路径和下一步共创计划。</div>
+          </button>
+          <button className="sa-card p-4 text-left transition hover:border-blue-300 hover:shadow-md" style={styles.assetBlock} onClick={(e) => { self.generateClientPack(); }}>
+            <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-xs font-black text-white">答</div>
+            <div className="text-sm font-black text-slate-950">话术与 FAQ</div>
+            <div className="mt-2 text-xs leading-relaxed text-slate-500">把客户异议、实施边界、资源依赖提前准备好。</div>
+          </button>
+          <button className="sa-card p-4 text-left transition hover:border-blue-300 hover:shadow-md" style={styles.assetBlock} onClick={(e) => { self.selectNav('build'); }}>
+            <div className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600 text-xs font-black text-white">演</div>
+            <div className="text-sm font-black text-slate-950">Demo 准备清单</div>
+            <div className="mt-2 text-xs leading-relaxed text-slate-500">确认算粒、演示环境、样板数据和交付方式。</div>
+          </button>
+        </div>
+      </section>
 
-          <div style={styles.assetGrid}>
-            {assetBlocks.map((item) => (
-              <div key={item.title} style={styles.assetBlock}>
-                <div style={styles.assetIcon}>{item.icon}</div>
-                <div style={styles.assetTitle}>{item.title}</div>
-                <div style={styles.assetText}>{item.desc}</div>
-              </div>
-            ))}
+      <section className="sa-card p-4" style={styles.diagnosisPanel}>
+        <div className="mb-4 flex items-start justify-between gap-3" style={styles.sectionHeader}>
+          <div>
+            <div style={styles.eyebrow}>SA 临场工具</div>
+            <h2 style={styles.sectionTitle}>贴入客户需求，生成下一步方案动作</h2>
           </div>
-        </section>
-      </main>
+          <span style={styles.statusPill}>{diagnosisLabels[_customState.diagnosisMode]}</span>
+        </div>
+        <textarea
+          style={styles.compactTextarea}
+          defaultValue={_customState.diagnosisText}
+          onCompositionStart={(e) => { _customState._isComposing = true; }}
+          onCompositionEnd={(e) => {
+            _customState._isComposing = false;
+            self.handleDiagnosisChange(e);
+          }}
+          onChange={(e) => { self.handleDiagnosisChange(e); }}
+        />
+        <div style={styles.actionRow}>
+          <button className="sa-btn sa-btn-primary" style={styles.primaryButton} onClick={(e) => { self.runDiagnosis(); }}>{_customState.aiLoading ? '诊断中...' : 'AI 诊断'}</button>
+          <button className="sa-btn" style={styles.secondaryButton} onClick={(e) => { self.generateClientPack(); }}>生成客户物料</button>
+          <button className="sa-btn" style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>生成 Demo 任务</button>
+        </div>
+        {this.renderDiagnosisResult()}
+      </section>
 
-      {isMobile ? null : this.renderAssistantPanel(activeSolution)}
+      <section className="sa-card p-4" style={styles.sectionPanel}>
+        <div style={styles.sectionHeader}>
+          <div>
+            <div style={styles.eyebrow}>行业地图</div>
+            <h2 style={styles.sectionTitle}>按客户场景快速切换打法</h2>
+          </div>
+        </div>
+        <div className={isMobile ? 'grid gap-2' : 'grid grid-cols-3 gap-2'} style={isMobile ? styles.industryGrid : styles.executiveIndustryGrid}>
+          {industries.map((item) => self.renderIndustry(item))}
+        </div>
+      </section>
     </div>
   );
 }
@@ -1795,7 +2206,7 @@ export function renderBuildView(isMobile) {
     <div style={styles.fullPanel}>
       <div style={styles.sectionHeader}>
         <div>
-          <div style={styles.eyebrow}>OpenYida 搭建任务</div>
+          <div style={styles.eyebrow}>AI 搭建任务</div>
           <h1 style={styles.pageTitle}>把方案变成可运行 Demo</h1>
         </div>
         <div style={styles.headerActions}>
@@ -1806,7 +2217,7 @@ export function renderBuildView(isMobile) {
 
       <div style={isMobile ? styles.mobileBuildGrid : styles.buildGrid}>
         <div style={styles.sectionPanel}>
-          <div style={styles.sectionTitle}>OpenYida 执行清单</div>
+          <div style={styles.sectionTitle}>Demo 执行清单</div>
           <div style={styles.taskList}>
             {buildSpec.tasks.map((item, index) => self.renderBuildTask({
               title: item.name,
@@ -1854,7 +2265,7 @@ export function renderBuildView(isMobile) {
       </div>
 
       <div style={styles.promptBox}>
-        <div style={Object.assign({}, styles.sectionCardTitle, { color: '#FFFFFF' })}>OpenYida 执行 Prompt</div>
+        <div style={Object.assign({}, styles.sectionCardTitle, { color: '#FFFFFF' })}>AI 搭建执行 Prompt</div>
         <pre style={styles.codeText}>{buildPrompt}</pre>
       </div>
     </div>
@@ -2005,7 +2416,7 @@ export function renderIndustriesView(isMobile) {
           </div>
           <div style={styles.actionRow}>
             <button style={styles.primaryButton} onClick={(e) => { self.openIndustrySolution(_customState.activeIndustry); }}>进入方案包</button>
-            <button style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>按此行业搭建 Demo</button>
+            <button style={styles.secondaryButton} onClick={(e) => { self.createDemo(); }}>准备行业 Demo</button>
           </div>
         </section>
       </div>
@@ -2017,72 +2428,207 @@ export function renderSolutionsView(isMobile) {
   var self = this;
   var activeSolution = this.getActiveSolution();
   var playbook = getIndustryPlaybook(_customState.activeIndustry);
+  var dashboard = this.getDashboardData();
+  var repository = dashboard.solutionRepository || buildSolutionRepositoryData([]);
+  var repositoryRecommendations = getRepositoryRecommendations(repository, _customState.activeIndustry).slice(0, 4);
   var result = _customState.diagnosisResult || buildDiagnosisResult(_customState.diagnosisText || '', _customState.activeIndustry, activeSolution);
+  var heroGridStyle = isMobile ? { display: 'grid', gap: '14px' } : { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 280px', gap: '18px', alignItems: 'stretch' };
+  var actionGridStyle = isMobile ? { display: 'grid', gap: '10px' } : { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' };
+  var contentGridStyle = isMobile ? { display: 'grid', gap: '14px' } : { display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 320px', gap: '14px', alignItems: 'start' };
+  var solutionGridStyle = isMobile ? { display: 'grid', gridTemplateColumns: '1fr', gap: '10px' } : { display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '10px' };
+  var actionSteps = [
+    { no: '01', title: '先判断能不能推', desc: '客户是否符合这个场景，现场有没有关键角色和流程痛点。', button: '回到客户诊断', action: 'diagnose' },
+    { no: '02', title: '再拿客户能看的材料', desc: '生成客户版方案、演示话术、FAQ 和验收口径。', button: '生成客户物料', action: 'material' },
+    { no: '03', title: '最后准备 Demo 和资源', desc: '把样板数据、算粒、演示环境和任务一次性准备好。', button: '准备 Demo 任务', action: 'demo' }
+  ];
+  var readyCards = [
+    { label: '适合客户', value: playbook.roles.slice(0, 3).join('、') },
+    { label: '演示主线', value: playbook.scenes.slice(0, 4).join(' → ') },
+    { label: '交付资产', value: result.assets.slice(0, 3).join('、') }
+  ];
   return (
-    <div style={styles.fullPanel}>
-      <div style={styles.sectionHeader}>
+    <div className="space-y-4" style={styles.fullPanel}>
+      <div className={isMobile ? 'grid gap-3' : 'flex items-start justify-between gap-4'} style={isMobile ? Object.assign({}, styles.sectionHeader, { display: 'grid' }) : styles.sectionHeader}>
         <div>
-          <div style={styles.eyebrow}>方案包</div>
-          <h1 style={styles.pageTitle}>可演示、可交付、可复用的 SA 方案资产</h1>
+          <div className="mb-2 inline-flex rounded-md bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700" style={styles.eyebrow}>方案资产</div>
+          <h1 className="m-0 text-2xl font-black leading-tight text-slate-950" style={styles.pageTitle}>先选客户场景，再拿方案和物料</h1>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">这页只回答 SA 拜访前最需要的三个问题：这个方案适合谁、现场怎么讲、下一步点哪里。</p>
         </div>
-        <div style={styles.headerActions}>
-          <button style={styles.secondaryButton} onClick={(e) => { self.selectNav('industries'); }}>行业地图</button>
-          <button style={styles.primaryButton} onClick={(e) => { self.generateClientPack(); }}>生成客户材料</button>
+        <div className="flex flex-wrap gap-2" style={isMobile ? Object.assign({}, styles.headerActions, { justifyContent: 'flex-start' }) : styles.headerActions}>
+          <button className="sa-btn" style={styles.primaryButton} onClick={(e) => { self.generateClientPack(); }}>生成客户物料</button>
+          <button className="sa-btn" style={styles.secondaryButton} onClick={(e) => { self.selectNav('workbench'); }}>返回工作台</button>
         </div>
       </div>
 
-      <div style={isMobile ? styles.mobileBuildGrid : styles.solutionPageGrid}>
-        <section style={styles.sectionPanel}>
-          <div style={styles.sectionTitle}>方案列表</div>
-          <div style={styles.solutionGridCompact}>
-            {solutionCards.map((item) => self.renderSolutionCard(item))}
-          </div>
-        </section>
-
-        <section style={styles.detailPanel}>
-          <div style={styles.detailHeader}>
-            <div>
-              <div style={styles.eyebrow}>{playbook.name} · 推荐方案</div>
-              <h2 style={styles.detailTitle}>{activeSolution.title}</h2>
-              <p style={styles.detailDesc}>{activeSolution.longDesc}</p>
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div style={heroGridStyle}>
+          <div className="min-w-0">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-black text-emerald-700">{playbook.name} · 当前推荐</span>
+              <span className="rounded-md bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700">{activeSolution.grade} 级方案</span>
+              <span className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-600">{activeSolution.score} 分成熟度</span>
             </div>
-            <div style={styles.detailScore}>
-              <span style={styles.detailScoreValue}>{activeSolution.score}</span>
-              <span style={styles.detailScoreLabel}>成熟度</span>
-            </div>
-          </div>
-
-          <div style={styles.diagnosisColumns}>
-            <div style={styles.insightBox}>
-              <div style={styles.suggestionTitle}>客户痛点</div>
-              {result.painPoints.map((item) => (
-                <div key={item} style={styles.checkItem}>{item}</div>
-              ))}
-            </div>
-            <div style={styles.insightBox}>
-              <div style={styles.suggestionTitle}>交付资产</div>
-              {result.assets.map((item) => (
-                <div key={item} style={styles.checkItem}>{item}</div>
+            <h2 className="m-0 text-2xl font-black leading-tight text-slate-950">{activeSolution.title}</h2>
+            <p className="mt-3 max-w-4xl text-base leading-7 text-slate-600">{activeSolution.longDesc}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {activeSolution.tags.map((tag) => (
+                <span key={tag} className="rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-600">{tag}</span>
               ))}
             </div>
           </div>
-
-          <div style={styles.assetGrid}>
-            {assetBlocks.map((item) => (
-              <div key={item.title} style={styles.assetBlock}>
-                <div style={styles.assetIcon}>{item.icon}</div>
-                <div style={styles.assetTitle}>{item.title}</div>
-                <div style={styles.assetText}>{item.desc}</div>
+          <div className="grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
+            {readyCards.map((item) => (
+              <div key={item.label} className="rounded-md bg-white p-3">
+                <div className="text-xs font-black text-slate-400">{item.label}</div>
+                <div className="mt-1 text-sm font-bold leading-6 text-slate-800">{item.value}</div>
               </div>
             ))}
           </div>
-          <div style={styles.actionRow}>
-            <button style={styles.primaryButton} onClick={(e) => { self.createDemo(); }}>OpenYida 搭建</button>
-            <button style={styles.secondaryButton} onClick={(e) => { self.copyPrompt('行业方案生成'); }}>加入 Prompt 包</button>
-            <button style={styles.secondaryButton} onClick={(e) => { self.generateClientPack(); }}>客户材料</button>
+        </div>
+      </section>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3">
+          <div className="text-sm font-black text-blue-600">SA 只需三步</div>
+          <h2 className="m-0 mt-1 text-xl font-black text-slate-950">从客户判断到演示准备，不要绕路</h2>
+        </div>
+        <div style={actionGridStyle}>
+          {actionSteps.map((item) => (
+            <div key={item.no} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-md bg-blue-100 px-2 py-1 text-xs font-black text-blue-700">{item.no}</span>
+                <span className="text-xs font-bold text-slate-400">{item.action === 'demo' ? '可写入任务表' : '立即可用'}</span>
+              </div>
+              <h3 className="m-0 mt-3 text-base font-black text-slate-950">{item.title}</h3>
+              <p className="mt-2 min-h-[44px] text-sm leading-6 text-slate-600">{item.desc}</p>
+              <button
+                className="mt-3 w-full rounded-md border border-blue-200 bg-white px-3 py-2 text-sm font-black text-blue-700"
+                onClick={(e) => {
+                  if (item.action === 'diagnose') {
+                    self.selectNav('workbench');
+                  } else if (item.action === 'material') {
+                    self.generateClientPack();
+                  } else {
+                    self.createDemo();
+                  }
+                }}
+              >
+                {item.button}
+              </button>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <div style={contentGridStyle}>
+        <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <div className="text-sm font-black text-blue-600">现场怎么讲</div>
+              <h2 className="m-0 mt-1 text-xl font-black text-slate-950">把方案讲成客户听得懂的业务闭环</h2>
+            </div>
+          </div>
+          <div className="grid gap-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-2 text-sm font-black text-slate-950">客户匹配信号</div>
+              {playbook.signals.slice(0, 3).map((item) => (
+                <div key={item} className="mb-2 flex gap-2 text-sm leading-6 text-slate-600">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-2 text-sm font-black text-slate-950">现场确认问题</div>
+              {playbook.questions.slice(0, 3).map((item) => (
+                <div key={item} className="mb-2 flex gap-2 text-sm leading-6 text-slate-600">
+                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500"></span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
+              <div className="text-sm font-black text-blue-700">推荐开场</div>
+              <p className="m-0 mt-2 text-sm leading-6 text-slate-700">先不要讲产品能力，先复述客户现场的流程断点：谁提交、谁派单、谁处理、谁验收、主管怎么看风险。客户点头后，再进入 Demo。</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {result.assets.slice(0, 4).map((item) => (
+                  <span key={item} className="rounded-md bg-white px-2.5 py-1 text-xs font-bold text-blue-700">{item}</span>
+                ))}
+              </div>
+            </div>
           </div>
         </section>
+
+        <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="mb-3">
+            <div className="text-sm font-black text-blue-600">同类沉淀</div>
+            <h2 className="m-0 mt-1 text-xl font-black text-slate-950">优先复用真实案例</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-500">来自解决方案沉淀表，优先看成熟度和客户匹配度。</p>
+          </div>
+          <div className="mb-3 grid grid-cols-3 gap-2">
+            <div className="rounded-md bg-slate-50 p-2 text-center">
+              <div className="text-lg font-black text-slate-950">{repository.total}</div>
+              <div className="text-xs font-bold text-slate-400">总资产</div>
+            </div>
+            <div className="rounded-md bg-slate-50 p-2 text-center">
+              <div className="text-lg font-black text-slate-950">{repository.matureCount}</div>
+              <div className="text-xs font-bold text-slate-400">成熟</div>
+            </div>
+            <div className="rounded-md bg-slate-50 p-2 text-center">
+              <div className="text-lg font-black text-slate-950">{repository.aiReadyCount}</div>
+              <div className="text-xs font-bold text-slate-400">AI Ready</div>
+            </div>
+          </div>
+          <div className="grid gap-2">
+            {repositoryRecommendations.length ? repositoryRecommendations.map((item) => self.renderRepositorySolution(item)) : (
+              <div style={styles.repositoryEmpty}>正在读取方案库</div>
+            )}
+          </div>
+          <button
+            className="mt-3 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700"
+            onClick={(e) => {
+              if (typeof window !== 'undefined' && window.open) {
+                window.open('https://www.aliwork.com/' + APP_TYPE + '/workbench/' + FORM_CONFIG.solutionRepository.formUuid, '_blank');
+              }
+            }}
+          >
+            打开方案沉淀表
+          </button>
+        </aside>
       </div>
+
+      <section className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-black text-blue-600">切换场景</div>
+            <h2 className="m-0 mt-1 text-xl font-black text-slate-950">不是这个客户场景？直接换一张方案卡</h2>
+          </div>
+        </div>
+        <div style={solutionGridStyle}>
+          {solutionCards.map((item) => {
+            var active = _customState.selectedSolution === item.key;
+            return (
+              <button
+                key={item.key}
+                className={active ? 'rounded-lg border-2 border-blue-500 bg-blue-50 p-4 text-left shadow-sm' : 'rounded-lg border border-slate-200 bg-white p-4 text-left hover:border-blue-300'}
+                onClick={(e) => { self.selectSolution(item.key); }}
+              >
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className={active ? 'rounded-md bg-blue-600 px-2 py-1 text-xs font-black text-white' : 'rounded-md bg-slate-100 px-2 py-1 text-xs font-black text-slate-600'}>{item.grade} 级</span>
+                  <span className="text-xs font-black text-slate-400">{item.score} 分</span>
+                </div>
+                <div className="text-base font-black leading-snug text-slate-950">{item.title}</div>
+                <div className="mt-2 text-sm leading-6 text-slate-500">{item.desc}</div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {item.tags.slice(0, 3).map((tag) => (
+                    <span key={tag} className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-500">{tag}</span>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }
@@ -2238,43 +2784,46 @@ export function renderContent(activeSolution, isMobile) {
 export function renderJsx() {
   var self = this;
   var isMobile = this.utils.isMobile();
+  if (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 768) {
+    isMobile = true;
+  }
   var timestamp = this.state && this.state.timestamp;
   var activeSolution = this.getActiveSolution();
 
   return (
-    <div style={styles.page}>
+    <div className="min-h-screen bg-slate-100 text-slate-900" style={styles.page}>
       <div style={{ display: 'none' }}>{timestamp}</div>
-      <div style={isMobile ? styles.mobileShell : styles.shell}>
+      <div className={isMobile ? 'min-h-screen w-full bg-slate-100' : 'min-h-screen w-full bg-slate-100'} style={isMobile ? styles.mobileShell : styles.shell}>
         {isMobile ? null : (
-          <aside style={styles.sidebar}>
-            <div style={styles.brand}>
-              <div style={styles.brandMark}>钉</div>
+          <aside className="fixed left-0 top-0 z-20 flex h-screen w-[236px] flex-col bg-slate-950 px-4 py-5 text-white" style={styles.sidebar}>
+            <div className="mb-8 flex items-center gap-3" style={styles.brand}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-sm font-black" style={styles.brandMark}>钉</div>
               <div>
-                <div style={styles.brandTitle}>AI 解决方案中心</div>
-                <div style={styles.brandSub}>SA Solution Hub</div>
+                <div className="text-sm font-black leading-tight" style={styles.brandTitle}>AI 解决方案中心</div>
+                <div className="mt-1 text-xs text-slate-400" style={styles.brandSub}>SA Solution Hub</div>
               </div>
             </div>
-            <nav style={styles.navList}>
+            <nav className="grid gap-2" style={styles.navList}>
               {navItems.map((item) => self.renderNavItem(item))}
             </nav>
           </aside>
         )}
 
-        <div style={isMobile ? Object.assign({}, styles.content, styles.mobileContent) : styles.content}>
-          <header style={isMobile ? Object.assign({}, styles.topbar, styles.mobileTopbar) : styles.topbar}>
+        <div className={isMobile ? 'w-full p-3' : 'ml-[236px] p-5'} style={isMobile ? Object.assign({}, styles.content, styles.mobileContent) : styles.content}>
+          <header className={isMobile ? 'sa-card mb-3 flex flex-col gap-3 p-4' : 'sa-card mb-4 flex min-h-16 items-center justify-between gap-4 px-4 py-3'} style={isMobile ? Object.assign({}, styles.topbar, styles.mobileTopbar) : styles.topbar}>
             <div>
-              <div style={styles.topTitle}>SA AI 作战台</div>
-              <div style={styles.topSub}>需求诊断、客户拜访、团队大盘、Demo 搭建、材料生成</div>
+              <div className="text-lg font-black text-slate-950" style={styles.topTitle}>SA AI 作战台</div>
+              <div className="mt-1 text-xs text-slate-500" style={styles.topSub}>客户诊断、方案推荐、资源申请、Demo 任务、材料生成</div>
             </div>
-            <div style={isMobile ? Object.assign({}, styles.topActions, styles.mobileTopActions) : styles.topActions}>
-              <span style={styles.topChip}>悟空已接入</span>
-              <span style={styles.topChip}>OpenYida 可搭建</span>
+            <div className={isMobile ? 'flex flex-wrap gap-2' : 'flex flex-wrap justify-end gap-2'} style={isMobile ? Object.assign({}, styles.topActions, styles.mobileTopActions) : styles.topActions}>
+              <span className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-bold text-blue-700" style={styles.topChip}>悟空已接入</span>
+              <span className="rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700" style={styles.topChip}>方案可交付</span>
             </div>
           </header>
 
           {isMobile ? (
-            <div style={styles.mobileNav}>
-              {navItems.map((item) => self.renderNavItem(item))}
+            <div className="mb-3 grid grid-cols-3 gap-2" style={styles.mobileNav}>
+              {navItems.map((item) => self.renderMobileNavItem(item))}
             </div>
           ) : null}
 
@@ -2287,17 +2836,15 @@ export function renderJsx() {
 
 var navItems = [
   { key: 'workbench', label: '工作台', icon: '⌘' },
-  { key: 'visits', label: '客户拜访', icon: '日', badge: '9' },
-  { key: 'manager', label: '主管看板', icon: '盘', badge: '3' },
-  { key: 'industries', label: '行业地图', icon: '▦' },
-  { key: 'solutions', label: '方案包', icon: '□', badge: 'S' },
-  { key: 'prompts', label: '悟空 Prompt', icon: '✦' },
-  { key: 'build', label: 'OpenYida 搭建', icon: '▶' },
-  { key: 'materials', label: '客户材料', icon: '↗' }
+  { key: 'solutions', label: '方案资产', icon: '方', badge: '31' },
+  { key: 'materials', label: '客户物料', icon: '材' },
+  { key: 'visits', label: '客户拜访', icon: '访', badge: '9' },
+  { key: 'build', label: 'Demo 任务', icon: '演' },
+  { key: 'manager', label: '主管看板', icon: '盘' }
 ];
 
 var metricItems = [
-  { label: '可一键搭建方案', value: '24', delta: '+6 本周', icon: '搭', color: '#2563EB', target: 'build' },
+  { label: '可交付方案', value: '24', delta: '+6 本周', icon: '交', color: '#2563EB', target: 'solutions' },
   { label: '高复用方案包', value: '68', delta: 'S/A 级', icon: '方', color: '#059669', target: 'solutions' },
   { label: '悟空 Prompt', value: '186', delta: '+32', icon: 'AI', color: '#7C3AED', target: 'prompts' },
   { label: 'SA 共创待审', value: '17', delta: '需处理', icon: '审', color: '#D97706', target: 'manager' }
@@ -2306,7 +2853,7 @@ var metricItems = [
 var pipelineSteps = [
   { no: '01', title: '识别需求', desc: '贴入客户背景、会议纪要或商机描述，悟空提炼业务痛点。' },
   { no: '02', title: '匹配方案', desc: '按行业、场景和成熟度推荐可复用方案包。' },
-  { no: '03', title: '搭建 Demo', desc: 'OpenYida 创建表单、流程、报表、自定义页和演示数据。' },
+  { no: '03', title: '准备 Demo', desc: '按客户场景选择可交付模板、AI 搭建或共创方案。' },
   { no: '04', title: '交付材料', desc: '生成客户版方案、演示话术、FAQ、PRD 和验收清单。' }
 ];
 
@@ -2451,7 +2998,7 @@ var solutionCards = [
 var assetBlocks = [
   { icon: '蓝', title: '应用蓝图', desc: '4 张表单、2 条流程、1 个首页、1 个经营看板。' },
   { icon: '提', title: '悟空 Prompt', desc: '需求分析、方案改写、演示话术、异议处理。' },
-  { icon: '搭', title: 'OpenYida 动作', desc: '创建应用、生成页面、发布看板、准备演示数据。' },
+  { icon: '搭', title: 'AI 搭建动作', desc: '按场景选择模板、低代码搭建或共创方式准备演示数据。' },
   { icon: '交', title: '交付资产', desc: '客户版方案、PRD、FAQ、验收清单和风险说明。' }
 ];
 
@@ -2728,6 +3275,62 @@ var styles = {
     gap: '8px',
     marginBottom: '12px'
   },
+  mobileNavItem: {
+    minHeight: '58px',
+    border: '1px solid #DDE5F0',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    color: '#334155',
+    padding: '9px',
+    boxSizing: 'border-box',
+    display: 'grid',
+    gridTemplateColumns: '24px minmax(0, 1fr)',
+    gap: '7px',
+    alignItems: 'center',
+    textAlign: 'left',
+    fontFamily: 'inherit',
+    position: 'relative'
+  },
+  mobileNavItemActive: {
+    borderColor: '#93C5FD',
+    background: '#EFF6FF',
+    color: '#1D4ED8'
+  },
+  mobileNavIcon: {
+    width: '24px',
+    height: '24px',
+    borderRadius: '7px',
+    background: '#EEF6FF',
+    color: '#1D4ED8',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: 900
+  },
+  mobileNavLabel: {
+    minWidth: 0,
+    fontSize: '12px',
+    lineHeight: 1.2,
+    fontWeight: 850,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  },
+  mobileNavBadge: {
+    position: 'absolute',
+    top: '5px',
+    right: '5px',
+    minWidth: '18px',
+    height: '18px',
+    lineHeight: '18px',
+    borderRadius: '9px',
+    background: '#F59E0B',
+    color: '#111827',
+    fontSize: '10px',
+    textAlign: 'center',
+    fontWeight: 900
+  },
   mainGrid: {
     display: 'grid',
     gridTemplateColumns: 'minmax(0, 1fr) 320px',
@@ -2741,6 +3344,248 @@ var styles = {
     display: 'grid',
     gap: '14px',
     minWidth: 0
+  },
+  executiveHome: {
+    display: 'grid',
+    gap: '14px',
+    minWidth: 0
+  },
+  executiveHero: {
+    minHeight: '220px',
+    border: '1px solid #DDE5F0',
+    borderRadius: '8px',
+    background: 'linear-gradient(135deg, #FFFFFF 0%, #EFF6FF 52%, #ECFDF5 100%)',
+    padding: '24px',
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 360px',
+    gap: '18px',
+    alignItems: 'stretch',
+    boxSizing: 'border-box'
+  },
+  mobileExecutiveHero: {
+    gridTemplateColumns: '1fr',
+    padding: '18px',
+    minHeight: 'auto'
+  },
+  executiveHeroCopy: {
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    minWidth: 0
+  },
+  executiveHeroTitle: {
+    fontSize: '36px',
+    lineHeight: 1.16,
+    fontWeight: 900,
+    color: '#0F172A',
+    margin: '0 0 12px'
+  },
+  mobileExecutiveHeroTitle: {
+    fontSize: '27px',
+    lineHeight: 1.22
+  },
+  executiveHeroText: {
+    maxWidth: '760px',
+    fontSize: '14px',
+    lineHeight: 1.7,
+    color: '#475569',
+    margin: 0
+  },
+  executiveHeroActions: {
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+    marginTop: '18px'
+  },
+  executiveHeroFocus: {
+    border: '1px solid #BFDBFE',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '18px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+    minHeight: '172px'
+  },
+  executiveFocusLabel: {
+    fontSize: '12px',
+    color: '#2563EB',
+    fontWeight: 900
+  },
+  executiveFocusTitle: {
+    marginTop: '10px',
+    fontSize: '20px',
+    lineHeight: 1.35,
+    fontWeight: 900,
+    color: '#172033'
+  },
+  executiveFocusMeta: {
+    marginTop: '10px',
+    fontSize: '12px',
+    lineHeight: 1.5,
+    color: '#64748B',
+    fontWeight: 800
+  },
+  executiveFocusTags: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    marginTop: '14px'
+  },
+  executiveKpiGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: '12px'
+  },
+  executiveKpi: {
+    position: 'relative',
+    overflow: 'hidden',
+    minHeight: '118px',
+    border: '1px solid #DDE5F0',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '16px',
+    boxSizing: 'border-box'
+  },
+  executiveKpiAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: '4px'
+  },
+  executiveKpiValue: {
+    fontSize: '32px',
+    lineHeight: 1,
+    fontWeight: 900,
+    color: '#0F172A',
+    marginBottom: '9px'
+  },
+  executiveKpiLabel: {
+    fontSize: '13px',
+    color: '#334155',
+    fontWeight: 900,
+    marginBottom: '5px'
+  },
+  executiveKpiHint: {
+    fontSize: '12px',
+    lineHeight: 1.45,
+    color: '#64748B'
+  },
+  executiveContentGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'minmax(0, 1fr) 340px',
+    gap: '14px',
+    alignItems: 'stretch'
+  },
+  executiveSolutionGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '10px'
+  },
+  executiveSolutionCard: {
+    minHeight: '174px',
+    border: '1px solid #DDE5F0',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '14px',
+    textAlign: 'left',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+    color: '#172033'
+  },
+  executiveSolutionTop: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '12px'
+  },
+  executiveSolutionIndex: {
+    color: '#2563EB',
+    fontSize: '12px',
+    fontWeight: 900
+  },
+  executiveSolutionTitle: {
+    minHeight: '44px',
+    fontSize: '15px',
+    lineHeight: 1.45,
+    fontWeight: 900,
+    color: '#172033'
+  },
+  executiveSolutionCustomer: {
+    marginTop: '8px',
+    minHeight: '34px',
+    fontSize: '12px',
+    lineHeight: 1.45,
+    color: '#64748B'
+  },
+  executiveSolutionTags: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px',
+    marginTop: '12px'
+  },
+  executiveDecisionPanel: {
+    border: '1px solid #DDE5F0',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '16px',
+    boxSizing: 'border-box'
+  },
+  executiveDecisionTitle: {
+    margin: '0 0 14px',
+    fontSize: '18px',
+    lineHeight: 1.3,
+    fontWeight: 900,
+    color: '#172033'
+  },
+  executiveStepList: {
+    display: 'grid',
+    gap: '10px'
+  },
+  executiveStep: {
+    display: 'grid',
+    gridTemplateColumns: '34px minmax(0, 1fr)',
+    gap: '10px',
+    alignItems: 'start',
+    borderBottom: '1px solid #EEF2F7',
+    paddingBottom: '10px'
+  },
+  executiveStepNo: {
+    height: '26px',
+    lineHeight: '26px',
+    borderRadius: '7px',
+    background: '#EFF6FF',
+    color: '#2563EB',
+    textAlign: 'center',
+    fontSize: '12px',
+    fontWeight: 900
+  },
+  executiveStepTitle: {
+    fontSize: '13px',
+    fontWeight: 900,
+    color: '#172033',
+    marginBottom: '4px'
+  },
+  executiveStepDesc: {
+    fontSize: '12px',
+    lineHeight: 1.55,
+    color: '#64748B'
+  },
+  executiveDecisionBox: {
+    marginTop: '14px',
+    border: '1px solid #E2E8F0',
+    borderRadius: '8px',
+    background: '#F8FAFC',
+    padding: '12px',
+    boxSizing: 'border-box'
+  },
+  executiveIndustryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '8px'
   },
   heroPanel: {
     minHeight: '172px',
@@ -2906,6 +3751,21 @@ var styles = {
     boxSizing: 'border-box',
     fontSize: '14px',
     lineHeight: 1.6,
+    color: '#1F2937',
+    outline: 'none',
+    fontFamily: 'inherit',
+    background: '#F8FAFC'
+  },
+  compactTextarea: {
+    width: '100%',
+    minHeight: '72px',
+    border: '1px solid #CBD5E1',
+    borderRadius: '8px',
+    padding: '10px 12px',
+    resize: 'vertical',
+    boxSizing: 'border-box',
+    fontSize: '13px',
+    lineHeight: 1.55,
     color: '#1F2937',
     outline: 'none',
     fontFamily: 'inherit',
@@ -3270,6 +4130,117 @@ var styles = {
     fontSize: '12px',
     color: '#64748B',
     lineHeight: 1.55
+  },
+  repositoryPanel: {
+    marginTop: '14px',
+    border: '1px solid #DDE5F0',
+    borderRadius: '8px',
+    background: '#F8FAFC',
+    padding: '14px',
+    boxSizing: 'border-box'
+  },
+  repositoryHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '12px',
+    alignItems: 'center',
+    marginBottom: '12px'
+  },
+  repositoryHeading: {
+    margin: '2px 0 0',
+    fontSize: '16px',
+    lineHeight: 1.35,
+    fontWeight: 900,
+    color: '#172033'
+  },
+  repositoryStats: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+    gap: '8px',
+    marginBottom: '10px'
+  },
+  repositoryStat: {
+    minHeight: '54px',
+    border: '1px solid #E2E8F0',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '8px 10px',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    gap: '3px'
+  },
+  repositoryTechRow: {
+    display: 'flex',
+    gap: '6px',
+    flexWrap: 'wrap',
+    marginBottom: '10px'
+  },
+  repositoryGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+    gap: '10px'
+  },
+  repositoryCard: {
+    border: '1px solid #E2E8F0',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '12px',
+    minHeight: '128px',
+    textAlign: 'left',
+    cursor: 'pointer',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
+    color: '#172033'
+  },
+  repositoryCardTop: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '8px'
+  },
+  repositoryBadge: {
+    height: '22px',
+    lineHeight: '22px',
+    borderRadius: '7px',
+    background: '#DCFCE7',
+    color: '#047857',
+    padding: '0 7px',
+    fontSize: '11px',
+    fontWeight: 900
+  },
+  repositoryScore: {
+    fontSize: '11px',
+    color: '#64748B',
+    fontWeight: 800
+  },
+  repositoryTitle: {
+    fontSize: '13px',
+    lineHeight: 1.38,
+    fontWeight: 850,
+    marginBottom: '7px'
+  },
+  repositoryDesc: {
+    fontSize: '12px',
+    lineHeight: 1.45,
+    color: '#64748B',
+    minHeight: '34px'
+  },
+  repositoryMeta: {
+    marginTop: '8px',
+    fontSize: '11px',
+    color: '#64748B',
+    fontWeight: 800
+  },
+  repositoryEmpty: {
+    border: '1px dashed #CBD5E1',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    padding: '18px',
+    color: '#64748B',
+    fontSize: '13px',
+    textAlign: 'center'
   },
   sidePanel: {
     background: '#FFFFFF',

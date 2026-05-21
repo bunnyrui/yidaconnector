@@ -48,7 +48,7 @@ coverage/
 # AI 工具配置（保留 CLAUDE.md）
 .claude/*
 !.claude/CLAUDE.md
-.qoder/plans/
+.qoder/
 
 
 # 根目录缓存（临时文件，不入库）
@@ -71,6 +71,7 @@ project/pages/src/*
 project/pages/assets/*
 project/pages/tmp/*
 !project/pages/src/demo-*
+!project/pages/src/openyida-knowledge-doc.oyd.jsx
 
 # 需求文档（保留 demo 示例）
 /prd/

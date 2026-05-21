@@ -323,6 +323,8 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida publish <sourceFile> <appType> <formUuid> [--compat] [--health-check] [--force] [--open\|--no-open]` | Compile and publish a custom display page; by default the target must be `formType=display` |
 | `openyida update-form-config <appType> <formUuid> <isRenderNav> <title> [--locale zh_CN\|en_US\|ja_JP]` | Update page/form display configuration |
 
+`openyida publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
+
 ### Data, Permissions, and Sharing
 
 | Command | Description |
@@ -364,6 +366,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 |---------|-------------|
 | `openyida copy [--force]` | Initialize the local `project/` workspace |
 | `openyida sample [--list]` | Emit sample templates |
+| `openyida bridge start [--token <pair-token>] [--port 6736] [--open]` | Start the local OpenYida web bridge for `https://demo.aliwork.com/s/openyida` |
 | `openyida doctor [--fix]` | Diagnose and repair environment issues |
 | `openyida formula evaluate <formula\|file> [--schema file]` | Static-check formula syntax and field references |
 | `openyida update` | Update OpenYida through npm |

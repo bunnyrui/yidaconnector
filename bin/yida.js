@@ -407,6 +407,12 @@ async function main() {
       break;
     }
 
+    case 'bridge': {
+      const { run } = require('../lib/bridge/bridge');
+      await run(args);
+      break;
+    }
+
     case 'env': {
       if (shouldUseEnvManagement(args)) {
         const { run } = require('../lib/core/env-cmd');

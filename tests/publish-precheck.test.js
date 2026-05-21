@@ -10,7 +10,12 @@ jest.mock('../lib/app/form-navigation', () => ({
 
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const {
+  buildDefaultPageDataSource,
+  buildSchemaContent,
+  countCustomPageDataSources,
+  extractPageDataSource,
   findDuplicateSourceMismatches,
+  mergePageDataSource,
   verifyPublishTarget,
 } = require('../lib/app/publish');
 
@@ -70,5 +75,66 @@ describe('publish prechecks', () => {
     });
 
     expect(fetchFormPageList).not.toHaveBeenCalled();
+  });
+
+  test('preserves existing custom page data sources while keeping built-ins', () => {
+    const existingDataSource = {
+      offline: [{ id: 'LOCAL_1', name: 'localCache', protocal: 'VALUE', initialData: [] }],
+      online: [
+        { id: 'REMOTE_1', name: 'customers', protocal: 'HTTP', url: '/query/customers' },
+        { id: 'VCB660714833IBHEOXK376TA7XJH2AXUWR8MMW', name: 'urlParams', protocal: 'URI', custom: true },
+        { id: 'SERVER_TIMESTAMP_1', name: 'timestamp', protocal: 'VALUE', initialData: '' },
+      ],
+      list: [{ id: 'REMOTE_1', name: 'customers', protocal: 'HTTP', url: '/query/customers' }],
+      globalConfig: {
+        fit: { type: 'js', source: 'function fit(response) { return response; }' },
+        timeout: 30000,
+      },
+      sync: false,
+      extra: 'keep-me',
+    };
+
+    const merged = mergePageDataSource(
+      existingDataSource,
+      buildDefaultPageDataSource('FORM-PAGE')
+    );
+
+    expect(merged.extra).toBe('keep-me');
+    expect(merged.sync).toBe(false);
+    expect(merged.globalConfig.fit.source).toBe('function fit(response) { return response; }');
+    expect(merged.globalConfig.timeout).toBe(30000);
+    expect(merged.online.map((item) => item.name)).toEqual(['customers', 'urlParams', 'timestamp']);
+    expect(merged.list.map((item) => item.name)).toEqual(['customers', 'urlParams', 'timestamp']);
+    expect(merged.offline.map((item) => item.name)).toEqual(['localCache']);
+    expect(countCustomPageDataSources(merged)).toBe(2);
+  });
+
+  test('builds publish schema with existing page data sources merged in', () => {
+    const existingDataSource = {
+      online: [{ id: 'REMOTE_ORDERS', name: 'orders', protocal: 'HTTP', url: '/query/orders' }],
+      list: [{ id: 'REMOTE_ORDERS', name: 'orders', protocal: 'HTTP', url: '/query/orders' }],
+    };
+
+    const previousQuiet = process.env.YIDA_QUIET;
+    process.env.YIDA_QUIET = '1';
+    let schema;
+    try {
+      schema = JSON.parse(buildSchemaContent(
+        'export function renderJsx() { return React.createElement("div", null, "ok"); }',
+        'function renderJsx(){return React.createElement("div",null,"ok");}',
+        'FORM-PAGE',
+        { existingDataSource }
+      ));
+    } finally {
+      if (previousQuiet === undefined) {
+        delete process.env.YIDA_QUIET;
+      } else {
+        process.env.YIDA_QUIET = previousQuiet;
+      }
+    }
+    const pageDataSource = extractPageDataSource(schema);
+
+    expect(pageDataSource.online.map((item) => item.name)).toEqual(['orders', 'urlParams', 'timestamp']);
+    expect(pageDataSource.list.map((item) => item.name)).toEqual(['orders', 'urlParams', 'timestamp']);
   });
 });

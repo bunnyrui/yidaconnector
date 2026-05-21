@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2026.5.21] - 2026-05-21
+
+### Highlights
+- 这是 2026-05-21 的正式版发布，包含本地 OpenYida Web Bridge、体验反馈表单工作流、流程并行分支配置，以及自定义页面发布数据源保护。
+- 面向 AI 编程工具补充多个示例页面和 Qoder Normandy CLI 技能资料，便于从对话直接进入应用搭建、登录诊断和控制台能力联动。
+
+### Added
+- 新增 `openyida bridge start`，启动仅监听本机回环地址的 OpenYida Web Bridge，供 `https://demo.aliwork.com/s/openyida` 进行本地探测、配对和能力调用。
+- 新增 `openyida feedback <setup|url|dismiss|status>` 体验反馈表单工作流，可创建公开反馈表单、生成隐私安全反馈链接，并管理本地提醒状态。
+- `openyida configure-process` 支持并行分支与 join 节点配置，覆盖更复杂的流程自动化场景。
+- 新增 Agent Chatbox、图片转幻灯片、OpenYida 知识文档等示例页面，并补充 Qoder Normandy CLI 技能资料。
+
+### Changed
+- `openyida publish` 默认保留已有自定义页面数据源，发布前读取当前页面 Schema 并合并 Page 级 `dataSource`，避免重发布清空手工配置的数据源。
+- 更新钉钉 AI 解决方案中心示例页面，增强页面内容与交互展示。
+
+### Fixed
+- 修复 `openyida publish` 参数顺序处理，避免 source/appType/formUuid 识别错位。
+- 优化 Windows 登录二维码打开方式，并补充终端二维码无法扫码时的排查文档。
+
+### Tests
+- 新增 Bridge、Feedback、流程并行分支、发布预检和二维码登录相关测试，并让 DWS 集成测试使用当前 Node 可执行文件，提升 CI 一致性。
+
 ## [2026.5.18] - 2026-05-18
 
 ### Highlights

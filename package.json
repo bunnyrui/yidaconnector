@@ -13,6 +13,7 @@
     "project/config.json",
     "project/pages/src/demo-*.js",
     "project/pages/src/demo-*.oyd.jsx",
+    "project/pages/src/openyida-knowledge-doc.oyd.jsx",
     "project/prd/demo-*.md",
     "yida-skills/",
     "scripts/",

@@ -1,6 +1,6 @@
 ---
 name: yida-create-process
-description: 宜搭流程表单一体化创建。整合创建表单 → 转流程表单 → 获取 processCode → 配置流程四步为一步。不适用于：已有流程表单只需修改审批规则（应使用 yida-process-rule），或只需创建普通表单无审批（应使用 yida-create-form-page）。
+description: 宜搭流程表单一体化创建。整合创建表单 → 转流程表单 → 获取 processCode → 配置流程四步为一步，流程定义格式与 yida-process-rule 完全一致，支持审批/办理/抄送、条件/并行分支、跳转规则，以及官方组件节点配置透传和 processJson 适配。不适用于：已有流程表单只需修改审批规则（应使用 yida-process-rule），或只需创建普通表单无审批（应使用 yida-create-form-page）。
 ---
 # 流程表单一体化创建
 
@@ -78,7 +78,7 @@ openyida create-form create "APP_XXX" "订单处理表" .cache/openyida/order/or
 openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/process-definition.json
 ```
 
-> 流程定义中的 `fieldId` 需在表单创建后确定。如流程不含条件分支，可用用法 1 一步到位。
+> 流程定义中的 `fieldId` 需在表单创建后确定。如流程不含条件分支、字段权限或数据节点字段映射，可用用法 1 一步到位。
 
 ## AI 自动生成流程特性
 
@@ -86,6 +86,7 @@ openyida create-process "APP_XXX" --formUuid "FORM-YYY" .cache/openyida/order/pr
 
 1. **🔐 字段权限**：当字段 ≥ 3 且审批节点 ≥ 2 时，每个节点只允许编辑相关字段
 2. **🔄 跳转规则**：存在回退/循环语义时，自动配置 `routeRules`
+3. **🔀 并行/办理/高级组件**：需要并行会审、办理节点或连接器/数据/消息等官方组件节点时，流程定义格式直接参考 `yida-process-rule`
 
 详见 `yida-process-rule` 的 SKILL.md。
 

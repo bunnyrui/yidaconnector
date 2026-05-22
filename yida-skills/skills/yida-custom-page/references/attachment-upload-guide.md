@@ -380,13 +380,15 @@ export function submitForm() {
 配套渲染片段：
 
 ```jsx
+var self = this;
+
 <label>
   选择附件
   <input
     type="file"
     multiple={true}
     style={{ display: 'none' }}
-    onChange={(e) => { this.handleAttachmentChange(e); }}
+    onChange={(e) => { self.handleAttachmentChange(e); }}
   />
 </label>
 ```

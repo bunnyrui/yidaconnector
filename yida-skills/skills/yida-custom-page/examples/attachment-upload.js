@@ -110,6 +110,7 @@ export function uploadSingleAttachment(file) {
 }
 
 export function handleAttachmentChange(e) {
+  var self = this;
   var files = Array.prototype.slice.call(e.target.files || []);
   if (!files.length) {
     return;
@@ -117,17 +118,17 @@ export function handleAttachmentChange(e) {
 
   this.setCustomState({ uploading: true });
 
-  Promise.all(files.map(function(file) {
-    return this.uploadSingleAttachment(file);
-  }.bind(this))).then(function(uploaded) {
+  Promise.all(files.map((file) => {
+    return self.uploadSingleAttachment(file);
+  })).then(function(uploaded) {
     var next = (_customState.attachments || []).concat(uploaded);
-    this.setCustomState({ attachments: next, uploading: false });
-    this.utils.toast({ title: '附件上传成功', type: 'success' });
-  }.bind(this)).catch(function(error) {
+    self.setCustomState({ attachments: next, uploading: false });
+    self.utils.toast({ title: '附件上传成功', type: 'success' });
+  }).catch(function(error) {
     var message = error && error.message ? error.message : '附件上传失败';
-    this.setCustomState({ uploading: false });
-    this.utils.toast({ title: message, type: 'error' });
-  }.bind(this));
+    self.setCustomState({ uploading: false });
+    self.utils.toast({ title: message, type: 'error' });
+  });
 }
 
 export function removeAttachment(fileUuid) {
@@ -190,6 +191,7 @@ var styles = {
 
 export function renderJsx() {
   var state = this.getCustomState();
+  var self = this;
 
   return (
     <div style={styles.page}>
@@ -202,7 +204,7 @@ export function renderJsx() {
           multiple={true}
           style={{ display: 'none' }}
           disabled={state.uploading}
-          onChange={(e) => { this.handleAttachmentChange(e); }}
+          onChange={(e) => { self.handleAttachmentChange(e); }}
         />
       </label>
 
@@ -210,13 +212,13 @@ export function renderJsx() {
         return (
           <div key={item.fileUuid} style={styles.item}>
             <span>{item.name}</span>
-            <button style={styles.btn} onClick={(e) => { this.removeAttachment(item.fileUuid); }}>删除</button>
+            <button style={styles.btn} onClick={(e) => { self.removeAttachment(item.fileUuid); }}>删除</button>
           </div>
         );
       })}
 
       <div style={{ marginTop: '16px' }}>
-        <button style={styles.btn} onClick={(e) => { this.submitForm(); }}>提交</button>
+        <button style={styles.btn} onClick={(e) => { self.submitForm(); }}>提交</button>
       </div>
     </div>
   );

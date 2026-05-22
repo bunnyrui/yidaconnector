@@ -6,7 +6,7 @@ const path = require('path');
 const vm = require('vm');
 const { execFileSync } = require('child_process');
 
-const { buildPageSource, fixYidaSource } = require('../lib/app/page-compat');
+const { buildPageSource, ensureYidaRuntimeContract, fixYidaSource } = require('../lib/app/page-compat');
 const { lintYidaSource } = require('../lib/app/page-linter');
 const { default: babelTransform } = require('../lib/core/babel-transform');
 
@@ -197,6 +197,23 @@ export function handleClick() {}
     expect(result.fixes.map(fix => fix.rule)).toContain('render-timestamp');
   });
 
+  test('injects missing runtime exports for minimal native pages', () => {
+    const source = `
+export function renderJsx() {
+  return <main>Hello</main>;
+}
+`;
+
+    const result = ensureYidaRuntimeContract(source);
+
+    expect(result.code).toContain('var _customState = {};');
+    expect(result.code).toContain('export function getCustomState');
+    expect(result.code).toContain('export function setCustomState');
+    expect(result.code).toContain('export function forceUpdate');
+    expect(result.code).toContain('export function didMount() {}');
+    expect(result.code).toContain('export function didUnmount() {}');
+  });
+
   test('treats .oyd files with renderJsx as native Yida source', () => {
     const source = `
 export function renderJsx() {
@@ -264,6 +281,48 @@ export default function Page() {
 
     expect(result.ok).toBe(false);
     expect(result.errors.map(issue => issue.code)).toContain('UNSUPPORTED_EFFECT_DEPS');
+  });
+
+  test('rejects useEffect bodies that reference render-local helpers', () => {
+    const source = `
+import React, { useEffect, useState } from 'react';
+export default function Page() {
+  const [ready, setReady] = useState(false);
+  const loadRows = () => {
+    setReady(true);
+  };
+  useEffect(() => {
+    loadRows();
+  }, []);
+  return <div>{ready ? 'ready' : 'loading'}</div>;
+}
+`;
+
+    const result = buildPageSource(source, '/tmp/local-effect.oyd.jsx');
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.map(issue => issue.code)).toContain('UNSUPPORTED_EFFECT_LOCAL_REFERENCE');
+  });
+
+  test('rejects useEffect cleanup captures that would be undefined in didUnmount', () => {
+    const source = `
+import React, { useEffect, useState } from 'react';
+export default function Page() {
+  const [count, setCount] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setCount((prev) => prev + 1), 1000);
+    return () => {
+      clearInterval(timer);
+    };
+  }, []);
+  return <div>{count}</div>;
+}
+`;
+
+    const result = buildPageSource(source, '/tmp/cleanup-capture.oyd.jsx');
+
+    expect(result.ok).toBe(false);
+    expect(result.errors.map(issue => issue.code)).toContain('UNSUPPORTED_EFFECT_CLEANUP_REFERENCE');
   });
 });
 
@@ -355,5 +414,26 @@ export function handleClick() {}
       'array-callback-arrow',
       'event-direct-method',
     ]));
+  });
+
+  test('check-page compatibility-builds plain export-default JSX pages', () => {
+    fs.writeFileSync(path.join(tmpDir, 'pages', 'src', 'plain-react.jsx'), `
+import React, { useState } from 'react';
+export default function Page() {
+  const [count, setCount] = useState(0);
+  return <button onClick={() => setCount(count + 1)}>{count}</button>;
+}
+`, 'utf8');
+
+    const output = execFileSync(process.execPath, [BIN, 'check-page', 'pages/src/plain-react.jsx', '--json'], {
+      cwd: tmpDir,
+      env: cliEnv(),
+      encoding: 'utf8',
+      timeout: 10000,
+    });
+    const parsed = JSON.parse(output);
+
+    expect(parsed.ok).toBe(true);
+    expect(parsed.build.mode).toBe('modern-authoring');
   });
 });

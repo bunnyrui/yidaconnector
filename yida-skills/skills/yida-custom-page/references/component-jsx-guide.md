@@ -1,6 +1,6 @@
 # 自定义页面 JSX 组件指南
 
-> 适用于宜搭自定义页面运行时：React 16、类组件绑定、无 `import/require`、通过 `this.utils.yida.*` 调用数据 API。
+> 适用于宜搭自定义页面运行时：React 16、宜搭原生 `export function` 页面模式、无 `import/require`、通过 `this.utils.yida.*` 调用数据 API。
 
 ## 先说清楚边界
 
@@ -21,25 +21,26 @@
 
 ```javascript
 export function setDraftField(key, value) {
-  this._customState = this._customState || {};
-  this._customState.draft = this._customState.draft || {};
-  this._customState.draft[key] = value;
+  _customState.draft = _customState.draft || {};
+  _customState.draft[key] = value;
 }
 ```
 
 带输入法组合输入的文本输入：
 
 ```jsx
+var self = this;
+
 <input
-  defaultValue={this._customState.keyword || ''}
-  onCompositionStart={() => { this._isComposing = true; }}
+  defaultValue={_customState.keyword || ''}
+  onCompositionStart={(e) => { self._isComposing = true; }}
   onCompositionEnd={(e) => {
-    this._isComposing = false;
-    this._customState.keyword = e.target.value;
+    self._isComposing = false;
+    _customState.keyword = e.target.value;
   }}
   onChange={(e) => {
-    if (this._isComposing) { return; }
-    this._customState.keyword = e.target.value;
+    if (self._isComposing) { return; }
+    _customState.keyword = e.target.value;
   }}
   style={styles.input}
 />
@@ -48,17 +49,19 @@ export function setDraftField(key, value) {
 ## TextField / TextareaField
 
 ```jsx
+var self = this;
+
 <input
   defaultValue={(record.formData && record.formData[FIELDS.name]) || ''}
   placeholder="请输入"
-  onChange={(e) => { this.setDraftField(FIELDS.name, e.target.value); }}
+  onChange={(e) => { self.setDraftField(FIELDS.name, e.target.value); }}
   style={styles.input}
 />
 
 <textarea
   defaultValue={(record.formData && record.formData[FIELDS.remark]) || ''}
   placeholder="请输入备注"
-  onChange={(e) => { this.setDraftField(FIELDS.remark, e.target.value); }}
+  onChange={(e) => { self.setDraftField(FIELDS.remark, e.target.value); }}
   style={styles.textarea}
 />
 ```
@@ -216,16 +219,18 @@ var styles = {
 ```javascript
 export function dateInputToTimestamp(value) {
   if (!value) { return ''; }
-  const timestamp = new Date(`${value}T00:00:00`).getTime();
-  return Number.isNaN(timestamp) ? '' : timestamp;
+  var timestamp = new Date(value + 'T00:00:00').getTime();
+  return isNaN(timestamp) ? '' : timestamp;
 }
 ```
 
 ```jsx
+var self = this;
+
 <input
   type="date"
-  defaultValue={this.formatDateInput(record.formData && record.formData[FIELDS.planDate])}
-  onChange={(e) => { this.setDraftField(FIELDS.planDate, this.dateInputToTimestamp(e.target.value)); }}
+  defaultValue={self.formatDateInput(record.formData && record.formData[FIELDS.planDate])}
+  onChange={(e) => { self.setDraftField(FIELDS.planDate, self.dateInputToTimestamp(e.target.value)); }}
   style={styles.input}
 />
 ```
@@ -235,12 +240,14 @@ export function dateInputToTimestamp(value) {
 保持空值为空字符串；有值时再转数字，避免把未填项误写成 `0`。
 
 ```jsx
+var self = this;
+
 <input
   type="number"
   defaultValue={(record.formData && record.formData[FIELDS.amount]) || ''}
   onChange={(e) => {
-    const raw = e.target.value;
-    this.setDraftField(FIELDS.amount, raw === '' ? '' : Number(raw));
+    var raw = e.target.value;
+    self.setDraftField(FIELDS.amount, raw === '' ? '' : Number(raw));
   }}
   style={styles.input}
 />
@@ -312,19 +319,21 @@ export function dateInputToTimestamp(value) {
 筛选栏建议由关键词、状态、日期范围和按钮组成；点击查询时统一读取 `_customState.filters`，再调用 `this.utils.yida.searchFormDatas`。
 
 ```jsx
+var self = this;
+
 <div style={styles.filterBar}>
   <input
-    defaultValue={(this._customState.filters && this._customState.filters.keyword) || ''}
+    defaultValue={(_customState.filters && _customState.filters.keyword) || ''}
     placeholder="搜索关键词"
     onChange={(e) => {
-      this._customState.filters = this._customState.filters || {};
-      this._customState.filters.keyword = e.target.value;
+      _customState.filters = _customState.filters || {};
+      _customState.filters.keyword = e.target.value;
     }}
     style={styles.input}
   />
   <button
     type="button"
-    onClick={() => { this.loadRecords({ page: 1 }); }}
+    onClick={(e) => { self.loadRecords({ page: 1 }); }}
     style={styles.primaryButton}
   >
     查询

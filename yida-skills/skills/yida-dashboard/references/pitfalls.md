@@ -197,11 +197,19 @@ fetch('/dingtalk/web/' + appType + '/.../saveFormData.json');
 
 **现象**：用户分享到群里，截图右上角赫然一个"截图"按钮。
 
-**正确做法**：给截图按钮加标记 class，传 `ignoreElements`：
+**正确做法**：截图按钮要同时满足两件事：有真实 `onClick`，并带 `sl-no-capture` 让 html2canvas 排除。如果只是视觉标签或占位，不要用 `<button>`，改用 `span/div`。
 
 ```javascript
-// 按钮加 class
-<button className="sl-no-capture" onClick={() => captureCard('chart-region')}>📷 截图</button>
+// 按钮加 class，且必须有真实点击事件
+<button
+  className="sl-no-capture"
+  onClick={function(e) {
+    e.stopPropagation();
+    self.captureCard('chart-region', '区域营收');
+  }}
+>
+  截图
+</button>
 
 // 截图时排除
 window.html2canvas(el, {
@@ -505,7 +513,8 @@ self.utils.toast({ title: '已创建待办', type: 'success' });
 - [ ] 派单 toast 文案是"派单已发起，将在 30 秒内收到钉钉待办"，**不是**"已创建待办"
 - [ ] 页面源码没有直接 `fetch` 钉钉 OpenAPI 或保存 accessToken/appSecret
 - [ ] ECharts / html2canvas 用 `g.alicdn.com`
-- [ ] 截图按钮有 `sl-no-capture` class + `ignoreElements` 已配
+- [ ] 截图按钮有真实 `onClick` + `sl-no-capture` class + `ignoreElements` 已配
+- [ ] 所有可见 `<button>` 都有真实事件或显式 `disabled`，静态标签/状态胶囊不用 button
 - [ ] 超过 1000 行用分批写入
 - [ ] 每个 `renderJsx` 的 return 分支都有 `timestamp` 隐藏 div
 - [ ] 纯工具函数用 `var`，组件方法用 `export function`

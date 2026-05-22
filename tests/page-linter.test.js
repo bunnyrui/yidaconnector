@@ -56,6 +56,40 @@ export function loadRows() {
     expect(warningRules).toContain('yida-api-catch');
   });
 
+  test('blocks lifecycle typos and event handlers that render but do not bind', () => {
+    const source = `
+export function didmount() {}
+export function componentDidMount() {}
+export function renderJsx() {
+  var self = this;
+  return (
+    <div>
+      <button onclick={(e) => { self.save(e); }}>lowercase</button>
+      <button onClick={self.save()}>called during render</button>
+      <button onClick={(e) => self.save}>never called</button>
+      <button style={{ color: 'red' }}>looks clickable but is static</button>
+      <input
+        value="bad"
+        onChange={(e) => { self.save(e); }}
+      />
+    </div>
+  );
+}
+export function save() {}
+`;
+
+    const result = lintYidaSource(source, '/tmp/events.jsx');
+    const errorRules = result.errors.map(issue => issue.rule);
+
+    expect(errorRules).toContain('lifecycle-case');
+    expect(errorRules).toContain('react-lifecycle-method');
+    expect(errorRules).toContain('event-lowercase');
+    expect(errorRules).toContain('event-call-result');
+    expect(errorRules).toContain('event-noop-arrow');
+    expect(errorRules).toContain('button-missing-handler');
+    expect(errorRules).toContain('controlled-input');
+  });
+
   test('allows function callbacks that do not use this and supports line-level disables', () => {
     const source = `
 export function renderJsx() {

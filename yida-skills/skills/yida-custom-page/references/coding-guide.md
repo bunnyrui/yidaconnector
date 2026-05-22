@@ -13,8 +13,10 @@
 | **三方包引入** | 禁止使用 `import/require` 语法，如需使用第三方库，必须通过 `this.utils.loadScript` 加载 CDN 脚本，参考 [yida-api.md](../../../references/yida-api.md) 的「工具类 API」章节。Tailwind 属于默认视觉层，按下方「Tailwind 引入规范」处理 |
 | **内置 lodash** | 宜搭页面运行时已全局加载 **lodash 4.6.1**（`window._`），可直接使用 `_.get`、`_.groupBy`、`_.cloneDeep` 等，无需 `loadScript`。详见下方「内置 lodash 使用指引」 |
 | **函数导出格式** | 原生写法使用 `export function xxx() {}`；现代 authoring 写法使用 `export default function Page()`，由 OpenYida 编译为原生导出函数 |
+| **生命周期名称** | 只允许 `didMount` / `didUnmount`，大小写敏感；不要写 `didmount`、`componentDidMount`、`componentWillUnmount` |
 | **样式** | 默认使用 Tailwind utility `className` 组织视觉层；关键尺寸、容器兜底和 Tailwind 加载失败兜底可继续使用 `style` 对象。禁止 `import` CSS、CSS Modules 或构建期样式能力 |
 | **`this` 上下文** | 所有导出函数中的 `this` 指向宜搭页面的 React 类实例 |
+| **按钮交互** | 可见 `<button>` 必须有 `onClick`/`onMouseDown`/`onKeyDown` 或明确 `disabled`；静态标签、状态徽标、截图标记用 `span`/`div` |
 | **禁止使用 `this.setState` 管理业务状态** | `this.setState` 已被覆盖，仅用于 `forceUpdate`（通过更新 `timestamp`） |
 | **JavaScript 版本** | 使用 ES2015 (ES6) 语法，不能高于 ES2015 版本。**注意**：即使是 ES6 语法，部分特性也会导致静默失败，详见下方「JS 引擎兼容性限制」 |
 | **必须定义页面入口** | 原生写法必须定义 `renderJsx`；`.oyd.jsx` authoring 写法必须定义 `export default function Page()` |
@@ -227,6 +229,8 @@ this.setCustomState(nextState);
 - didMount 函数
 - didUnmount 函数
 - renderJsx 函数
+
+OpenYida 编译器会在发布前为极简页面补齐缺失的空 `didMount` / `didUnmount` 和基础状态函数，避免 Schema 中 actionRef 找不到函数；但交付给 AI/IDE 的源码仍必须按下面结构生成，便于人审、二次修改和 `check-page` 精准定位问题。
 
 ```jsx
 // ── 状态管理 ──────────────────────────────────────────

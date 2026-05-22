@@ -59,7 +59,10 @@ var KNOWLEDGE_CACHE_STALE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 var REMOTE_SYNC_DEBOUNCE_MS = 2500;
 var REMOTE_SYNC_MIN_INTERVAL_MS = 6000;
 var REMOTE_MAX_SESSIONS = 20;
-var REMOTE_MAX_MESSAGES_PER_SESSION = 80;
+var REMOTE_MAX_MESSAGES_PER_SESSION = 400;
+var MESSAGE_RENDER_INITIAL_COUNT = 40;
+var MESSAGE_RENDER_STEP = 30;
+var MESSAGE_SCROLL_TOP_THRESHOLD = 36;
 var KNOWLEDGE_DOC_PAGE_PATH = '/s/openyida-doc';
 var OPENYIDA_DOCS_URL = 'https://openyida.ai/docs';
 var YIDA_DOCS_URL = 'https://docs.aliwork.com/docs/developer/learning';
@@ -404,6 +407,7 @@ var _customState = {
   isSending: false,
   statusText: 'Qwen 就绪',
   markdownReady: false,
+  messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
   sequence: 3,
   ready: false,
 };
@@ -809,6 +813,28 @@ function getActiveMessages() {
 
 function getSessionMessages(sessionId) {
   return (_customState.messages && _customState.messages[sessionId]) || [];
+}
+
+function getMessageRenderCount(total) {
+  var count = Number(_customState.messageRenderCount || MESSAGE_RENDER_INITIAL_COUNT);
+  if (!Number.isFinite(count) || count < MESSAGE_RENDER_INITIAL_COUNT) {
+    count = MESSAGE_RENDER_INITIAL_COUNT;
+  }
+  return Math.min(Math.max(count, MESSAGE_RENDER_INITIAL_COUNT), total || 0);
+}
+
+function getRenderableMessages(messages) {
+  var list = messages || [];
+  var count = getMessageRenderCount(list.length);
+  if (count >= list.length) {
+    return list;
+  }
+  return list.slice(list.length - count);
+}
+
+function hasMoreEarlierMessages(messages) {
+  var list = messages || [];
+  return getMessageRenderCount(list.length) < list.length;
 }
 
 function isBlankNewTaskSession(session, messageMap) {
@@ -2554,6 +2580,7 @@ function normalizePersistedState(parsed) {
     provider: 'yida-text',
     widgetOpen: false,
     confirmCard: null,
+    messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
     sequence: Number(parsed.sequence || 3),
   };
 }
@@ -2966,6 +2993,31 @@ export function scrollChatToBottom() {
   }, 80);
 }
 
+export function handleMessageListScroll(e) {
+  var list = e && e.currentTarget ? e.currentTarget : null;
+  if (!list || list.scrollTop > MESSAGE_SCROLL_TOP_THRESHOLD) {
+    return;
+  }
+  var messages = getActiveMessages();
+  var currentCount = getMessageRenderCount(messages.length);
+  if (currentCount >= messages.length) {
+    return;
+  }
+  var previousScrollHeight = list.scrollHeight;
+  var previousScrollTop = list.scrollTop;
+  var nextCount = Math.min(messages.length, currentCount + MESSAGE_RENDER_STEP);
+  this.setCustomState({
+    messageRenderCount: nextCount,
+    statusText: nextCount >= messages.length ? '已加载全部历史' : '已加载更早消息',
+  });
+  setTimeout(function() {
+    var nextList = document.getElementById('agent-chatbox-message-list');
+    if (nextList) {
+      nextList.scrollTop = nextList.scrollHeight - previousScrollHeight + previousScrollTop;
+    }
+  }, 40);
+}
+
 export function ensureTailwind() {
   var self = this;
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -3162,6 +3214,7 @@ export function loadRemoteWorkspace() {
       restored.statusText = '已加载云端会话';
       restored.toolRuns = prependToolRun('remote.load', 'done', '宜搭表单');
       self.setCustomState(restored);
+      self.scrollChatToBottom();
     } else {
       self.setCustomState({
         remoteLoaded: true,
@@ -3967,6 +4020,7 @@ export function switchSession(sessionId) {
   this.setCustomState({
     activeSessionId: sessionId,
     activeProjectId: session && session.projectId ? session.projectId : '',
+    messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
     draft: '',
     widgetDraft: '',
     pendingImage: null,
@@ -3979,6 +4033,7 @@ export function switchSession(sessionId) {
     projectMenuOpenId: '',
     statusText: '会话已打开',
   });
+  this.scrollChatToBottom();
   this.focusMainComposerInput();
 }
 
@@ -4001,6 +4056,7 @@ export function createSession(projectId) {
       messages: compacted.messages,
       activeSessionId: reusableId,
       activeProjectId: targetProjectId,
+      messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
       projectOpenMap: nextProjectOpenMap,
       draft: '',
       widgetDraft: '',
@@ -4034,6 +4090,7 @@ export function createSession(projectId) {
     messages: nextMessages,
     activeSessionId: sessionId,
     activeProjectId: targetProjectId,
+    messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
     projectOpenMap: nextProjectOpenMap,
     draft: '',
     widgetDraft: '',
@@ -4455,6 +4512,7 @@ export function archiveSession(sessionId) {
     sessions: sessions,
     messages: messages,
     activeSessionId: activeSessionId,
+    messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
     sessionMenuOpenId: '',
     sessionMoveOpenId: '',
     statusText: '已归档',
@@ -4506,6 +4564,7 @@ export function commitDeleteSession(sessionId) {
     sessions: sessions,
     messages: messages,
     activeSessionId: activeSessionId,
+    messageRenderCount: MESSAGE_RENDER_INITIAL_COUNT,
     sessionMenuOpenId: '',
     sessionMoveOpenId: '',
     actionDialog: null,
@@ -6610,6 +6669,8 @@ export function renderJsx() {
   var viewportWidth = typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1280;
   var isMobile = viewportWidth <= 760 || (this.utils && this.utils.isMobile ? this.utils.isMobile() : false);
   var messages = getActiveMessages();
+  var visibleMessages = getRenderableMessages(messages);
+  var hasMoreMessages = hasMoreEarlierMessages(messages);
   var shellStyle = isMobile ? styles.mobileShell : (_customState.sidebarCollapsed ? Object.assign({}, styles.shell, styles.shellCollapsed) : styles.shell);
 
   return (
@@ -6623,8 +6684,13 @@ export function renderJsx() {
           {this.renderChatHeader(isMobile)}
           {this.renderBridgePanel(isMobile)}
           {messages.length ? (
-            <div id="agent-chatbox-message-list" className={tw.messageList} style={styles.messageList}>
-              {messages.map((message) => self.renderMessage(message))}
+            <div id="agent-chatbox-message-list" className={tw.messageList} style={styles.messageList} onScroll={(e) => { self.handleMessageListScroll(e); }}>
+              {hasMoreMessages ? (
+                <div style={styles.historyLoader}>
+                  向上滚动加载更早消息
+                </div>
+              ) : null}
+              {visibleMessages.map((message) => self.renderMessage(message))}
               {_customState.confirmCard ? (
                 <div className={tw.messageRow} style={styles.messageRow}>
                   {this.renderInlineConfirmCard()}
@@ -8745,6 +8811,15 @@ styles = Object.assign({}, styles, {
     flexDirection: 'column',
     gap: 18,
     alignItems: 'center',
+  },
+  historyLoader: {
+    width: '100%',
+    maxWidth: 840,
+    textAlign: 'center',
+    color: '#8f8f8f',
+    fontSize: 12,
+    lineHeight: '28px',
+    padding: '2px 0 8px',
   },
   messageListEmpty: {
     justifyContent: 'center',

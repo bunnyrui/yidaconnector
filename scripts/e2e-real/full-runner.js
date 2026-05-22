@@ -193,6 +193,176 @@ function buildAppendCharts(formUuid, fields) {
   ];
 }
 
+function buildFieldBehaviorList(fields, editableLabels = []) {
+  const editable = new Set(editableLabels);
+  return (fields || []).map((field) => ({
+    fieldId: field.fieldId,
+    fieldBehavior: editable.has(field.label) ? 'NORMAL' : 'READONLY',
+  }));
+}
+
+function ensureProcessFields(fields) {
+  if (!fields || fields.length === 0) {
+    throw new Error('Process stage requires form schema fields; include the form stage before process');
+  }
+  return {
+    textField: fieldByLabel(fields, 'E2E Text'),
+    numberField: fieldByLabel(fields, 'E2E Number'),
+    statusField: fieldByLabel(fields, 'E2E Status'),
+    notesField: fields.find((field) => field.label === 'E2E Notes') || null,
+  };
+}
+
+function buildProcessCreateDefinition(fields) {
+  const processFields = ensureProcessFields(fields);
+  const editableNotes = processFields.notesField ? ['E2E Notes'] : ['E2E Text'];
+  const readonlyBehavior = buildFieldBehaviorList(fields);
+
+  return {
+    nodes: [
+      {
+        type: 'operator',
+        name: 'E2E 资料补充',
+        executor: 'originator',
+        formConfig: {
+          behaviorList: buildFieldBehaviorList(fields, editableNotes),
+        },
+      },
+      {
+        type: 'parallel',
+        name: 'E2E 并行会审',
+        branches: [
+          {
+            name: 'E2E 业务审批',
+            childNodes: [
+              {
+                type: 'approval',
+                name: 'E2E 业务审批',
+                approver: 'originator',
+                formConfig: { behaviorList: readonlyBehavior },
+              },
+            ],
+          },
+          {
+            name: 'E2E 财务审批',
+            childNodes: [
+              {
+                type: 'approval',
+                name: 'E2E 财务审批',
+                approver: 'originator',
+                formConfig: { behaviorList: readonlyBehavior },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'carbon',
+        name: 'E2E 流程抄送',
+        approver: 'originator',
+      },
+    ],
+  };
+}
+
+function buildProcessRuleDefinition(fields) {
+  const processFields = ensureProcessFields(fields);
+  const readonlyBehavior = buildFieldBehaviorList(fields);
+  const editableStatus = buildFieldBehaviorList(fields, ['E2E Status']);
+
+  return {
+    nodes: [
+      {
+        type: 'approval',
+        name: 'E2E 发起人复核',
+        approver: 'originator',
+        formConfig: { behaviorList: readonlyBehavior },
+      },
+      {
+        type: 'route',
+        conditions: [
+          {
+            name: 'E2E 数字大于 0',
+            rules: [
+              {
+                fieldId: processFields.numberField.fieldId,
+                fieldName: processFields.numberField.label,
+                componentType: processFields.numberField.componentName,
+                op: 'GreaterThan',
+                value: 0,
+              },
+            ],
+            childNodes: [
+              {
+                type: 'operator',
+                name: 'E2E 状态确认',
+                executor: 'originator',
+                formConfig: { behaviorList: editableStatus },
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: 'carbon',
+        name: 'E2E 结果抄送',
+        approver: 'originator',
+      },
+    ],
+  };
+}
+
+function buildOfficialProcessNodeFixture(context = {}) {
+  return {
+    publishable: false,
+    note: 'Fixture only: advanced official nodes require real tenant-specific props before publishing.',
+    nodes: [
+      {
+        type: 'connector',
+        name: 'E2E Connector placeholder',
+        connectorRules: {
+          connectorId: 'G-CONN-E2E',
+          actionId: 'G-ACT-E2E',
+          connector: { mode: 1 },
+          inputs: { assignments: [] },
+        },
+      },
+      {
+        componentName: 'GetSingleDataNode',
+        name: 'E2E Get data placeholder',
+        getData: { sourceId: context.formUuid || 'FORM-E2E', quantity: 1, assignments: [] },
+      },
+      {
+        componentName: 'JavaScriptNode',
+        name: 'E2E JavaScript placeholder',
+        JavaScript: { action: { code: 'return inputs;' }, outputs: [] },
+      },
+      {
+        componentName: 'SendMessageNode',
+        name: 'E2E Message placeholder',
+        sendMessageRules: { messageType: 'workNotice', messageInfo: { title: 'E2E', content: 'Process fixture' } },
+      },
+      {
+        componentName: 'CycleContainer',
+        name: 'E2E Cycle placeholder',
+        cycleContainerRules: { sourceId: 'node-source-placeholder' },
+        children: [
+          {
+            componentName: 'JavaScriptNode',
+            name: 'E2E Cycle child',
+            JavaScript: { action: { code: 'return inputs;' }, outputs: [] },
+          },
+        ],
+      },
+      {
+        componentName: 'AINode',
+        name: 'E2E AI placeholder',
+        workFlowRules: { flowId: 'FLOW-E2E', outputs: [], yidaFieldIdList: [] },
+      },
+    ],
+  };
+}
+
 function buildResultApp(context, resultAppName) {
   if (!context.appType) {return null;}
   const baseUrl = 'https://www.aliwork.com';
@@ -454,11 +624,17 @@ var CHECKS = [
   'Report and form resource IDs displayed'
 ];
 
+var TIME_FILTERS = ['今日', '本周', '本月', '全链路'];
+
+function captureLabel(style) {
+  return <span className="sl-no-capture" style={style}>截图</span>;
+}
+
 function kpiCard(item, index) {
   var colors = ['#2563eb', '#16a34a', '#7c3aed', '#d97706'];
   return (
     <div key={item.label} style={{ background: '#fff', border: '1px solid #d9e2ef', borderRadius: 8, padding: 18, minHeight: 126, position: 'relative' }}>
-      <button className="sl-no-capture" style={{ position: 'absolute', top: 12, right: 12, height: 28, border: '1px solid #d0d7e2', borderRadius: 6, background: '#fff', color: '#344054' }}>截图</button>
+      {captureLabel({ position: 'absolute', top: 12, right: 12, height: 28, lineHeight: '28px', border: '1px solid #d0d7e2', borderRadius: 6, background: '#fff', color: '#344054', padding: '0 10px', fontSize: 13, fontWeight: 800 })}
       <div style={{ color: '#64748b', fontSize: 13, fontWeight: 700 }}>{item.label}</div>
       <div style={{ marginTop: 16 }}><span style={{ color: colors[index % colors.length], fontSize: 34, fontWeight: 850 }}>{item.value}</span><span style={{ color: '#667085', marginLeft: 6 }}>{item.unit}</span></div>
       <div style={{ marginTop: 8, color: '#16a34a', fontSize: 13, fontWeight: 800 }}>{item.trend}</div>
@@ -471,7 +647,7 @@ function chartPanel(title, rows) {
     <section style={{ background: '#fff', border: '1px solid #d9e2ef', borderRadius: 8, padding: 18, minHeight: 238 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <div style={{ fontSize: 18, fontWeight: 850 }}>{title}</div>
-        <button className="sl-no-capture" style={{ height: 30, border: '1px solid #d0d7e2', borderRadius: 6, background: '#fff', color: '#344054' }}>截图</button>
+        {captureLabel({ display: 'inline-flex', alignItems: 'center', height: 30, border: '1px solid #d0d7e2', borderRadius: 6, background: '#fff', color: '#344054', padding: '0 10px', fontSize: 13, fontWeight: 800 })}
       </div>
       {rows.map(function (row) {
         return (
@@ -486,6 +662,7 @@ function chartPanel(title, rows) {
 }
 
 export default function Page() {
+  const [activeFilter, setActiveFilter] = useState('全链路');
   return (
     <div style={{ minHeight: '100vh', background: '#f4f7fb', color: '#172033', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', padding: 28, boxSizing: 'border-box' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -498,7 +675,7 @@ export default function Page() {
           <div style={{ background: '#dcfce7', color: '#166534', border: '1px solid #86efac', borderRadius: 999, padding: '8px 14px', fontWeight: 850, fontSize: 13 }}>PASSED</div>
         </header>
         <section style={{ display: 'flex', flexWrap: 'wrap', gap: 10, background: '#fff', border: '1px solid #d9e2ef', borderRadius: 8, padding: 12, marginBottom: 14 }}>
-          {['今日', '本周', '本月', '全链路'].map(function (label) { return <button key={label} style={{ height: 32, padding: '0 12px', border: label === '全链路' ? '1px solid #2563eb' : '1px solid #d0d7e2', borderRadius: 6, background: label === '全链路' ? '#eff6ff' : '#fff', color: label === '全链路' ? '#1d4ed8' : '#344054', fontWeight: 800 }}>{label}</button>; })}
+          {TIME_FILTERS.map(function (label) { return <button key={label} type="button" onClick={() => setActiveFilter(label)} style={{ height: 32, padding: '0 12px', border: label === activeFilter ? '1px solid #2563eb' : '1px solid #d0d7e2', borderRadius: 6, background: label === activeFilter ? '#eff6ff' : '#fff', color: label === activeFilter ? '#1d4ed8' : '#344054', fontWeight: 800 }}>{label}</button>; })}
         </section>
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14, marginBottom: 14 }}>{KPIS.map(kpiCard)}</section>
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 14, marginBottom: 14 }}>
@@ -556,8 +733,11 @@ var RISKS = [
   { level: '中', title: '华南费用率偏高', owner: '财务 BP', action: '复盘费用结构' }
 ];
 
+var BUSINESS_TIME_FILTERS = ['今日', '本周', '本月', 'FY2026'];
+var BUSINESS_REGION_FILTERS = ['全球', '华东', '华南', '海外'];
+
 function captureButton() {
-  return <button className="sl-no-capture" style={{ height: 28, border: '1px solid rgba(255,255,255,0.28)', borderRadius: 999, background: 'rgba(255,255,255,0.12)', color: '#fff', padding: '0 12px', fontWeight: 800 }}>截图</button>;
+  return <span className="sl-no-capture" style={{ display: 'inline-flex', alignItems: 'center', height: 28, border: '1px solid rgba(255,255,255,0.28)', borderRadius: 999, background: 'rgba(255,255,255,0.12)', color: '#fff', padding: '0 12px', fontWeight: 800, fontSize: 13 }}>截图</span>;
 }
 
 function kpiCard(item) {
@@ -577,7 +757,7 @@ function chartPanel(item, index) {
     <section key={item.title} style={{ borderRadius: 18, padding: 18, background: '#ffffff', border: '1px solid #eadfd4', minHeight: 220, boxShadow: '0 14px 36px rgba(121,85,54,0.10)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
         <h3 style={{ margin: 0, color: '#1f2937', fontSize: 17, fontWeight: 900 }}>{item.title}</h3>
-        <button className="sl-no-capture" style={{ height: 28, border: '1px solid #fed7aa', borderRadius: 999, background: '#fff7ed', color: '#c2410c', padding: '0 10px', fontWeight: 800 }}>截图</button>
+        <span className="sl-no-capture" style={{ display: 'inline-flex', alignItems: 'center', height: 28, border: '1px solid #fed7aa', borderRadius: 999, background: '#fff7ed', color: '#c2410c', padding: '0 10px', fontWeight: 800, fontSize: 13 }}>截图</span>
       </div>
       {item.rows.map(function (row) {
         return (
@@ -597,12 +777,14 @@ function riskRow(item) {
       <span style={{ display: 'inline-flex', width: 32, height: 32, borderRadius: 999, background: item.level === '高' ? '#ef4444' : '#f59e0b', color: '#fff', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{item.level}</span>
       <strong style={{ color: '#fff' }}>{item.title}</strong>
       <span style={{ color: '#cbd5e1' }}>{item.owner}</span>
-      <button className="sl-no-capture" style={{ height: 30, border: '1px solid rgba(255,255,255,0.26)', borderRadius: 999, background: 'rgba(255,255,255,0.10)', color: '#fff', fontWeight: 800 }}>{item.action}</button>
+      <span className="sl-no-capture" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 30, border: '1px solid rgba(255,255,255,0.26)', borderRadius: 999, background: 'rgba(255,255,255,0.10)', color: '#fff', fontWeight: 800 }}>{item.action}</span>
     </div>
   );
 }
 
 export default function Page() {
+  const [activeTime, setActiveTime] = useState('FY2026');
+  const [activeRegion, setActiveRegion] = useState('全球');
   return (
     <main style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #fff7ed 0%, #eff6ff 42%, #f8fafc 100%)', padding: 28, boxSizing: 'border-box', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' }}>
       <div style={{ maxWidth: 1440, margin: '0 auto' }}>
@@ -622,9 +804,9 @@ export default function Page() {
         </header>
 
         <section style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', padding: 14, borderRadius: 18, background: 'rgba(255,255,255,0.84)', border: '1px solid #e5e7eb', marginBottom: 18 }}>
-          {['今日', '本周', '本月', 'FY2026'].map(function (label) { return <button key={label} style={{ height: 34, border: label === 'FY2026' ? '1px solid #f97316' : '1px solid #cbd5e1', borderRadius: 999, background: label === 'FY2026' ? '#fff7ed' : '#fff', color: label === 'FY2026' ? '#c2410c' : '#334155', padding: '0 14px', fontWeight: 850 }}>{label}</button>; })}
+          {BUSINESS_TIME_FILTERS.map(function (label) { return <button key={label} type="button" onClick={() => setActiveTime(label)} style={{ height: 34, border: label === activeTime ? '1px solid #f97316' : '1px solid #cbd5e1', borderRadius: 999, background: label === activeTime ? '#fff7ed' : '#fff', color: label === activeTime ? '#c2410c' : '#334155', padding: '0 14px', fontWeight: 850 }}>{label}</button>; })}
           <span style={{ color: '#94a3b8' }}>|</span>
-          {['全球', '华东', '华南', '海外'].map(function (label) { return <button key={label} style={{ height: 34, border: '1px solid #dbeafe', borderRadius: 999, background: label === '全球' ? '#eff6ff' : '#fff', color: '#1d4ed8', padding: '0 14px', fontWeight: 850 }}>{label}</button>; })}
+          {BUSINESS_REGION_FILTERS.map(function (label) { return <button key={label} type="button" onClick={() => setActiveRegion(label)} style={{ height: 34, border: '1px solid #dbeafe', borderRadius: 999, background: label === activeRegion ? '#eff6ff' : '#fff', color: '#1d4ed8', padding: '0 14px', fontWeight: 850 }}>{label}</button>; })}
         </section>
 
         <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 18 }}>{KPIS.map(kpiCard)}</section>
@@ -889,6 +1071,12 @@ function recordConfiguredStageResults(registry, registryPath, config, context, w
       summary: 'Formula, doctor, sample and CDN config offline checks verified',
       resources: [],
     },
+    process: {
+      commands: ['create-process', 'configure-process'],
+      summary: `Process form configured and republished: ${context.processCode || 'n/a'}`,
+      resources: ['process'],
+      artifacts: ['process-definition', 'process-rule-definition', 'process-official-node-fixture'],
+    },
     'connector-local': {
       commands: ['connector-gen-template', 'connector-parse-api'],
       summary: 'Connector template generation and cURL parsing verified locally',
@@ -948,6 +1136,9 @@ function run(options = {}) {
     businessDashboardFormUuid: null,
     businessDashboardSharePath: null,
     importAppType: null,
+    processCode: null,
+    processId: null,
+    processVersion: null,
     fields: [],
   };
 
@@ -1200,6 +1391,61 @@ function run(options = {}) {
       runStep('flash-to-prd', ['flash-to-prd', '--file', flashNotePath, '--name', `${config.prefix} PRD`], { allowNoJson: true });
     }
 
+    if (hasStage(config.stages, 'process')) {
+      if (!context.appType || !context.formUuid) {
+        throw new Error('Process stage requires app and form stages');
+      }
+      const processCreateDefinitionPath = writeJsonFile(
+        path.join(workDir, 'process-create-definition.json'),
+        buildProcessCreateDefinition(context.fields),
+      );
+      const processRuleDefinitionPath = writeJsonFile(
+        path.join(workDir, 'process-rule-definition.json'),
+        buildProcessRuleDefinition(context.fields),
+      );
+      const officialNodeFixturePath = writeJsonFile(
+        path.join(workDir, 'process-official-node-fixture.json'),
+        buildOfficialProcessNodeFixture(context),
+      );
+      registry.artifacts = registry.artifacts || [];
+      registry.artifacts.push(
+        { type: 'process-definition', path: processCreateDefinitionPath },
+        { type: 'process-rule-definition', path: processRuleDefinitionPath },
+        { type: 'process-official-node-fixture', path: officialNodeFixturePath },
+      );
+      persistRegistry(registryPath, registry);
+
+      const processCreate = runStep('create-process', [
+        'create-process',
+        context.appType,
+        '--formUuid',
+        context.formUuid,
+        processCreateDefinitionPath,
+      ]).json;
+      context.processCode = processCreate.processCode;
+      if (!context.processCode) {
+        throw new Error(`create-process did not return processCode: ${JSON.stringify(processCreate)}`);
+      }
+      trackResource(registry, registryPath, {
+        type: 'process',
+        appType: context.appType,
+        formUuid: context.formUuid,
+        processCode: context.processCode,
+        name: `${config.prefix}_Process`,
+        url: processCreate.url,
+      });
+
+      const processRule = runStep('configure-process', [
+        'configure-process',
+        context.appType,
+        context.formUuid,
+        processRuleDefinitionPath,
+        context.processCode,
+      ]).json;
+      context.processId = processRule.processId || null;
+      context.processVersion = processRule.processVersion || null;
+    }
+
     if (hasStage(config.stages, 'connector-local')) {
       const templatePath = path.join(workDir, 'api-template.md');
       runStep('connector-gen-template', ['connector', 'gen-template', templatePath], { allowNoJson: true });
@@ -1305,6 +1551,9 @@ module.exports = {
   buildDashboardSource,
   buildDashboardSkillSource,
   buildBusinessDashboardSource,
+  buildOfficialProcessNodeFixture,
+  buildProcessCreateDefinition,
+  buildProcessRuleDefinition,
   collectFields,
   fieldByLabel,
   findValueByKeys,

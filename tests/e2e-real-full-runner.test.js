@@ -6,6 +6,9 @@ const {
   buildDashboardSource,
   buildDashboardSkillSource,
   buildBusinessDashboardSource,
+  buildOfficialProcessNodeFixture,
+  buildProcessCreateDefinition,
+  buildProcessRuleDefinition,
   buildResultApp,
   collectFields,
   findValueByKeys,
@@ -159,6 +162,125 @@ describe('full real E2E runner', () => {
       url: 'https://www.aliwork.com/APP_FULL/custom/PAGE-FULL?isRenderNav=false',
       sharePath: '/o/oy_e2e_full-business-dashboard',
     });
+  });
+
+  test('runs the opt-in process stage with mocked CLI calls', () => {
+    const calls = [];
+    const registry = { resources: [], commands: [] };
+    const config = {
+      enabled: true,
+      prefix: 'OY_E2E_PROC',
+      appName: 'OY_E2E_PROC_App',
+      formName: 'OY_E2E_PROC_Form',
+      pageName: 'OY_E2E_PROC_Page',
+      updateAppName: 'OY_E2E_PROC_App_Renamed',
+      resultAppName: 'OY_E2E_PROC_PASSED',
+      importAppName: 'OY_E2E_PROC_Imported',
+      fieldsFile: path.join(__dirname, '..', 'scripts', 'e2e-real', 'fixtures', 'form-fields.json'),
+      pageSource: path.join(__dirname, '..', 'project', 'pages', 'src', 'demo-compat-smoke.oyd.jsx'),
+      registryDir: '/tmp/openyida-e2e-full-test',
+      stages: ['app', 'form', 'process'],
+    };
+
+    const schema = {
+      success: true,
+      content: {
+        pages: [
+          {
+            componentsTree: [
+              {
+                children: [
+                  { componentName: 'TextField', props: { fieldId: 'textField_1', label: { zh_CN: 'E2E Text' } } },
+                  { componentName: 'NumberField', props: { fieldId: 'numberField_1', label: { zh_CN: 'E2E Number' } } },
+                  { componentName: 'SelectField', props: { fieldId: 'selectField_1', label: { zh_CN: 'E2E Status' } } },
+                  { componentName: 'TextareaField', props: { fieldId: 'textareaField_1', label: { zh_CN: 'E2E Notes' } } },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    run({
+      env: { OPENYIDA_E2E: '1' },
+      config,
+      writeCookieCache: () => {},
+      createRegistry: () => ({ registry, registryPath: '/tmp/openyida-e2e-full-test/OY_E2E_PROC.json' }),
+      writeRegistry: () => {},
+      addResource: (currentRegistry, registryPath, resource) => {
+        currentRegistry.resources.push(resource);
+      },
+      writeJson: (filePath, value) => {
+        if (filePath.includes('process-create-definition.json')) {
+          expect(value.nodes.some((node) => node.type === 'operator')).toBe(true);
+          expect(value.nodes.some((node) => node.type === 'parallel')).toBe(true);
+        }
+        if (filePath.includes('process-rule-definition.json')) {
+          expect(value.nodes.some((node) => node.type === 'route')).toBe(true);
+        }
+        if (filePath.includes('process-official-node-fixture.json')) {
+          expect(value.publishable).toBe(false);
+          expect(value.nodes.some((node) => node.componentName === 'AINode')).toBe(true);
+        }
+        return filePath;
+      },
+      writeText: (filePath) => filePath,
+      runCli: (args) => {
+        calls.push(args);
+        const command = args[0];
+        const sub = args[1];
+        if (command === 'create-app') {return { json: { success: true, appType: 'APP_PROC' } };}
+        if (command === 'create-form' && sub === 'create') {return { json: { success: true, formUuid: 'FORM-PROC' } };}
+        if (command === 'get-schema') {return { json: schema };}
+        if (command === 'create-process') {return { json: { success: true, processCode: 'TPROC-PROC', formUuid: 'FORM-PROC', appType: 'APP_PROC', url: 'https://www.aliwork.com/APP_PROC/workbench/FORM-PROC' } };}
+        if (command === 'configure-process') {return { json: { success: true, processCode: 'TPROC-PROC', processId: 'PID-PROC', processVersion: 2, formUuid: 'FORM-PROC', appType: 'APP_PROC' } };}
+        if (command === 'create-page') {return { json: { success: true, pageId: 'PAGE-PROC' } };}
+        return { json: { success: true, status: 'ok' } };
+      },
+    });
+
+    expect(calls.some((args) => args[0] === 'create-process' && args[1] === 'APP_PROC' && args[2] === '--formUuid' && args[3] === 'FORM-PROC')).toBe(true);
+    expect(calls).toContainEqual(['configure-process', 'APP_PROC', 'FORM-PROC', '/tmp/openyida-e2e-full-test/OY_E2E_PROC/process-rule-definition.json', 'TPROC-PROC', '--quiet']);
+    expect(registry.resources).toContainEqual(expect.objectContaining({
+      type: 'process',
+      appType: 'APP_PROC',
+      formUuid: 'FORM-PROC',
+      processCode: 'TPROC-PROC',
+    }));
+    expect(registry.context).toMatchObject({
+      processCode: 'TPROC-PROC',
+      processId: 'PID-PROC',
+      processVersion: 2,
+    });
+    expect(registry.stageResults.process).toMatchObject({
+      status: 'passed',
+      commands: ['create-process', 'configure-process'],
+    });
+  });
+
+  test('builds process definitions for the opt-in process stage', () => {
+    const fields = [
+      { label: 'E2E Text', componentName: 'TextField', fieldId: 'textField_1' },
+      { label: 'E2E Number', componentName: 'NumberField', fieldId: 'numberField_1' },
+      { label: 'E2E Status', componentName: 'SelectField', fieldId: 'selectField_1' },
+      { label: 'E2E Notes', componentName: 'TextareaField', fieldId: 'textareaField_1' },
+    ];
+
+    const createDefinition = buildProcessCreateDefinition(fields);
+    const ruleDefinition = buildProcessRuleDefinition(fields);
+    const fixture = buildOfficialProcessNodeFixture({ formUuid: 'FORM-PROC' });
+
+    expect(createDefinition.nodes.map((node) => node.type)).toEqual(['operator', 'parallel', 'carbon']);
+    expect(ruleDefinition.nodes[1].type).toBe('route');
+    expect(ruleDefinition.nodes[1].conditions[0].rules[0]).toMatchObject({
+      fieldId: 'numberField_1',
+      componentType: 'NumberField',
+      op: 'GreaterThan',
+    });
+    expect(fixture.publishable).toBe(false);
+    expect(fixture.nodes.some((node) => node.type === 'connector')).toBe(true);
+    expect(fixture.nodes.some((node) => node.componentName === 'CycleContainer')).toBe(true);
   });
 
   test('builds a human-inspectable result app summary', () => {

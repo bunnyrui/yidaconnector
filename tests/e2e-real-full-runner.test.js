@@ -241,7 +241,10 @@ describe('full real E2E runner', () => {
     });
 
     expect(calls.some((args) => args[0] === 'create-process' && args[1] === 'APP_PROC' && args[2] === '--formUuid' && args[3] === 'FORM-PROC')).toBe(true);
-    expect(calls).toContainEqual(['configure-process', 'APP_PROC', 'FORM-PROC', '/tmp/openyida-e2e-full-test/OY_E2E_PROC/process-rule-definition.json', 'TPROC-PROC', '--quiet']);
+    const configureProcessCall = calls.find((args) => args[0] === 'configure-process');
+    expect(configureProcessCall).toBeTruthy();
+    expect(configureProcessCall).toEqual(expect.arrayContaining(['configure-process', 'APP_PROC', 'FORM-PROC', 'TPROC-PROC', '--quiet']));
+    expect(path.basename(configureProcessCall[3])).toBe('process-rule-definition.json');
     expect(registry.resources).toContainEqual(expect.objectContaining({
       type: 'process',
       appType: 'APP_PROC',

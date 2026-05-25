@@ -78,10 +78,12 @@ openyida list-forms <appType> --keyword <页面名>
 发布脚本在 `publish` 前会按以下顺序处理源码：
 
 1. `.oyd.jsx` / `.openyida.jsx` 或显式 `--compat`：先运行 OpenYida compatibility compiler。
-2. 如果源码已有 `export function renderJsx()`：视为宜搭原生源码，只做机械修复（例如事件绑定、数组回调）。
-3. 如果源码是 `export default function Page()`：支持有限 authoring 模式，当前可降级 `useState` 和 `useEffect(..., [])`。
-4. 兼容构建会自动补齐 `renderJsx` return 分支中的隐藏 timestamp 节点，并将直接事件绑定 / `.bind(this)` 机械改成箭头函数包裹。
-5. 对构建后的 `.yida.jsx` 执行 `check-page` 规则、Babel 转 ES5、UglifyJS 压缩，再构建 Schema 发布。
+2. 如果普通 `.jsx` 源码没有 `export function renderJsx()` 但存在 `export default function Page()`：自动尝试有限 authoring 降级，不再要求 Agent 手动补 `--compat`。
+3. 如果源码已有 `export function renderJsx()`：视为宜搭原生源码，机械修复事件绑定、数组回调，并补齐缺失的基础运行时导出。
+4. 如果源码是 `export default function Page()`：支持有限 authoring 模式，当前可降级 `useState` 和 `useEffect(..., [])`；`useEffect` 内引用组件局部 helper/state 会被阻塞，避免发布后 `didMount` 运行时报 `undefined`。
+5. 兼容构建会自动补齐 `renderJsx` return 分支中的隐藏 timestamp 节点，并将直接事件绑定 / `.bind(this)` 机械改成箭头函数包裹。
+6. `check-page` 会硬拦截生命周期大小写错误、小写 `onclick`、渲染时执行事件函数、箭头函数只引用不调用方法、可见 `<button>` 没有事件等按钮不可点击问题。
+7. 对构建后的 `.yida.jsx` 执行 `check-page` 规则、Babel 转 ES5、UglifyJS 压缩，再构建 Schema 发布。
 
 这一步是脚本级确定性处理，优先让 lint/fix/build 解决语法和运行时兼容问题，不应把简单机械修改交给 AI 反复重写。
 

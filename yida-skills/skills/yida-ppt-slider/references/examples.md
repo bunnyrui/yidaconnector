@@ -23,8 +23,9 @@ openyida create-page APP_DEMO123 "产品路演2026"
 # Step 4：编写幻灯片代码（见下方代码示例）
 # 输出到 project/pages/src/product-ppt.js
 
-# Step 5：发布页面
-openyida publish project/pages/src/product-ppt.js APP_DEMO123 FORM-PPT001
+# Step 5：校验并发布页面
+openyida check-page project/pages/src/product-ppt.js
+openyida publish project/pages/src/product-ppt.js APP_DEMO123 FORM-PPT001 --health-check
 ```
 
 ### 输出
@@ -147,7 +148,7 @@ var THEME_CONFIG = {
 ### 生命周期与事件绑定
 
 ```javascript
-// ✅ 使用 didMount 注册键盘事件（由运行时映射到 React componentDidMount）
+// ✅ 使用 didMount 注册键盘事件（宜搭运行时会在页面挂载后调用）
 export function didMount() {
   var self = this;
   _customState.total = SLIDES.length;
@@ -368,7 +369,7 @@ export function renderJsx() {
 
 ### 注意事项
 
-- 事件处理函数必须在 `renderJsx` 顶部定义，不要在 JSX 内部创建内联函数
+- 事件处理函数推荐在 `renderJsx` 顶部定义；JSX 中可以直接引用 handler，或用不依赖 `this` 的小包装函数调用 handler。禁止 `onClick={foo()}` 渲染期调用、禁止 JSX 小写 `onclick`
 - 必须在 `didUnmount` 中清理所有事件监听（键盘、鼠标移动、全屏变化、hash 变化、数字键定时器），防止内存泄漏
 - 使用 `position: fixed` 覆盖宜搭默认容器样式
 - 图片使用 `objectFit: 'contain'` 确保完整显示

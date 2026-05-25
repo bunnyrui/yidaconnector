@@ -38,4 +38,17 @@ describe('real E2E skill coverage matrix', () => {
       stages: ['ai'],
     });
   });
+
+  test('process skills are covered by the opt-in real process stage', () => {
+    expect(SKILL_COVERAGE['yida-create-process']).toMatchObject({
+      level: 'opt-in-real-e2e',
+      stages: ['process'],
+      commands: ['create-process --formUuid'],
+    });
+    expect(SKILL_COVERAGE['yida-process-rule']).toMatchObject({
+      level: 'opt-in-real-e2e',
+      stages: ['process'],
+      commands: ['configure-process'],
+    });
+  });
 });

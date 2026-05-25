@@ -120,6 +120,33 @@ describe('configure-process approver DSL', () => {
     expect(approverRules.supervisorLevel).toBe('2');
     expect(approverRules.description).toBe('发起人的第2级主管');
   });
+
+  test('builds operator node from executor DSL', () => {
+    const result = _private.buildProcessAndViewJson({
+      nodes: [
+        {
+          type: 'operator',
+          name: '资料补充',
+          executor: {
+            type: 'user',
+            users: [{ id: 'operator001', name: '运营同学' }],
+          },
+        },
+      ],
+    }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+
+    const operatorNode = getApprovalNodes(result)[0];
+    expect(operatorNode.type).toBe('approval');
+    expect(operatorNode.approvalType).toBe('ext_target_approval');
+    expect(operatorNode.props.approvals).toEqual(['operator001']);
+
+    const viewOperatorNode = result.viewJson.schema.children.find(function (node) {
+      return node.componentName === 'OperatorNode';
+    });
+    expect(viewOperatorNode).toBeTruthy();
+    expect(viewOperatorNode.props.nodeName).toBe('OperatorNode');
+    expect(viewOperatorNode.props.approverRules.description).toBe('运营同学');
+  });
 });
 
 describe('configure-process parallel DSL', () => {
@@ -236,5 +263,100 @@ describe('configure-process parallel DSL', () => {
     expect(branchNode.props.conditions.condition).toBe('OR');
     expect(branchNode.props.conditions.conditionCode).toBe('||');
     expect(branchNode.props.conditions.rules[0].formula).toBe('${numberField_amount}>1000');
+  });
+});
+
+describe('configure-process official component nodes', () => {
+  test('builds connector node from captured connectorRules props', () => {
+    const result = _private.buildProcessAndViewJson({
+      nodes: [
+        {
+          type: 'connector',
+          name: '创建钉钉待办',
+          connectorRules: {
+            connectorId: 'G-CONN-TEST',
+            actionId: 'G-ACT-TEST',
+            connector: { mode: 1 },
+            inputs: {
+              assignments: [
+                { column: 'subject', valueType: 'literal', value: '测试待办', assignments: [] },
+              ],
+            },
+          },
+        },
+      ],
+    }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+
+    const connectorNode = result.processJson.nodes.find(function (node) {
+      return node.type === 'innerConnector';
+    });
+    expect(connectorNode).toBeTruthy();
+    expect(connectorNode.props.inputs.connectorId).toBe('G-CONN-TEST');
+    expect(connectorNode.props.inputs.actionId).toBe('G-ACT-TEST');
+    expect(connectorNode.props.connectorRules).toBeUndefined();
+
+    const viewConnectorNode = result.viewJson.schema.children.find(function (node) {
+      return node.componentName === 'ConnectorNode';
+    });
+    expect(viewConnectorNode).toBeTruthy();
+    expect(viewConnectorNode.props.nodeName).toBe('ConnectorNode');
+    expect(viewConnectorNode.props.connectorRules.actionId).toBe('G-ACT-TEST');
+  });
+
+  test('supports all known yida-simple-flow component aliases in raw props mode', () => {
+    const nodes = [
+      { componentName: 'GroovyNode', name: 'Groovy', groovy: { action: { code: 'return inputs;' } } },
+      { componentName: 'JavaScriptNode', name: 'JS', JavaScript: { action: { code: 'return inputs;' } } },
+      { componentName: 'SendMessageNode', name: '消息', sendMessageRules: { messageType: 'workNotice' } },
+      { componentName: 'SendEmailNode', name: '邮件', sendEmailRules: { accountId: 'mail-account' } },
+      { componentName: 'GetSingleDataNode', name: '查单条', getData: { sourceId: 'FORM-A' } },
+      { componentName: 'GetBatchDataNode', name: '查多条', getData: { sourceId: 'FORM-A' } },
+      { componentName: 'AddDataNode', name: '新增', addDataRules: { formUuid: 'FORM-B' } },
+      { componentName: 'UpdateDataNode', name: '更新', updateDataRules: { sourceId: 'node-a' } },
+      { componentName: 'DeleteDataNode', name: '删除', deleteData: { sourceId: 'node-a' } },
+      { componentName: 'InitiateApprovalNode', name: '子流程', initiateApprovalRules: { formUuid: 'FORM-C' } },
+      { componentName: 'SendCardNode', name: '发卡片', sendCardRules: { cardId: 'CARD-A' } },
+      { componentName: 'UpdateCardNode', name: '更新卡片', updateCardRules: { cardId: 'CARD-A' } },
+      { componentName: 'CycleContainer', name: '循环', cycleRules: { sourceId: 'node-a' } },
+      { componentName: 'AINode', name: 'AI', workFlowRules: { name: 'AI 节点' } },
+    ];
+
+    const result = _private.buildProcessAndViewJson({ nodes }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+    const middleTypes = result.processJson.nodes.slice(1, -1).map(function (node) {
+      return node.type;
+    });
+
+    expect(middleTypes).toEqual([
+      'CodeExecutor',
+      'CodeExecutor',
+      'sendMessage',
+      'sendEmail',
+      'dataRetrieve',
+      'dataRetrieve',
+      'dataCreate',
+      'dataUpdate',
+      'dataDelete',
+      'initiateApproval',
+      'sendCard',
+      'updateCard',
+      'foreach',
+      'AIExecutor',
+    ]);
+    expect(result.viewJson.schema.children.some(function (node) {
+      return node.componentName === 'InitiateApprovalNode';
+    })).toBe(true);
+
+    const cycleNode = result.processJson.nodes.find(function (node) {
+      return node.type === 'foreach';
+    });
+    expect(cycleNode.props.sourceId).toBe('node-a');
+  });
+
+  test('throws on unsupported node types instead of creating broken links', () => {
+    expect(function () {
+      _private.buildProcessAndViewJson({
+        nodes: [{ type: 'madeUpNode', name: '未知节点' }],
+      }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+    }).toThrow('不支持的流程节点类型');
   });
 });

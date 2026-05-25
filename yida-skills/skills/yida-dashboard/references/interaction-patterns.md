@@ -575,6 +575,8 @@ export function captureCard(domId, fileName) {
 
 ### 3.3 截图按钮渲染组件
 
+截图控件是一个真实可点击按钮，不能只因为要加 `.sl-no-capture` 就写成静态 `<button>`。所有可见 `<button>` 必须绑定真实事件；如果只是展示"截图"状态、演示占位或不需要点击的标签，用 `span/div`。
+
 ```javascript
 var renderCaptureButton = function(self, domId, fileName, s) {
   return (

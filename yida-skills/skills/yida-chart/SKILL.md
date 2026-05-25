@@ -494,7 +494,7 @@ export function didMount() {
 - [ ] 聚合指标（KPI、饼图、柱状图）通过 `getDataAsync.json` 报表接口获取
 - [ ] 明细表格通过 `searchFormDatas` 获取（返回 `formInstId`，支持详情跳转）
 - [ ] 包含 `didUnmount` 函数，清理 ECharts 实例和 resize 监听
-- [ ] 事件绑定使用箭头函数包裹：`onClick={(e) => { this.xxx(e); }}`
+- [ ] `renderJsx` 顶部定义 `var self = this`，事件绑定使用箭头函数包裹：`onClick={(e) => { self.xxx(e); }}`
 
 ---
 

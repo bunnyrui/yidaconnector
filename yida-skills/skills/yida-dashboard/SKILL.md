@@ -54,7 +54,7 @@ metadata:
 2. **真实数据接入**：KPI 走 `getDataAsync.json`，明细走 `searchFormDatas`，禁止前端聚合
 3. **视觉主题选型**：深色紫蓝科技风 / 金蓝奢华风 / 白底商务风（见 `references/theme-presets.md`）
 4. **每元素可派单闭环**：任何 KPI/图表/风险/动作项都能一键触发看板「派单触发表」的 saveFormData，由预先配置好的集成自动化自动调用「待办2.0 / 创建待办任务」连接器生成真实钉钉待办。前端只管写表，鉴权和连接器调用全部交给集成自动化在后端托管。不得把「工作通知」包装成待办（见 `references/interaction-patterns.md`）
-5. **卡片截图分享**：html2canvas 1.4.1，每个核心卡片右上角有"截图"按钮
+5. **卡片截图分享**：html2canvas 1.4.1，每个核心卡片右上角有可点击"截图"按钮，必须绑定 `onClick` 调用 `captureCard`；如果只是视觉标记或演示标签，用 `span/div`，不要写成无事件 `<button>`
 6. **多端响应**：PC 三列 / 平板两列 / 手机一列，断点 768 / 1024
 7. **组织内短链 + 隐藏导航**：发布后配置 `isRenderNav=false` + 组织内分享 URL
 8. **AI 快讯 marquee**（可选）：底部滚动字幕展示最新动态
@@ -70,9 +70,9 @@ metadata:
    - 有原生报表 → 记录 REPORT-xxx + 提取 cid/componentClassName
    - 没有原生报表 → 先调用 yida-report 技能创建数据源
    - 需要派单闭环 → **固定双件套**：
-       (a) 用 `yida-create-form-page` 建一张「看板派单触发表」（TodoTrigger），最少 5 个字段：
+       (a) 用 `yida-create-form-page` 建一张「看板派单触发表」（TodoTrigger），最少 6 个字段：
             subject(TextField) / executor(EmployeeField) / description(TextareaField) /
-            dueTime(DateField) / priority(RadioField 10/20/30/40 固定值)
+            dueTime(DateField) / priority(SelectField 展示审计) / priorityNum(NumberField 透传 10/20/30/40)
        (b) 用 `openyida integration create <appType> <formUuid> "<看板名>-派单" --events create
             --connector-id G-CONN-1016B8AEBED50B01B8D00009
             --action-id G-ACT-1016B8B1911A0B01B8D0000I
@@ -82,7 +82,7 @@ metadata:
             --connector-assignment creatorId:processVar:form_inst_modifier
             --connector-assignment description:processVar:<description字段ID>
             --connector-assignment dueTime:processVar:<dueTime字段ID>
-            --connector-assignment priority:literal:10         // ⚠ 必须 literal 数字
+            --connector-assignment priority:processVar:<priorityNum字段ID>  // ⚠ 必须 NumberField，禁止透传 SelectField/RadioField
             --connector-assignment executorIds:processVar:<executor字段ID>
             --publish` 一键生成并发布
    - 需要审计台账 → 可以复用上面这张「派单触发表」，它本身就是最小审计表；也可以再加一张独立审计表记录 dingTodoId 回写
@@ -124,9 +124,9 @@ metadata:
 6. **禁止把「工作通知」当作钉钉待办**：集成自动化里不允许只配「发送钉钉工作通知」节点就声称已打通待办；派单链路必须有一个 **ConnectorCall 节点**调用「待办2.0 / 创建待办任务」连接器。工作通知只能作为降级提醒，交付时必须写明"非真实待办"
 7. **禁止在看板内直接 fetch 钉钉 OpenAPI 或写 accessToken**：必须通过集成自动化后端托管连接器鉴权
 8. **禁止 cdnjs.cloudflare.com**：宜搭环境被拦截，ECharts / html2canvas 统一用 `g.alicdn.com`
-9. **禁止缺少 `.sl-no-capture` 标记**：截图时"截图"按钮本身要被 html2canvas 排除
+9. **禁止缺少 `.sl-no-capture` 标记或写无事件截图按钮**：截图按钮本身要被 html2canvas 排除，且必须有真实 `onClick`；静态状态胶囊、筛选展示项、截图占位标签一律用 `span/div`
 10. **禁止 2300 行一口气写到单个 create_file**：超过 1000 行用 `large-file-write` 技能或分批 append
-11. **禁止集成自动化 priority 入参用 processVar 透传 RadioField/SelectField 的选项值**：连接器要求 Number(10/20/30/40)，必须 `priority:literal:10` 字面量赋值，否则执行记录会报"一方连接器异常：接口参数异常"
+11. **禁止集成自动化 priority 入参用 processVar 透传 RadioField/SelectField 的选项值**：连接器要求 Number(10/20/30/40)，正常方案必须 `priority:processVar:<priorityNum NumberField 字段 ID>`；`literal:10` 只能作为临时回滚止血方案，否则 UI 优先级选项会失效
 
 ---
 
@@ -136,12 +136,13 @@ metadata:
    - `project/pages/src/supply-chain-dashboard.js`（深色紫蓝标杆，2356 行）
    - `project/pages/src/shangri-la-executive-dashboard.js`（金蓝奢华样本，1796 行）
    - 读取关键段学结构，不要凭空设计
-2. **审计表单字段 ID 在 FORM_CONFIG 常量集中声明**，便于一次性替换；`FORM_CONFIG.todoTrigger` 必须标注出 subject/executor/description/dueTime/priority 5 个字段 ID 与集成自动化 `--connector-assignment` 的映射完全一致
+2. **审计表单字段 ID 在 FORM_CONFIG 常量集中声明**，便于一次性替换；`FORM_CONFIG.todoTrigger` 必须标注出 subject/executor/description/dueTime/priority/priorityNum 6 个字段 ID 与集成自动化 `--connector-assignment` 的映射完全一致
 3. **前端派单统一走 `self.utils.yida.saveFormData`** 写入派单触发表，禁止引用已不存在的 `this.dataSourceMap.createDingTodo`。没有配置集成自动化时前端要 toast "派单触发表未配置集成自动化"，不要静默降级
 4. **每次数据请求必写 catch + 降级渲染**，不要静默失败
 5. **发布前用 `openyida check-page` 跑一次规范扫描**
 6. **首次发布必带 `--health-check`** 做首屏 HTTP 健康检查
 7. **交付物验收必须包含组织内短链 URL**，纯 aliwork.com 链接不算交付
+8. **所有可见 `<button>` 必须可用**：每个 button 要么有真实 `onClick/onMouseDown/onKeyDown`，要么显式 `disabled`；`openyida check-page` 不能出现 `button-missing-handler`
 
 ---
 
@@ -194,14 +195,14 @@ metadata:
 
 核对五件事（按优先级）：
 1. 派单触发表是否挂了集成自动化：`openyida integration list <appType>` / 或直接去设计器看流程状态 `y`
-2. 集成自动化执行记录是否有"执行异常 / 一方连接器异常：接口参数异常"：若是 → **95% 是 priority 没用 literal**，必须 `--connector-assignment priority:literal:10`（10=较低/20=普通/30=较高/40=最高）
+2. 集成自动化执行记录是否有"执行异常 / 一方连接器异常：接口参数异常"：若是 → **优先检查 priority 是否透传了 SelectField/RadioField 字符串**，必须改为 `--connector-assignment priority:processVar:<priorityNum NumberField 字段 ID>`；前端要同时写入展示字段 `priority` 和数字字段 `priorityNum`
 3. `FORM_CONFIG.todoTrigger.fields` 的字段 ID 是否与集成自动化 `--connector-assignment <column>:processVar:<字段ID>` 完全一致
 4. EmployeeField 在 saveFormData 里是否传成 `[String(userId)]` 数组（连接器会从数组自动取 unionId）
 5. 钉钉应用 / 宜搭版本是否具备「待办2.0」连接器权限；无权限须向用户说明只能降级为工作通知
 
 **Q：卡片截图里把"截图"按钮也拍进去了？**
 
-给截图按钮加 class `sl-no-capture`，并在 `html2canvas` 调用时传 `ignoreElements: el => el.classList.contains('sl-no-capture')`。
+给截图按钮加 class `sl-no-capture`，按钮本身还必须绑定 `onClick={function(e){ e.stopPropagation(); self.captureCard(...); }}`；并在 `html2canvas` 调用时传 `ignoreElements: function(el) { return el.classList && el.classList.contains('sl-no-capture'); }`。
 
 **Q：看板要支持 3 个品牌/产品线/BU 切换视图，怎么做？**
 

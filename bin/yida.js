@@ -426,7 +426,7 @@ async function main() {
 
     case 'copy': {
       const { run } = require('../lib/core/copy');
-      run();
+      run(args);
       break;
     }
 

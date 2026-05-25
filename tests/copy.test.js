@@ -224,6 +224,7 @@ describe('detectActiveTool Windows 路径兼容', () => {
 describe('resolveDestBaseFromEnv 逻辑验证', () => {
   const os = require('os');
   const path = require('path');
+  const { _internal } = require('../lib/core/copy');
 
   test('悟空环境且 activeProjectRoot 是扁平工作区时，返回工作区本身', () => {
     const activeProjectRoot = path.join(os.homedir(), '.real', 'workspace');
@@ -280,5 +281,56 @@ describe('resolveDestBaseFromEnv 逻辑验证', () => {
     }
 
     expect(destBase).toBe(process.cwd());
+  });
+
+  test('--force 允许未检测到活跃 AI 工具时使用当前目录', () => {
+    const originalCwd = process.cwd();
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-copy-force-'));
+
+    try {
+      process.chdir(tmpDir);
+      const destBase = _internal.resolveDestBaseFromEnv(null, null, [], {
+        allowCurrentDir: true,
+      });
+      expect(destBase).toBe(fs.realpathSync(tmpDir));
+    } finally {
+      process.chdir(originalCwd);
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('forceCopyDir 行为', () => {
+  const { _internal } = require('../lib/core/copy');
+
+  let tmpDir;
+  let originalCwd;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yida-force-copy-'));
+    originalCwd = process.cwd();
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('目标目录是当前工作目录时清空内容但保留目录本身', () => {
+    const sourceDir = path.join(tmpDir, 'source');
+    const destDir = path.join(tmpDir, 'dest');
+    fs.mkdirSync(sourceDir);
+    fs.mkdirSync(destDir);
+    fs.writeFileSync(path.join(sourceDir, 'fresh.txt'), 'fresh');
+    fs.writeFileSync(path.join(destDir, 'stale.txt'), 'stale');
+
+    process.chdir(destDir);
+    const count = _internal.forceCopyDir(sourceDir, destDir);
+
+    expect(count).toBe(1);
+    expect(fs.existsSync(destDir)).toBe(true);
+    expect(process.cwd()).toBe(fs.realpathSync(destDir));
+    expect(fs.existsSync(path.join(destDir, 'stale.txt'))).toBe(false);
+    expect(fs.readFileSync(path.join(destDir, 'fresh.txt'), 'utf8')).toBe('fresh');
   });
 });

@@ -240,6 +240,7 @@ describe('saveCookieCache 文件写入', () => {
 describe('cdp-browser-login 工具函数', () => {
   const { deriveBaseUrl, findBrowserExecutable } = require('../lib/auth/cdp-browser-login');
   const {
+    deriveBaseUrlFromLoginState,
     deriveBaseUrlFromUrl,
     inferLoginUrlForBaseUrl,
     resolveLoginUrl,
@@ -281,6 +282,15 @@ describe('cdp-browser-login 工具函数', () => {
     expect(result).toBe('https://yida-group.alibaba-inc.com');
   });
 
+  test('deriveBaseUrlFromLoginState 优先使用登录后实际跳转的阿里内网宜搭域名', () => {
+    const result = deriveBaseUrlFromLoginState([
+      { name: 'tianshu_csrf_token', domain: '.alibaba-inc.com' },
+      { name: 'yida_user_cookie', domain: 'yida-group.alibaba-inc.com' },
+    ], 'https://yida-group.alibaba-inc.com/workPlatform', 'https://yida-aliyun.alibaba-inc.com/home');
+
+    expect(result).toBe('https://yida-aliyun.alibaba-inc.com');
+  });
+
   test('deriveBaseUrl 不把 alibaba-inc 父域误判成服务地址', () => {
     const result = deriveBaseUrl([
       { name: 'tianshu_csrf_token', domain: '.alibaba-inc.com' },
@@ -294,6 +304,13 @@ describe('cdp-browser-login 工具函数', () => {
       'https://yida-group.alibaba-inc.com/workPlatform',
       'https://login.dingtalk.com/oauth2/challenge'
     )).toBe('https://yida-group.alibaba-inc.com');
+  });
+
+  test('deriveBaseUrlFromUrl 识别 yida-aliyun.alibaba-inc.com 成功页', () => {
+    expect(deriveBaseUrlFromUrl(
+      'https://www.aliwork.com/workPlatform',
+      'https://yida-aliyun.alibaba-inc.com/home'
+    )).toBe('https://yida-aliyun.alibaba-inc.com');
   });
 
   test('deriveBaseUrlFromUrl 可从 DingTalk 国际 OAuth redirect_uri 反推 yidaapps base URL', () => {

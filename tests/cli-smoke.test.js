@@ -269,6 +269,18 @@ describe('CLI offline smoke', () => {
     expect(result.output).toContain('未知的 env 子命令');
   });
 
+  test('copy --force initializes current directory when no AI tool is active', () => {
+    const workspace = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-copy-force-'));
+    try {
+      const output = runOkWithEnv(['copy', '--force'], {}, workspace);
+      expect(output).toContain('--force 模式');
+      expect(fs.existsSync(path.join(workspace, 'config.json'))).toBe(true);
+      expect(fs.existsSync(path.join(workspace, 'pages', 'src'))).toBe(true);
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
   test('login falls back to QR handoff in Codex environment when CDP is unavailable', () => {
     const workspace = createCodexWorkspace();
     try {

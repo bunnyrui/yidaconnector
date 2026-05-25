@@ -93,6 +93,29 @@ describe('resolveBaseUrl', () => {
     const cookieData = { base_url: 'https://www.aliwork.com///' };
     expect(resolveBaseUrl(cookieData)).toBe('https://www.aliwork.com');
   });
+
+  test('登录缓存中的实际 base_url 优先于内置非默认环境域名', () => {
+    const originalEnv = process.env.OPENYIDA_ENV;
+    const originalEndpoint = process.env.OPENYIDA_ENDPOINT;
+    process.env.OPENYIDA_ENV = 'alibaba';
+    delete process.env.OPENYIDA_ENDPOINT;
+
+    try {
+      const cookieData = { base_url: 'https://yida-aliyun.alibaba-inc.com/home' };
+      expect(resolveBaseUrl(cookieData)).toBe('https://yida-aliyun.alibaba-inc.com');
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.OPENYIDA_ENV;
+      } else {
+        process.env.OPENYIDA_ENV = originalEnv;
+      }
+      if (originalEndpoint === undefined) {
+        delete process.env.OPENYIDA_ENDPOINT;
+      } else {
+        process.env.OPENYIDA_ENDPOINT = originalEndpoint;
+      }
+    }
+  });
 });
 
 // ── isLoginExpired ────────────────────────────────────────────────────

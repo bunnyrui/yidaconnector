@@ -169,6 +169,24 @@ export function renderJsx() {
     expect(warningRules).toContain('native-select-ui');
   });
 
+  test('warns when Yida page links navigate inside the iframe', () => {
+    const source = `
+export function renderJsx() {
+  return (
+    <div>
+      <a href="https://www.aliwork.com/APP_XXX/preview/PAGE_XXX">bad</a>
+      <a href="https://www.aliwork.com/APP_XXX/preview/PAGE_YYY" target="_top">ok</a>
+    </div>
+  );
+}
+`;
+
+    const result = lintYidaSource(source, '/tmp/iframe-nav.jsx');
+    const warningRules = result.warnings.map(issue => issue.rule);
+
+    expect(warningRules).toContain('iframe-self-navigation');
+  });
+
   test('custom page template uses verified Tailwind preflight and custom dropdown reset', () => {
     const sourcePath = path.join(__dirname, '..', 'lib', 'samples', 'yida-custom-page', 'custom-page-template.js');
     const source = fs.readFileSync(sourcePath, 'utf-8');

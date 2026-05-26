@@ -297,7 +297,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida app-list [--size N]` | List Yida applications |
 | `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency metrics, detail report entries, and related notification actions |
 | `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create an application and output `appType` |
-| `openyida update-app <appType> --name "..."` | Update application metadata |
+| `openyida update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue]` | Update application metadata and theme/layout fields |
 | `openyida nav-group <list\|create\|rename\|delete\|move\|hide\|show> <appType> ...` | Manage sidebar navigation groups and move pages between groups |
 | `openyida app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary admins, data admins, and developer members |
 | `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language configuration |
@@ -330,7 +330,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms |
+| `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms; form queries support `--all` and `--form-uuid` subform hydration |
 | `openyida data check <appType> <formUuid> <rules.json>` | Detect anomalous process-form records |
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
 | `openyida agent-center <sub-command>` | Manage Yida process delegation and departure delegation |
@@ -372,6 +372,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida sample [--list]` | Emit sample templates |
 | `openyida bridge start [--token <pair-token>] [--port 6736] [--open]` | Start the local OpenYida web bridge for `https://demo.aliwork.com/s/openyida` |
 | `openyida doctor [--fix]` | Diagnose and repair environment issues |
+| `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
 | `openyida formula evaluate <formula\|file> [--schema file]` | Static-check formula syntax and field references |
 | `openyida update` | Update OpenYida through npm |
 | `openyida export-conversation [options]` | Export AI conversation history |

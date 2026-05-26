@@ -306,7 +306,7 @@ function shouldUsePlaywrightFallbackInAgentLogin() {
   const { detectActiveTool } = require('../lib/core/utils');
   const activeTool = detectActiveTool();
   if (activeTool && activeTool.tool === 'wukong') {
-    return true;
+    return false;
   }
   return process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
 }
@@ -477,6 +477,14 @@ async function main() {
         if (cachedResult.status === 'ok') {
           printLoginResult(cachedResult);
         } else {
+          const { detectActiveTool } = require('../lib/core/utils');
+          const activeTool = detectActiveTool();
+          if (activeTool && activeTool.tool === 'wukong') {
+            const { codexLogin } = require('../lib/auth/codex-login');
+            const result = await codexLogin({ tool: 'wukong' });
+            printLoginResult(result);
+            break;
+          }
           const { interactiveLogin } = require('../lib/auth/login');
           const browserResult = interactiveLogin({
             playwrightFallback: shouldUsePlaywrightFallbackInAgentLogin(),
@@ -486,8 +494,6 @@ async function main() {
           } else {
             // CDP/Playwright 失败后的兜底策略：
             // QoderWork 有 in-app browser，优先使用 browser handoff；其余走终端二维码
-            const { detectActiveTool } = require('../lib/core/utils');
-            const activeTool = detectActiveTool();
             if (activeTool && activeTool.tool === 'qoderwork') {
               const { codexLogin } = require('../lib/auth/codex-login');
               const result = await codexLogin({ tool: 'qoderwork' });
@@ -1062,6 +1068,12 @@ async function main() {
     case 'batch': {
       const { run: runBatch } = require('../lib/core/batch');
       await runBatch(args);
+      break;
+    }
+
+    case 'db-seq-fix': {
+      const { run: runDbSeqFix } = require('../lib/db/db-seq-fix');
+      await runDbSeqFix(args);
       break;
     }
 

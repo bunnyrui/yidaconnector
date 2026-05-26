@@ -17,6 +17,7 @@ const SKILL_COVERAGE = {
   'yida-business-rule': { level: 'opt-in', reason: 'business association rules mutate form event configuration; validate in a dedicated real-form/UI stage before adding to deterministic shared E2E' },
   'yida-chart': { level: 'real-e2e', stages: ['report', 'dashboard'], tests: ['report chart config generation'] },
   'yida-connector': { level: 'offline', stages: ['connector-local'], commands: ['connector gen-template', 'connector parse-api'] },
+  'yida-connector-safe-actions': { level: 'offline', stages: ['connector-local'], commands: ['connector parse-api', 'connector test --action <operationId>'], reason: 'skill documents conservative HTTP connector action generation and repair workflow; shared E2E should validate local parsing without mutating tenant connectors' },
   'yida-corp-efficiency': { level: 'offline-unit', tests: ['tests/corp-efficiency.test.js'], reason: 'enterprise efficiency queries and notify mutations are not safe for shared real org E2E' },
   'yida-corp-manager': { level: 'offline-unit', tests: ['tests/corp-manager.test.js'], reason: 'enterprise admin mutations are not safe for shared real org E2E' },
   'yida-create-app': { level: 'real-e2e', stages: ['app'], commands: ['create-app'] },

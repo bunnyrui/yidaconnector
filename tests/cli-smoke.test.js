@@ -166,6 +166,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('agent-center');
     expect(commands).toContain('dingtalk-link');
     expect(commands).toContain('externalize-form');
+    expect(commands).toContain('db-seq-fix');
     expect(commands).toContain('commands');
     expect(commands).toContain('a2a');
     expect(commands).toContain('ai');
@@ -503,7 +504,7 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('login falls back to QR handoff in Wukong environment when CDP is unavailable', () => {
+  test('login returns Wukong browser handoff instead of desktop fallback when CDP is unavailable', () => {
     const wukong = createWukongWorkRoot();
     try {
       const output = runOkWithEnv(['login'], {
@@ -516,14 +517,13 @@ describe('CLI offline smoke', () => {
       }, wukong.projectDir);
       const parsed = JSON.parse(output.trim());
       expect(parsed).toMatchObject({
-        status: 'need_qr_scan',
-        handoff_type: 'qr',
+        status: 'need_codex_browser_login',
+        handoff_type: 'browser',
+        browser: 'wukong',
         can_auto_use: false,
       });
-      expect(parsed.qr_url).toContain('https://login.example.test/qr');
-      expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
-      expect(parsed.poll_command).toContain('openyida login --agent-poll');
+      expect(parsed.login_url).toBe('https://example.test/workPlatform');
+      expect(parsed.fallback_command).toContain('openyida login --browser');
     } finally {
       fs.rmSync(wukong.base, { recursive: true, force: true });
     }

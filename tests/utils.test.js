@@ -3,6 +3,7 @@
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const http = require('http');
 
 // 测试目标模块
 const {
@@ -13,6 +14,8 @@ const {
   loadCookieData,
   detectActiveTool,
   resolveWukongWorkspaceRoot,
+  httpPost,
+  httpGet,
 } = require('../lib/core/utils');
 
 // ── extractInfoFromCookies ────────────────────────────────────────────
@@ -163,6 +166,62 @@ describe('isCsrfTokenExpired', () => {
 
   test('null 时返回 falsy', () => {
     expect(isCsrfTokenExpired(null)).toBeFalsy();
+  });
+});
+
+// ── HTTP redirect login detection ────────────────────────────────────
+
+describe('http redirect login detection', () => {
+  function listen(server) {
+    return new Promise((resolve) => {
+      server.listen(0, '127.0.0.1', () => resolve(server.address().port));
+    });
+  }
+
+  test('httpPost 将 302 跳转识别为需要重新登录', async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 302;
+      res.setHeader('Location', '/login.html');
+      res.end('LOGIN FAILED');
+    });
+    const port = await listen(server);
+
+    try {
+      const result = await httpPost(`http://127.0.0.1:${port}`, '/bad', '', [
+        { name: 'tianshu_csrf_token', value: 'tok' },
+      ], { silentStatus: true });
+
+      expect(result).toMatchObject({
+        __needLogin: true,
+        __httpStatus: 302,
+        __location: '/login.html',
+      });
+    } finally {
+      server.close();
+    }
+  });
+
+  test('httpGet 将 307 跳转识别为需要重新登录', async () => {
+    const server = http.createServer((req, res) => {
+      res.statusCode = 307;
+      res.setHeader('Location', '/workPlatform');
+      res.end('LOGIN FAILED');
+    });
+    const port = await listen(server);
+
+    try {
+      const result = await httpGet(`http://127.0.0.1:${port}`, '/bad', { a: 1 }, [
+        { name: 'tianshu_csrf_token', value: 'tok' },
+      ], { silentStatus: true });
+
+      expect(result).toMatchObject({
+        __needLogin: true,
+        __httpStatus: 307,
+        __location: '/workPlatform',
+      });
+    } finally {
+      server.close();
+    }
   });
 });
 

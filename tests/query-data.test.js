@@ -242,6 +242,39 @@ describe('run() query form', () => {
     }
   });
 
+  test('--all 自动分页拉取完整表单数据', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          totalCount: 3,
+          data: [{ id: 'A' }, { id: 'B' }],
+        },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          totalCount: 3,
+          data: [{ id: 'C' }],
+        },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--all', '--size', '2']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[0][2]).toMatchObject({ currentPage: '1', pageSize: '2' });
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({ currentPage: '2', pageSize: '2' });
+    expect(mockLog.mock.calls[0][0]).toContain('"pagesFetched": 2');
+    expect(mockLog.mock.calls[0][0]).toContain('"id": "C"');
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
   test('同时传入 --search-json 和 --search-file 时打印错误并退出', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit(1)');
@@ -274,6 +307,48 @@ describe('run() get form', () => {
     await run(['get', 'form', 'APP_XXX', '--inst-id', 'INST-001']);
     expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
     expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('传入 --form-uuid 时补全被 50 条截断的子表数据', async () => {
+    const truncatedRows = Array.from({ length: 50 }, (_, index) => ({ rowId: `old-${index}` }));
+    const hydratedRows = Array.from({ length: 60 }, (_, index) => ({ rowId: `new-${index}` }));
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          formInstId: 'INST-001',
+          formData: {
+            textField_1: 'ok',
+            tableField_1: truncatedRows,
+          },
+        },
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        content: {
+          totalCount: 60,
+          data: hydratedRows,
+        },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['get', 'form', 'APP_XXX', '--inst-id', 'INST-001', '--form-uuid', 'FORM-XXX']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({
+      formUuid: 'FORM-XXX',
+      formInstanceId: 'INST-001',
+      tableFieldId: 'tableField_1',
+      pageSize: '100',
+    });
+    expect(mockLog.mock.calls[0][0]).toContain('"hydratedCount": 60');
+    expect(mockLog.mock.calls[0][0]).toContain('"rowId": "new-59"');
 
     mockLog.mockRestore();
     mockError.mockRestore();
@@ -350,6 +425,7 @@ describe('run() create form', () => {
     try {
       await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-file', dataPath]);
       expect(utils.httpPost).toHaveBeenCalledTimes(1);
+      expect(utils.httpPost.mock.calls[0][1]).toBe('/alibaba/web/APP_XXX/_/saveFormData.json');
       expect(decodeURIComponent(utils.httpPost.mock.calls[0][2])).toContain('formDataJson={"textField_1":"from-file"}');
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
     } finally {

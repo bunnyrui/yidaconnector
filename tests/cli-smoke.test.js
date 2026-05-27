@@ -37,10 +37,13 @@ function cliEnv() {
     CLAUDE_CODE: '',
     CLAUDE_CODE_ENTRYPOINT: '',
     OPENCODE: '',
+    OPENCODE_CLIENT: '',
     CURSOR_TRACE_ID: '',
     VSCODE_GIT_ASKPASS_NODE: '',
     AGENT_WORK_ROOT: '',
     OPENYIDA_AGENT_MODE: '',
+    OPENYIDA_ASSUME_DESKTOP: '',
+    OPENYIDA_FORCE_TERMINAL_QR: '',
     __CFBundleIdentifier: '',
   };
 }
@@ -282,7 +285,7 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('login falls back to QR handoff in Codex environment when CDP is unavailable', () => {
+  test('login falls back to QR handoff in Codex environment when CDP is unavailable and no desktop is present', () => {
     const workspace = createCodexWorkspace();
     try {
       const output = runOkWithEnv(['login'], {
@@ -310,7 +313,7 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('login falls back to QR handoff in Qoder environment when CDP is unavailable', () => {
+  test('login falls back to QR handoff in Qoder environment when CDP is unavailable and no desktop is present', () => {
     const workspace = createCodexWorkspace();
     try {
       const output = runOkWithEnv(['login'], {
@@ -335,7 +338,7 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('login falls back to QR handoff in Claude Code environment when CDP is unavailable', () => {
+  test('login falls back to QR handoff in Claude Code environment when CDP is unavailable and no desktop is present', () => {
     const workspace = createCodexWorkspace();
     try {
       const output = runOkWithEnv(['login'], {
@@ -359,11 +362,11 @@ describe('CLI offline smoke', () => {
     }
   });
 
-  test('login falls back to QR handoff in OpenCode environment when CDP is unavailable', () => {
+  test('login falls back to QR handoff in OpenCode environment when CDP is unavailable and no desktop is present', () => {
     const workspace = createCodexWorkspace();
     try {
       const output = runOkWithEnv(['login'], {
-        OPENCODE: '1',
+        OPENCODE_CLIENT: 'cli',
         OPENYIDA_ENV: 'public',
         OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
         OPENYIDA_DISABLE_CDP_LOGIN: '1',
@@ -376,6 +379,29 @@ describe('CLI offline smoke', () => {
         can_auto_use: false,
       });
       expect(parsed.qr_image_markdown).toContain('![OpenYida login QR code](');
+      expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
+      expect(parsed.poll_command).toContain('openyida login --agent-poll');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('auth login uses QR handoff in OpenCode environment when CDP is unavailable and no desktop is present', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const output = runOkWithEnv(['auth', 'login'], {
+        OPENCODE_CLIENT: 'cli',
+        OPENYIDA_ENV: 'public',
+        OPENYIDA_LOGIN_URL: 'https://example.test/workPlatform',
+        OPENYIDA_DISABLE_CDP_LOGIN: '1',
+        OPENYIDA_CODEX_QR_FAKE: '1',
+      }, workspace);
+      const parsed = JSON.parse(output.trim());
+      expect(parsed).toMatchObject({
+        status: 'need_qr_scan',
+        handoff_type: 'qr',
+        can_auto_use: false,
+      });
       expect(parsed.agent_response_markdown).toContain('![OpenYida login QR code](');
       expect(parsed.poll_command).toContain('openyida login --agent-poll');
     } finally {

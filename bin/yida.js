@@ -27,6 +27,7 @@ function isAgentEnvironment(env) {
     env.CLAUDE_CODE ||
     env.CLAUDE_CODE_ENTRYPOINT ||
     env.OPENCODE ||
+    env.OPENCODE_CLIENT ||
     env.QODER_IDE ||
     env.QODER_AGENT ||
     env.QODERCLI_INTEGRATION_MODE ||
@@ -287,7 +288,7 @@ function noteLoginCommandResult(result) {
 
 function isAgentConversationEnvironment() {
   const { detectActiveTool } = require('../lib/core/utils');
-  return !!detectActiveTool();
+  return !!detectActiveTool() || process.env.OPENYIDA_AGENT_MODE === '1';
 }
 
 function shouldUseBrowserHandoffLogin(cliArgs) {
@@ -303,12 +304,13 @@ function shouldUseAgentLogin(cliArgs) {
 }
 
 function shouldUsePlaywrightFallbackInAgentLogin() {
-  const { detectActiveTool } = require('../lib/core/utils');
-  const activeTool = detectActiveTool();
-  if (activeTool && activeTool.tool === 'wukong') {
-    return false;
-  }
-  return process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
+  const { hasDesktopEnvironment } = require('../lib/core/utils');
+  return hasDesktopEnvironment() || process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
+}
+
+function shouldUseDesktopBrowserLogin() {
+  const { hasDesktopEnvironment } = require('../lib/core/utils');
+  return hasDesktopEnvironment();
 }
 
 function shouldUseCodexQrLogin(cliArgs) {
@@ -479,12 +481,6 @@ async function main() {
         } else {
           const { detectActiveTool } = require('../lib/core/utils');
           const activeTool = detectActiveTool();
-          if (activeTool && activeTool.tool === 'wukong') {
-            const { codexLogin } = require('../lib/auth/codex-login');
-            const result = await codexLogin({ tool: 'wukong' });
-            printLoginResult(result);
-            break;
-          }
           const { interactiveLogin } = require('../lib/auth/login');
           const browserResult = interactiveLogin({
             playwrightFallback: shouldUsePlaywrightFallbackInAgentLogin(),
@@ -493,10 +489,10 @@ async function main() {
             printLoginResult(browserResult);
           } else {
             // CDP/Playwright 失败后的兜底策略：
-            // QoderWork 有 in-app browser，优先使用 browser handoff；其余走终端二维码
-            if (activeTool && activeTool.tool === 'qoderwork') {
+            // Wukong/QoderWork 有 in-app browser，优先使用 browser handoff；其余走 AI 对话框 QR handoff。
+            if (activeTool && (activeTool.tool === 'wukong' || activeTool.tool === 'qoderwork')) {
               const { codexLogin } = require('../lib/auth/codex-login');
-              const result = await codexLogin({ tool: 'qoderwork' });
+              const result = await codexLogin({ tool: activeTool.tool });
               printLoginResult(result);
             } else {
               const { startCodexQrLogin } = require('../lib/auth/qr-login');
@@ -520,6 +516,14 @@ async function main() {
           printLoginResult(cachedResult);
           break;
         }
+        if (shouldUseDesktopBrowserLogin()) {
+          const { interactiveLogin } = require('../lib/auth/login');
+          const browserResult = interactiveLogin({ playwrightFallback: true });
+          if (browserResult) {
+            printLoginResult(browserResult);
+            break;
+          }
+        }
         const { qrLogin } = require('../lib/auth/qr-login');
         const result = await qrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
         printLoginResult(result);
@@ -540,9 +544,25 @@ async function main() {
       if (subCommand === 'status') {
         authStatus();
       } else if (subCommand === 'login') {
-        const authArgs = [subCommand, ...applyLoginEnvironmentFlags(args.slice(1))];
-        const loginType = shouldUseBrowserHandoffLogin(authArgs) ? 'browser' : 'qrcode';
-        await authLogin({ type: loginType, corpId: getArgValue(authArgs, '--corp-id') });
+        const authArgs = applyLoginEnvironmentFlags(args.slice(1));
+        let loginType = 'qrcode';
+        if (authArgs.includes('--codex')) {
+          loginType = 'codex';
+        } else if (authArgs.includes('--qoder')) {
+          loginType = 'qoder';
+        } else if (authArgs.includes('--wukong')) {
+          loginType = 'wukong';
+        } else if (authArgs.includes('--browser')) {
+          loginType = 'browser';
+        }
+        const result = await authLogin({
+          type: loginType,
+          corpId: getArgValue(authArgs, '--corp-id'),
+          forceTerminalQr: authArgs.includes('--qr'),
+        });
+        if (result) {
+          printLoginResult(result);
+        }
       } else if (subCommand === 'refresh') {
         authRefresh();
       } else if (subCommand === 'logout') {

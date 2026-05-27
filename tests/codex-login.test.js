@@ -24,6 +24,7 @@ describe('codexLogin', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;

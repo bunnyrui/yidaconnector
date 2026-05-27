@@ -522,6 +522,9 @@ describe('interactiveLogin 浏览器优先级', () => {
     delete process.env.CODEX_THREAD_ID;
     delete process.env.CODEX_HOME;
     delete process.env.AGENT_WORK_ROOT;
+    delete process.env.OPENYIDA_ASSUME_DESKTOP;
+    delete process.env.OPENYIDA_FORCE_TERMINAL_QR;
+    delete process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK;
   }
 
   function loadLoginWithMocks(cdpImpl, execSyncImpl) {
@@ -721,6 +724,75 @@ describe('checkLoginOnly 独立测试', () => {
   });
 });
 
+describe('authLogin 登录优先级', () => {
+  const originalEnv = { ...process.env };
+  const originalCwd = process.cwd();
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-auth-login-'));
+    process.chdir(tmpDir);
+    jest.resetModules();
+  });
+
+  afterEach(() => {
+    process.chdir(originalCwd);
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    Object.keys(process.env).forEach((key) => {
+      if (!(key in originalEnv)) {delete process.env[key];}
+    });
+    Object.assign(process.env, originalEnv);
+    jest.dontMock('../lib/auth/login');
+    jest.dontMock('../lib/auth/qr-login');
+    jest.dontMock('../lib/core/utils');
+    jest.dontMock('../lib/core/chalk');
+    jest.resetModules();
+  });
+
+  test('OpenCode 有桌面环境时 CDP 失败后启用 Playwright 兜底', async () => {
+    const cookies = [
+      { name: 'tianshu_csrf_token', value: 'desktop-token-1234567890' },
+    ];
+    const interactiveLogin = jest.fn(() => ({
+      csrf_token: 'desktop-token-1234567890',
+      corp_id: 'corp',
+      user_id: 'user',
+      base_url: 'https://www.aliwork.com',
+      cookies,
+    }));
+    const qrLogin = jest.fn(() => {
+      throw new Error('terminal QR should not be used');
+    });
+
+    jest.doMock('../lib/auth/login', () => ({
+      checkLoginOnly: jest.fn(() => ({ status: 'not_logged_in' })),
+      interactiveLogin,
+      logout: jest.fn(),
+    }));
+    jest.doMock('../lib/auth/qr-login', () => ({ qrLogin }));
+    jest.doMock('../lib/core/utils', () => ({
+      findProjectRoot: jest.fn(() => tmpDir),
+      loadCookieData: jest.fn(),
+      extractInfoFromCookies: jest.fn(),
+      resolveBaseUrl: jest.fn(),
+      detectActiveTool: jest.fn(() => ({ tool: 'opencode' })),
+      hasDesktopEnvironment: jest.fn(() => true),
+    }));
+    jest.doMock('../lib/core/chalk', () => ({
+      info: jest.fn(),
+      success: jest.fn(),
+      label: jest.fn(),
+    }));
+
+    const { authLogin } = require('../lib/auth/auth');
+    const result = await authLogin();
+
+    expect(interactiveLogin).toHaveBeenCalledWith({ playwrightFallback: true });
+    expect(qrLogin).not.toHaveBeenCalled();
+    expect(result.csrf_token).toBe('desktop-token-1234567890');
+  });
+});
+
 //─ findProjectRoot 环境检测───────────────────────
 
 describe('findProjectRoot 环境检测', () => {
@@ -735,6 +807,7 @@ describe('findProjectRoot 环境检测', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
@@ -835,6 +908,7 @@ describe('findProjectRoot 环境检测', () => {
     delete process.env.CODEX_SHELL;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.TERM_PROGRAM;
 
@@ -892,6 +966,7 @@ describe('detectActiveTool', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
@@ -989,6 +1064,7 @@ describe('detectActiveTool', () => {
     delete process.env.CODEX_SHELL;
     delete process.env.AGENT_WORK_ROOT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.CURSOR_TRACE_ID;
     delete process.env.TERM_PROGRAM;
 
@@ -1010,6 +1086,16 @@ describe('detectActiveTool', () => {
 
   test('OpenCode 环境识别', () => {
     process.env.OPENCODE = '1';
+    const { detectActiveTool: detectTool } = require('../lib/core/utils');
+
+    const tool = detectTool();
+    expect(tool).not.toBeNull();
+    expect(tool.tool).toBe('opencode');
+    expect(tool.displayName).toBe('OpenCode');
+  });
+
+  test('OpenCode 官方 OPENCODE_CLIENT 环境识别', () => {
+    process.env.OPENCODE_CLIENT = 'cli';
     const { detectActiveTool: detectTool } = require('../lib/core/utils');
 
     const tool = detectTool();

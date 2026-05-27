@@ -13,6 +13,7 @@ const {
   isCsrfTokenExpired,
   loadCookieData,
   detectActiveTool,
+  hasDesktopEnvironment,
   resolveWukongWorkspaceRoot,
   httpPost,
   httpGet,
@@ -64,6 +65,28 @@ describe('extractInfoFromCookies', () => {
     const result = extractInfoFromCookies(cookies);
     expect(result.corpId).toBeNull();
     expect(result.userId).toBeNull();
+  });
+});
+
+// ── hasDesktopEnvironment ─────────────────────────────────────────────
+
+describe('hasDesktopEnvironment', () => {
+  test('CI 环境视为无桌面，除非显式声明有桌面', () => {
+    expect(hasDesktopEnvironment({ CI: '1', DISPLAY: ':0' }, 'linux')).toBe(false);
+    expect(hasDesktopEnvironment({ CI: '1', OPENYIDA_ASSUME_DESKTOP: '1' }, 'linux')).toBe(true);
+  });
+
+  test('Linux 需要图形会话信号才视为有桌面', () => {
+    expect(hasDesktopEnvironment({}, 'linux')).toBe(false);
+    expect(hasDesktopEnvironment({ DISPLAY: ':0' }, 'linux')).toBe(true);
+    expect(hasDesktopEnvironment({ WAYLAND_DISPLAY: 'wayland-0' }, 'linux')).toBe(true);
+    expect(hasDesktopEnvironment({ XDG_SESSION_TYPE: 'wayland' }, 'linux')).toBe(true);
+  });
+
+  test('macOS 和 Windows 默认视为有桌面，强制 terminal QR 时除外', () => {
+    expect(hasDesktopEnvironment({}, 'darwin')).toBe(true);
+    expect(hasDesktopEnvironment({}, 'win32')).toBe(true);
+    expect(hasDesktopEnvironment({ OPENYIDA_FORCE_TERMINAL_QR: '1' }, 'darwin')).toBe(false);
   });
 });
 
@@ -399,6 +422,7 @@ describe('detectActiveTool', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
@@ -436,6 +460,13 @@ describe('detectActiveTool', () => {
     expect(result.tool).toBe('opencode');
   });
 
+  test('OPENCODE_CLIENT 环境变量时检测为 OpenCode', () => {
+    delete process.env.CLAUDE_CODE;
+    process.env.OPENCODE_CLIENT = 'cli';
+    const result = detectActiveTool();
+    expect(result.tool).toBe('opencode');
+  });
+
   test('QODER_IDE 环境变量时检测为 Qoder（优先级最高）', () => {
     process.env.QODER_IDE = '1';
     process.env.CLAUDE_CODE = '1';
@@ -457,6 +488,7 @@ describe('detectActiveTool', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODERCLI_INTEGRATION_MODE;
     delete process.env.CODEX_SHELL;
@@ -484,6 +516,7 @@ describe('detectActiveTool', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;
@@ -515,6 +548,7 @@ describe('detectActiveTool', () => {
     delete process.env.CLAUDE_CODE;
     delete process.env.CLAUDE_CODE_ENTRYPOINT;
     delete process.env.OPENCODE;
+    delete process.env.OPENCODE_CLIENT;
     delete process.env.QODER_IDE;
     delete process.env.QODER_AGENT;
     delete process.env.QODERCLI_INTEGRATION_MODE;

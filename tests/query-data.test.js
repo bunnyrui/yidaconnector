@@ -23,6 +23,51 @@ const mockCookieData = {
   csrf_token: 'tok123',
 };
 
+function buildAliasSchema() {
+  return {
+    success: true,
+    content: {
+      pages: [
+        {
+          componentAlias: {
+            items: [
+              { fieldId: 'textField_phone', alias: 'phone' },
+              { fieldId: 'tableField_items', alias: 'items' },
+              { fieldId: 'numberField_amount', alias: 'amount' },
+            ],
+          },
+          componentsTree: [
+            {
+              componentName: 'Page',
+              children: [
+                {
+                  componentName: 'FormContainer',
+                  children: [
+                    {
+                      componentName: 'TextField',
+                      props: { fieldId: 'textField_phone' },
+                    },
+                    {
+                      componentName: 'TableField',
+                      props: { fieldId: 'tableField_items' },
+                      children: [
+                        {
+                          componentName: 'NumberField',
+                          props: { fieldId: 'numberField_amount' },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
   // 默认已登录
@@ -199,6 +244,53 @@ describe('run() query form', () => {
     mockError.mockRestore();
   });
 
+  test('--resolve-aliases 会把查询条件中的组件别名转换为 fieldId', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce(buildAliasSchema())
+      .mockResolvedValueOnce({
+        success: true,
+        content: { totalCount: 1, data: [] },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '{"phone":"123"}', '--resolve-aliases']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[0][1]).toBe('/alibaba/web/APP_XXX/_view/query/formdesign/getFormSchema.json');
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({
+      searchFieldJson: '{"textField_phone":"123"}',
+    });
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('--resolve-aliases 支持数组式查询条件的 key 字段', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce(buildAliasSchema())
+      .mockResolvedValueOnce({
+        success: true,
+        content: { totalCount: 1, data: [] },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[{"key":"phone","value":"123"}]', '--resolve-aliases']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({
+      searchFieldJson: '[{"key":"textField_phone","value":"123"}]',
+    });
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
   test('--search-json 传入非法 JSON 时打印错误并退出', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit(1)');
@@ -270,6 +362,29 @@ describe('run() query form', () => {
     expect(utils.httpGet.mock.calls[1][2]).toMatchObject({ currentPage: '2', pageSize: '2' });
     expect(mockLog.mock.calls[0][0]).toContain('"pagesFetched": 2');
     expect(mockLog.mock.calls[0][0]).toContain('"id": "C"');
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
+  test('--resolve-aliases 会映射 dynamicOrder 中的别名', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce(buildAliasSchema())
+      .mockResolvedValueOnce({
+        success: true,
+        content: { totalCount: 0, data: [] },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--dynamic-order', '{"phone":"+"}', '--resolve-aliases']);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({
+      dynamicOrder: '{"textField_phone":"+"}',
+    });
 
     mockLog.mockRestore();
     mockError.mockRestore();
@@ -435,6 +550,36 @@ describe('run() create form', () => {
     }
   });
 
+  test('--resolve-aliases 会把提交数据中的组件别名转换为 fieldId', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet.mockResolvedValueOnce(buildAliasSchema());
+    utils.httpPost.mockResolvedValue({
+      success: true,
+      content: { formInstId: 'INST-ALIAS' },
+    });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run([
+      'create',
+      'form',
+      'APP_XXX',
+      'FORM-XXX',
+      '--data-json',
+      '{"phone":"123","items":[{"amount":8}]}',
+      '--resolve-aliases',
+    ]);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    const postBody = decodeURIComponent(utils.httpPost.mock.calls[0][2]);
+    expect(postBody).toContain('formDataJson={"textField_phone":"123","tableField_items":[{"numberField_amount":8}]}');
+
+    mockLog.mockRestore();
+    mockError.mockRestore();
+  });
+
   test('缺少 --data-json 时打印错误并退出', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
       throw new Error('process.exit(1)');
@@ -445,6 +590,59 @@ describe('run() create form', () => {
     expect(mockExit).toHaveBeenCalledWith(1);
 
     mockExit.mockRestore();
+    mockError.mockRestore();
+  });
+});
+
+describe('run() update form alias resolution', () => {
+  test('--resolve-aliases 缺少 --form-uuid 时提示错误', async () => {
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit(1)');
+    });
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await expect(
+      run(['update', 'form', 'APP_XXX', '--inst-id', 'INST-001', '--data-json', '{"phone":"123"}', '--resolve-aliases'])
+    ).rejects.toThrow('process.exit(1)');
+    expect(mockExit).toHaveBeenCalledWith(1);
+    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('--resolve-aliases 需要提供 formUuid'));
+
+    mockExit.mockRestore();
+    mockError.mockRestore();
+  });
+});
+
+describe('run() query subform alias resolution', () => {
+  test('--resolve-aliases 会把子表组件别名转换为 tableFieldId', async () => {
+    utils.requestWithAutoLogin.mockImplementation((fn, session) => fn(session));
+    utils.httpGet
+      .mockResolvedValueOnce(buildAliasSchema())
+      .mockResolvedValueOnce({
+        success: true,
+        content: { totalCount: 0, data: [] },
+      });
+
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    await run([
+      'query',
+      'subform',
+      'APP_XXX',
+      'FORM-XXX',
+      '--inst-id',
+      'INST-001',
+      '--table-field-id',
+      'items',
+      '--resolve-aliases',
+    ]);
+
+    expect(utils.httpGet).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet.mock.calls[1][2]).toMatchObject({
+      tableFieldId: 'tableField_items',
+    });
+
+    mockLog.mockRestore();
     mockError.mockRestore();
   });
 });

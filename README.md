@@ -326,7 +326,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida publish <sourceFile> <appType> <formUuid> [--compat] [--health-check] [--force] [--open\|--no-open]` | Compile and publish a custom display page; by default the target must be `formType=display` |
 | `openyida update-form-config <appType> <formUuid> <isRenderNav> <title> [--locale zh_CN\|en_US\|ja_JP]` | Update page/form display configuration |
 
-Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules and validations also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
+Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules, validations, and `openyida data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
 
 `openyida publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
 
@@ -334,7 +334,7 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms; form queries support `--all` and `--form-uuid` subform hydration |
+| `openyida data <action> <resource> [args]` | Unified data management for forms, processes, tasks, and subforms; form queries support `--all`, `--form-uuid` subform hydration, and `--resolve-aliases` for component alias JSON keys |
 | `openyida data check <appType> <formUuid> <rules.json>` | Detect anomalous process-form records |
 | `openyida task-center <type> [options]` | Query todo, created, processed, CC, or proxy-submitted tasks |
 | `openyida agent-center <sub-command>` | Manage Yida process delegation and departure delegation |

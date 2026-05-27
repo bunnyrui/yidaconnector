@@ -95,6 +95,32 @@ describe('buildFormSchema FormContainer structure', () => {
   });
 });
 
+describe('component alias schema support', () => {
+  test('buildFormSchema writes component alias metadata at page level', () => {
+    const formSchemaFunction = extractFunctionBody(sourceCode, 'buildFormSchema');
+    expect(formSchemaFunction).toBeDefined();
+    expect(sourceCode).toContain('function normalizeComponentAlias(');
+    expect(sourceCode).toContain('function buildComponentAliasItems(');
+    expect(formSchemaFunction).toContain('componentAliasItems');
+    expect(formSchemaFunction).toContain('items: componentAliasItems');
+  });
+
+  test('field definitions accept alias and componentAlias without writing them into props', () => {
+    expect(sourceCode).toContain('field.componentAlias');
+    expect(sourceCode).toContain('field.component_alias');
+    expect(sourceCode).toContain('field.alias');
+    expect(sourceCode).toContain('component[COMPONENT_ALIAS_META]');
+  });
+
+  test('rules and validations can resolve component aliases as field refs', () => {
+    expect(sourceCode).toContain('function buildComponentAliasMaps(');
+    expect(sourceCode).toContain('aliasByFieldId');
+    expect(sourceCode).toContain('fieldIdByAlias');
+    expect(sourceCode).toContain('byRef[descriptor.alias]');
+    expect(sourceCode).toContain('fieldMap[descriptor.alias]');
+  });
+});
+
 // ── JS 语法检查 ──
 
 describe('create-form.js syntax', () => {
@@ -204,6 +230,42 @@ describe('rule mode in source code', () => {
     expect(sourceCode).toContain('openyidaRuleSetBehavior');
     expect(sourceCode).toContain('openyidaRuleSetValue');
     expect(sourceCode).toContain("operator: 'always'");
+  });
+});
+
+describe('validation mode in source code', () => {
+  test('parseArgs recognizes validation mode and add-validation inline options', () => {
+    expect(sourceCode).toContain("mode === 'validation'");
+    expect(sourceCode).toContain('inlineValidationRule');
+    expect(sourceCode).toContain('parseInlineValidationOptions');
+  });
+
+  test('validation mode uses native field validation first', () => {
+    expect(sourceCode).toContain('function applySmartValidations(');
+    expect(sourceCode).toContain('isNativeFieldValidationRule');
+    expect(sourceCode).toContain('function resetGeneratedTextFieldValidationType');
+    expect(sourceCode).toContain("field.props.validationType = 'text'");
+    expect(sourceCode).not.toContain('field.props.validationType = rule.type');
+    expect(sourceCode).toContain('found.field.props.validation = dedupeValidationRules');
+    expect(sourceCode).toContain('customValidate');
+    expect(sourceCode).toContain('cleanupLegacySmartValidationArtifacts');
+  });
+
+  test('smart validation emits native customValidate functions without submit hooks', () => {
+    expect(sourceCode).toContain('function buildCustomValidateParam');
+    expect(sourceCode).toContain("type: 'JSExpression'");
+    expect(sourceCode).toContain('function validateRule(value, currentRule)');
+    expect(sourceCode).toContain("=== 'idCard'");
+    expect(sourceCode).toContain("=== 'bankCard'");
+    expect(sourceCode).toContain("=== 'unifiedSocialCreditCode'");
+    expect(sourceCode).toContain("=== 'compare'");
+    expect(sourceCode).toContain("=== 'async'");
+    expect(sourceCode).not.toContain('function buildSmartValidationActionSource');
+  });
+
+  test('create fields preserve validation definitions', () => {
+    expect(sourceCode).toContain('normalizeFieldValidationRules(field)');
+    expect(sourceCode).toContain('normalizeDesignerValidationRule');
   });
 });
 

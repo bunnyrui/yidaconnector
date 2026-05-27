@@ -20,9 +20,12 @@ const utils = require('../lib/core/utils');
 const { fetchFormPageList } = require('../lib/app/form-navigation');
 const {
   extractFieldSummary,
+  buildComponentAliasMaps,
   parseArgs,
   filterForms,
   fetchSchemaRecord,
+  collectFieldNodes,
+  findFieldNode,
   run,
 } = require('../lib/app/get-schema');
 
@@ -74,6 +77,11 @@ describe('extractFieldSummary', () => {
       content: {
         pages: [
           {
+            componentAlias: {
+              items: [
+                { fieldId: 'textField_name', alias: 'customerName' },
+              ],
+            },
             componentsTree: [
               {
                 componentName: 'FormContainer',
@@ -104,15 +112,51 @@ describe('extractFieldSummary', () => {
         label: '姓名',
         componentName: 'TextField',
         fieldId: 'textField_name',
+        alias: 'customerName',
         reportFieldCode: 'textField_name',
       },
       {
         label: 'Status',
         componentName: 'SelectField',
         fieldId: 'selectField_status',
+        alias: '',
         reportFieldCode: 'selectField_status_value',
       },
     ]);
+  });
+
+  test('builds alias maps and finds fields by alias', () => {
+    const schema = {
+      content: {
+        pages: [
+          {
+            componentAlias: {
+              items: [
+                { fieldId: 'textField_name', alias: 'customerName' },
+              ],
+            },
+            componentsTree: [
+              {
+                componentName: 'FormContainer',
+                children: [
+                  {
+                    componentName: 'TextField',
+                    props: { fieldId: 'textField_name', label: { zh_CN: '姓名' } },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const aliasMaps = buildComponentAliasMaps(schema);
+    const nodes = collectFieldNodes(schema);
+
+    expect(aliasMaps.aliasByFieldId.textField_name).toBe('customerName');
+    expect(aliasMaps.fieldIdByAlias.customerName).toBe('textField_name');
+    expect(findFieldNode(nodes, 'customerName', aliasMaps.aliasByFieldId).props.fieldId).toBe('textField_name');
   });
 });
 

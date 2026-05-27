@@ -161,6 +161,8 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('create-form.create');
     expect(commands).toContain('create-form.patch');
     expect(commands).toContain('create-form.rule');
+    expect(commands).toContain('create-form.validation');
+    expect(commands).toContain('add-validation');
     expect(commands).toContain('create-form.bind-datasource');
     expect(commands).toContain('list-forms');
     expect(commands).toContain('build-page');

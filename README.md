@@ -317,6 +317,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <datasource.json> [--open\|--no-open]` | Bind URL/search data sources to SelectField/MultiSelectField-style option fields |
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Append options to a SelectField/RadioField/CheckboxField/MultiSelectField |
 | `openyida list-forms <appType> [--keyword <text>]` | List forms in an application |
+| `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage Yida aggregate tables (`virtualView`) |
 | `openyida get-schema <appType> <formUuid\|--all> [--field <labelOrFieldId>]` | Fetch one form schema, batch export all, or pick a single field's full props |
 | `openyida create-page <appType> "<name>" [--mode dashboard] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page; dashboard mode hides top/workbench chrome |
 | `openyida generate-page <template> [--spec file]` | Generate custom page source from templates (`product-homepage`, `todo-mvc`) |

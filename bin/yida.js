@@ -893,6 +893,14 @@ async function main() {
       break;
     }
 
+    case 'ai-form-setting':
+    case 'ai-approve':
+    case 'aiFormSetting': {
+      const { run: runAIFormSetting } = require('../lib/process/ai-form-setting');
+      await runAIFormSetting(args);
+      break;
+    }
+
     case 'process': {
       const subCommand = args[0];
       const subArgs = args.slice(1);

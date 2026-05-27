@@ -124,6 +124,7 @@ openyida copy
 
 当用户提出以下需求时，使用本技能并按照完整开发流程执行：
 - 创建宜搭应用、表单、自定义页面
+- 创建、查看或发布宜搭聚合表（virtualView）
 - 发布或更新宜搭页面
 - 配置页面公开访问/组织内分享
 - 查询表单 Schema 或字段 ID
@@ -167,6 +168,7 @@ openyida copy
 | `yida-create-page` | `skills/yida-create-page/SKILL.md` | 创建自定义页面，获取 formUuid | `openyida create-page <appType> "<页面名>" [--mode dashboard]` |
 | `yida-create-form-page` | `skills/yida-create-form-page/SKILL.md` | 创建/更新表单页面、追加选项、绑定数据源、字段联动规则 | `openyida create-form <create\|update\|bind-datasource\|rule\|patch\|add-option> ...` |
 | `yida-create-process` | `skills/yida-create-process/SKILL.md` | 创建流程表单并配置流程 | `openyida create-process <appType> "<表单名>" <字段JSON> <流程JSON>` |
+| `yida-aggregate-table` | — | 聚合表（virtualView）列表、创建空白页、读取配置、预览、保存草稿和发布 | `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> ...` |
 | `yida-get-schema` | `skills/yida-get-schema/SKILL.md` | 获取单个/全部表单 Schema，确认字段 ID | `openyida get-schema <appType> <formUuid>` |
 | `yida-custom-page` | `skills/yida-custom-page/SKILL.md` | 编写自定义页面 JSX 代码规范 | 详见 SKILL.md |
 | `yida-publish-page` | `skills/yida-publish-page/SKILL.md` | 编译并发布自定义页面 | `openyida publish <源文件路径> <appType> <formUuid> [--health-check]` |

@@ -109,6 +109,7 @@ describe('CLI offline smoke', () => {
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
+    expect(output).toContain('aggregate-table');
     expect(output).toContain('connector');
     expect(output).toContain('corp-manager');
     expect(output).toContain('agent-center');
@@ -165,6 +166,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('add-validation');
     expect(commands).toContain('create-form.bind-datasource');
     expect(commands).toContain('list-forms');
+    expect(commands).toContain('aggregate-table');
     expect(commands).toContain('build-page');
     expect(commands).toContain('connector.smart-create');
     expect(commands).toContain('corp-manager');
@@ -198,6 +200,11 @@ describe('CLI offline smoke', () => {
     expect(parsed.commands.find(entry => entry.id === 'externalize-form')).toMatchObject({
       usage: 'openyida externalize-form <appType> <formUuid> [--schema-file file]',
       output: 'json|markdown',
+      requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'aggregate-table')).toMatchObject({
+      usage: 'openyida aggregate-table <list|create-empty|inspect|preview|save|publish|status> <appType> ...',
+      output: 'json',
       requires_login: true,
     });
   });

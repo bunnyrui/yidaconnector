@@ -654,6 +654,12 @@ async function main() {
       break;
     }
 
+    case 'aggregate-table': {
+      const { run } = require('../lib/aggregate-table/aggregate-table');
+      await run(args);
+      break;
+    }
+
     case 'get-schema': {
       const { run } = require('../lib/app/get-schema');
       await run(args);

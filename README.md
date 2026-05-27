@@ -312,7 +312,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida create-form update <appType> <formUuid> <changes.json> [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
 | `openyida create-form patch <appType> <formUuid> <patch.json> [--open\|--no-open]` | Apply controlled schema patches for designer-only form settings |
 | `openyida create-form rule <appType> <formUuid> <rules.json> [--open\|--no-open]` | Configure field show/hide linkage and onChange auto-assignment rules |
-| `openyida create-form validation <appType> <formUuid> <validations.json> [--open\|--no-open]` | Configure form validations using Yida-native settings: TextField `validationType` plus field `props.validation` / `customValidate` JSExpression rules for regex, bank card, cross-field, conditional, or async checks |
+| `openyida create-form validation <appType> <formUuid> <validations.json> [--open\|--no-open]` | Configure form validations using Yida-visible field `props.validation` rules and `customValidate` JSExpression functions for regex, bank card, cross-field, conditional, or async checks |
 | `openyida add-validation <appType> <formUuid> --field <labelOrId> --type <phone\|regex\|idCard\|email\|...> [--message <text>]` | Add one smart validation rule without writing a JSON file |
 | `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <datasource.json> [--open\|--no-open]` | Bind URL/search data sources to SelectField/MultiSelectField-style option fields |
 | `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Append options to a SelectField/RadioField/CheckboxField/MultiSelectField |
@@ -326,7 +326,7 @@ For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation command
 | `openyida publish <sourceFile> <appType> <formUuid> [--compat] [--health-check] [--force] [--open\|--no-open]` | Compile and publish a custom display page; by default the target must be `formType=display` |
 | `openyida update-form-config <appType> <formUuid> <isRenderNav> <title> [--locale zh_CN\|en_US\|ja_JP]` | Update page/form display configuration |
 
-Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`.
+Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules and validations also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
 
 `openyida publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
 

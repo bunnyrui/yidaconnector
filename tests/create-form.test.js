@@ -111,6 +111,14 @@ describe('component alias schema support', () => {
     expect(sourceCode).toContain('field.alias');
     expect(sourceCode).toContain('component[COMPONENT_ALIAS_META]');
   });
+
+  test('rules and validations can resolve component aliases as field refs', () => {
+    expect(sourceCode).toContain('function buildComponentAliasMaps(');
+    expect(sourceCode).toContain('aliasByFieldId');
+    expect(sourceCode).toContain('fieldIdByAlias');
+    expect(sourceCode).toContain('byRef[descriptor.alias]');
+    expect(sourceCode).toContain('fieldMap[descriptor.alias]');
+  });
 });
 
 // ── JS 语法检查 ──
@@ -235,8 +243,9 @@ describe('validation mode in source code', () => {
   test('validation mode uses native field validation first', () => {
     expect(sourceCode).toContain('function applySmartValidations(');
     expect(sourceCode).toContain('isNativeFieldValidationRule');
-    expect(sourceCode).toContain('function applyTextFieldValidationType');
-    expect(sourceCode).toContain('field.props.validationType = rule.type');
+    expect(sourceCode).toContain('function resetGeneratedTextFieldValidationType');
+    expect(sourceCode).toContain("field.props.validationType = 'text'");
+    expect(sourceCode).not.toContain('field.props.validationType = rule.type');
     expect(sourceCode).toContain('found.field.props.validation = dedupeValidationRules');
     expect(sourceCode).toContain('customValidate');
     expect(sourceCode).toContain('cleanupLegacySmartValidationArtifacts');

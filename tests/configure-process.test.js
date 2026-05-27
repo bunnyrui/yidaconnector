@@ -14,6 +14,24 @@ function getViewApprovalNode(result) {
   });
 }
 
+describe('configure-process detail urls', () => {
+  test('builds mobile custom detail url with DingTalk formInstId parameter', () => {
+    const result = _private.buildProcessAndViewJson({
+      customDetailPageUrl: 'https://www.aliwork.com/o/custom-detail?source=process',
+      nodes: [
+        {
+          type: 'approval',
+          name: '主管审批',
+          approver: 'originator',
+        },
+      ],
+    }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
+
+    expect(result.processJson.props.processDetailUrl).toBe('https://www.aliwork.com/o/custom-detail?source=process');
+    expect(result.processJson.props.processMobileDetailUrl).toBe('https://www.aliwork.com/o/custom-detail?source=process&formInstId=');
+  });
+});
+
 describe('configure-process approver DSL', () => {
   test('builds specified member approver from users', () => {
     const result = _private.buildProcessAndViewJson({

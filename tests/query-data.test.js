@@ -425,7 +425,7 @@ describe('run() create form', () => {
     try {
       await run(['create', 'form', 'APP_XXX', 'FORM-XXX', '--data-file', dataPath]);
       expect(utils.httpPost).toHaveBeenCalledTimes(1);
-      expect(utils.httpPost.mock.calls[0][1]).toBe('/alibaba/web/APP_XXX/_/saveFormData.json');
+      expect(utils.httpPost.mock.calls[0][1]).toBe('/dingtalk/web/APP_XXX/v1/form/saveFormData.json');
       expect(decodeURIComponent(utils.httpPost.mock.calls[0][2])).toContain('formDataJson={"textField_1":"from-file"}');
       expect(mockLog).toHaveBeenCalledWith(expect.stringContaining('"success": true'));
     } finally {

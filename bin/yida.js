@@ -642,6 +642,12 @@ async function main() {
       break;
     }
 
+    case 'add-validation': {
+      process.argv = [process.argv[0], process.argv[1], 'validation', ...args];
+      require('../lib/app/create-form');
+      break;
+    }
+
     case 'list-forms': {
       const { run } = require('../lib/app/list-forms');
       await run(args);

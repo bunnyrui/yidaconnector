@@ -356,6 +356,7 @@ Form field definitions can include `alias` or `componentAlias` to populate Yida 
 |---------|-------------|
 | `openyida create-process <appType> ...` | Create a process form and configure workflow |
 | `openyida configure-process <appType> ...` | Configure and publish process rules |
+| `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process-form AI approval prompts from `/settings/aiFormSetting` |
 | `openyida process preview <appType> <processInstanceId> [--output <path>]` | Generate a visual process preview |
 | `openyida create-report <appType> "<name>" <charts.json> [--open\|--no-open]` | Create a Yida report |
 | `openyida append-chart <appType> <reportId> <charts.json> [--open\|--no-open]` | Append a chart to an existing report |

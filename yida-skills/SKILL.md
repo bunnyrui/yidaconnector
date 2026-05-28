@@ -190,6 +190,7 @@ openyida copy
 | `yida-business-rule` | `skills/yida-business-rule/SKILL.md` | 表单业务关联规则高级函数（INSERT/UPDATE/DELETE/UPSERT） | 详见 SKILL.md |
 | `yida-connector` | `skills/yida-connector/SKILL.md` | HTTP 连接器创建、测试与动作管理 | `openyida connector smart-create <配置>` |
 | `yida-connector-safe-actions` | `skills/yida-connector-safe-actions/SKILL.md` | 从前后端接口安全生成 HTTP 连接器执行动作，并修复测试后动作消失问题 | `openyida connector add-action --operations <动作JSON> --connector-id <id> --confirm` |
+| `yida-data-source-connectors` | `skills/yida-data-source-connectors/SKILL.md` | 自定义页面调用连接器/远程 API 时，必须通过设计器“数据源”创建并使用 `this.dataSourceMap` 调用 | 详见 SKILL.md |
 | `sls-log-workbench` | `skills/sls-log-workbench/SKILL.md` | SLS 日志查询工作台排查（内部技术支持） | 详见 SKILL.md |
 | `yida-dashboard` | `skills/yida-dashboard/SKILL.md` | 经营看板/驾驶舱/数据大屏完整产品化交付（单屏控制塔+宜搭待办连接器真实钉钉待办闭环+卡片截图+组织内短链） | 详见 SKILL.md |
 | `yida-chart` | `skills/yida-chart/SKILL.md` | 报表可视化（ECharts 图表 + 数据聚合） | 详见 SKILL.md |

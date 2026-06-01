@@ -5,34 +5,28 @@ const path = require('path');
 
 const CREATE_FORM_PATH = path.join(__dirname, '..', 'lib', 'app', 'create-form.js');
 const sourceCode = fs.readFileSync(CREATE_FORM_PATH, 'utf-8');
+const createForm = require('../lib/app/create-form');
 
-// ── Bug #1: isLoginExpired / isCsrfTokenExpired 必须从 utils.js 引入 ──
+// ── Bug #1: HTTP helpers must come from core utils ──
 
 describe('create-form.js imports', () => {
-  test('imports isLoginExpired from utils.js', () => {
+  test('imports shared HTTP helpers from utils.js', () => {
     const requireLine = sourceCode
       .split('\n')
       .find((line) => line.includes('require("../core/utils")') || line.includes("require('../core/utils')"));
     expect(requireLine).toBeDefined();
-    expect(requireLine).toContain('isLoginExpired');
+    expect(requireLine).toContain('httpGet');
+    expect(requireLine).toContain('httpPost');
+    expect(requireLine).toContain('requestWithAutoLogin');
   });
 
-  test('imports isCsrfTokenExpired from utils.js', () => {
-    const requireLine = sourceCode
-      .split('\n')
-      .find((line) => line.includes('require("../core/utils")') || line.includes("require('../core/utils')"));
-    expect(requireLine).toBeDefined();
-    expect(requireLine).toContain('isCsrfTokenExpired');
-  });
-
-  test('isLoginExpired is used in request handlers', () => {
-    const usageCount = (sourceCode.match(/isLoginExpired\(/g) || []).length;
-    expect(usageCount).toBeGreaterThanOrEqual(2);
-  });
-
-  test('isCsrfTokenExpired is used in request handlers', () => {
-    const usageCount = (sourceCode.match(/isCsrfTokenExpired\(/g) || []).length;
-    expect(usageCount).toBeGreaterThanOrEqual(2);
+  test('request wrappers delegate to shared HTTP helpers', () => {
+    const getBody = extractFunctionBody(sourceCode, 'sendGetRequest');
+    const postBody = extractFunctionBody(sourceCode, 'sendPostRequest');
+    const updateBody = extractFunctionBody(sourceCode, 'sendUpdateConfigRequest');
+    expect(getBody).toContain('httpGet(');
+    expect(postBody).toContain('httpPost(');
+    expect(updateBody).toContain('httpPost(');
   });
 });
 
@@ -129,6 +123,51 @@ describe('create-form.js syntax', () => {
     expect(() => {
       execSync('node --check ' + CREATE_FORM_PATH, { stdio: 'pipe' });
     }).not.toThrow();
+  });
+});
+
+describe('create-form module API', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('exports run and parseArgs without executing the command on require', () => {
+    expect(createForm).toEqual(expect.objectContaining({
+      run: expect.any(Function),
+      parseArgs: expect.any(Function),
+    }));
+  });
+
+  test('parseArgs throws CliError for invalid usage instead of exiting', () => {
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+    jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    let thrown;
+    try {
+      createForm.parseArgs(['create', 'APP_XXX']);
+    } catch (err) {
+      thrown = err;
+    }
+    expect(thrown).toMatchObject({
+      code: 'CREATE_FORM_INVALID_ARGUMENTS',
+    });
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  test('parseArgs supports validation mode without process.argv mutation', () => {
+    expect(createForm.parseArgs([
+      'validation',
+      'APP_XXX',
+      'FORM_XXX',
+      '.cache/openyida/forms/validations.json',
+    ])).toMatchObject({
+      mode: 'validation',
+      appType: 'APP_XXX',
+      formUuid: 'FORM_XXX',
+      validationJsonOrFile: '.cache/openyida/forms/validations.json',
+    });
   });
 });
 

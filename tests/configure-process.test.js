@@ -1,6 +1,11 @@
 'use strict';
 
-const { _private } = require('../lib/process/configure-process');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const configureProcess = require('../lib/process/configure-process');
+const { _private } = configureProcess;
 
 function getApprovalNodes(result) {
   return result.processJson.nodes.filter(function (node) {
@@ -376,5 +381,87 @@ describe('configure-process official component nodes', () => {
         nodes: [{ type: 'madeUpNode', name: '未知节点' }],
       }, 'TPROC-TEST', 'FORM-TEST', 'https://www.aliwork.com', 'APP_TEST');
     }).toThrow('不支持的流程节点类型');
+  });
+});
+
+describe('configure-process command runner', () => {
+  afterEach(() => {
+    jest.resetModules();
+    jest.dontMock('../lib/core/yida-client');
+    jest.restoreAllMocks();
+  });
+
+  test('throws a CliError for missing arguments without exiting', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    await expect(configureProcess.run([])).rejects.toMatchObject({
+      code: 'CONFIGURE_PROCESS_INVALID_ARGUMENTS',
+    });
+    expect(exitSpy).not.toHaveBeenCalled();
+  });
+
+  test('uses yida-client and returns the published process result', async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-configure-process-'));
+    const definitionFile = path.join(tempDir, 'process.json');
+    fs.writeFileSync(definitionFile, JSON.stringify({ nodes: [] }));
+
+    const mockAuthRef = {
+      csrfToken: 'csrf-test',
+      cookies: [{ name: 'cookie', value: 'value' }],
+      baseUrl: 'https://www.aliwork.com',
+    };
+    const mockGet = jest.fn().mockResolvedValueOnce({
+      success: true,
+      content: { data: [{ id: 100, version: '2' }] },
+    });
+    const mockPostForm = jest.fn()
+      .mockResolvedValueOnce({ success: true, content: { processId: 101 } })
+      .mockResolvedValueOnce({ success: true })
+      .mockResolvedValueOnce({ success: true });
+
+    jest.resetModules();
+    jest.doMock('../lib/core/yida-client', () => ({
+      createAuthRef: jest.fn(() => mockAuthRef),
+      createYidaClient: jest.fn(() => ({
+        get: mockGet,
+        postForm: mockPostForm,
+      })),
+    }));
+
+    const freshConfigureProcess = require('../lib/process/configure-process');
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    const result = await freshConfigureProcess.run([
+      'APP_TEST',
+      'FORM_TEST',
+      definitionFile,
+      'TPROC_TEST',
+    ]);
+
+    expect(result).toEqual({
+      success: true,
+      processCode: 'TPROC_TEST',
+      processId: 101,
+      processVersion: 3,
+      appType: 'APP_TEST',
+      formUuid: 'FORM_TEST',
+    });
+    expect(mockGet).toHaveBeenCalledTimes(1);
+    expect(mockGet.mock.calls[0][0]).toBe('/alibaba/web/APP_TEST/query/process/pageProcessVersion.json');
+    expect(mockPostForm).toHaveBeenCalledTimes(3);
+    expect(mockPostForm.mock.calls[0][0]).toBe('/APP_TEST/query/simpleProcess/newDraftProcess.json');
+    expect(mockPostForm.mock.calls[1][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/saveProcessById.json');
+    expect(mockPostForm.mock.calls[2][0]).toBe('/alibaba/web/APP_TEST/query/simpleProcess/publishProcessById.json');
+    expect(logSpy).toHaveBeenCalledWith(JSON.stringify(result));
+    expect(exitSpy).not.toHaveBeenCalled();
+
+    fs.rmSync(tempDir, { recursive: true, force: true });
   });
 });

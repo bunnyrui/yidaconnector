@@ -17,6 +17,7 @@ const {
   saveRoleManagers,
   updateRoleManagers,
   normalizeRole,
+  run,
 } = require('../lib/app-permission/app-permission');
 
 const mockCookieData = {
@@ -146,5 +147,19 @@ describe('app-permission api', () => {
 
   test('normalizeRole rejects unknown roles', () => {
     expect(() => normalizeRole('platform')).toThrow('无效角色');
+  });
+
+  test('run reports usage errors without exiting the process', async () => {
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    await expect(run(['set', 'APP_1', 'data'])).rejects.toMatchObject({
+      isCliError: true,
+      code: 'APP_PERMISSION_USAGE',
+    });
+    expect(exitSpy).not.toHaveBeenCalled();
+
+    exitSpy.mockRestore();
   });
 });

@@ -694,6 +694,16 @@ describe('CLI offline smoke', () => {
     }
   });
 
+  test('route-level failures support JSON error output', () => {
+    const result = runAny(['unknown-command', '--json']);
+    expect(result.status).toBe(1);
+    expect(JSON.parse(result.output)).toMatchObject({
+      success: false,
+      errorCode: 'INVALID_ARGUMENTS',
+      errorMsg: expect.stringContaining('未知命令'),
+    });
+  });
+
   test('publish keeps source-first CLI order through the router', () => {
     const sourceFile = 'pages/src/missing-publish-source.oyd.jsx';
     const result = runAny(['publish', sourceFile, 'APP_XXX', 'FORM-XXX', '--no-open']);

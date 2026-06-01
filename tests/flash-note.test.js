@@ -1,5 +1,22 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+const querystring = require('querystring');
+
+jest.mock('../lib/core/utils', () => ({
+  loadCookieData: jest.fn(),
+  triggerLogin: jest.fn(),
+  resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
+  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'tok123', corpId: 'corp', userId: 'user' })),
+  httpGet: jest.fn(),
+  httpPost: jest.fn(),
+  requestWithAutoLogin: jest.fn(),
+  findProjectRoot: jest.fn(() => process.cwd()),
+}));
+
+const utils = require('../lib/core/utils');
 const {
   preprocessFlashNote,
   extractMeetingMeta,
@@ -9,6 +26,12 @@ const {
   buildFlashNoteToPrdPrompt,
   flashNoteToPrd,
 } = require('../lib/flash-note/build-flash-note-prompt');
+const {
+  run,
+  callAI,
+  parseArgs,
+  loadPromptBuilder,
+} = require('../lib/flash-note/flash-to-prd');
 
 describe('flash note to PRD prompt builder', () => {
   test('preprocessFlashNote removes timestamps and merges continuous speech', () => {
@@ -107,5 +130,134 @@ describe('flash note to PRD prompt builder', () => {
 
   test('flashNoteToPrd requires an AI caller', async () => {
     await expect(flashNoteToPrd('张三：需要客户档案')).rejects.toThrow('callAI');
+  });
+});
+
+describe('flash-to-prd CLI command', () => {
+  let logSpy;
+  let errorSpy;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    utils.loadCookieData.mockReturnValue({
+      cookies: [{ name: 'tianshu_csrf_token', value: 'tok123' }],
+      csrf_token: 'tok123',
+    });
+    utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
+    utils.httpPost.mockResolvedValue({
+      success: true,
+      content: { content: '# CRM - 产品需求文档\n\n## 背景\n客户档案管理。' },
+    });
+    logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  test('parseArgs keeps defaults and explicit options', () => {
+    expect(parseArgs(['--file', 'meeting.md', '--name', 'CRM', '--max-tokens', '4096'])).toEqual({
+      file: 'meeting.md',
+      name: 'CRM',
+      maxTokens: 4096,
+    });
+    expect(parseArgs(['-f', 'meeting.md', '-n', 'CRM'])).toMatchObject({
+      file: 'meeting.md',
+      name: 'CRM',
+      maxTokens: 8000,
+    });
+  });
+
+  test('callAI posts through yida-client and returns generated text', async () => {
+    const result = await callAI('生成 PRD', 2048, {
+      csrfToken: 'tok123',
+      cookies: [{ name: 'sid', value: 'cookie' }],
+      baseUrl: 'https://www.aliwork.com',
+    });
+
+    expect(result).toContain('CRM');
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost.mock.calls[0][1]).toBe('/query/intelligent/txtFromAI.json');
+    expect(querystring.parse(utils.httpPost.mock.calls[0][2])).toMatchObject({
+      _csrf_token: 'tok123',
+      prompt: '生成 PRD',
+      maxTokens: '2048',
+      skill: 'ToText',
+    });
+  });
+
+  test('callAI reports API failures as CliError', async () => {
+    utils.httpPost.mockResolvedValue({
+      success: false,
+      errorMsg: '模型暂不可用',
+    });
+
+    await expect(callAI('生成 PRD', 2048, {
+      csrfToken: 'tok123',
+      cookies: [{ name: 'sid', value: 'cookie' }],
+      baseUrl: 'https://www.aliwork.com',
+    })).rejects.toMatchObject({
+      isCliError: true,
+      code: 'FLASH_NOTE_AI_ERROR',
+    });
+  });
+
+  test('run reads flash note file, calls AI, and writes PRD output', async () => {
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-flash-to-prd-'));
+    const inputPath = path.join(tmpDir, 'meeting.txt');
+    fs.writeFileSync(inputPath, [
+      '会议主题：客户管理需求评审',
+      '参会人员：张三、李四',
+      '',
+      '张三：需要客户档案和筛选。',
+      '李四：需要导出报表。',
+    ].join('\n'), 'utf8');
+    utils.findProjectRoot.mockReturnValue(tmpDir);
+
+    try {
+      const result = await run(['--file', inputPath, '--name', 'CRM', '--max-tokens', '2048']);
+
+      expect(result).toMatchObject({
+        success: true,
+        projectName: 'CRM',
+        contentLength: expect.any(Number),
+      });
+      expect(result.prdFile).toBe(path.join(tmpDir, 'prd', 'CRM.md'));
+      expect(fs.readFileSync(result.prdFile, 'utf8')).toContain('客户档案管理');
+      expect(JSON.parse(logSpy.mock.calls[0][0])).toEqual(result);
+    } finally {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    }
+  });
+
+  test('run returns help without exiting', async () => {
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    try {
+      await expect(run(['--help'])).resolves.toEqual({ help: true });
+      expect(exitSpy).not.toHaveBeenCalled();
+      expect(utils.httpPost).not.toHaveBeenCalled();
+    } finally {
+      exitSpy.mockRestore();
+    }
+  });
+
+  test('run reports missing input file as CliError before network work', async () => {
+    await expect(run(['--file', path.join(os.tmpdir(), 'missing-openyida-flash-note.txt')]))
+      .rejects.toMatchObject({
+        isCliError: true,
+        code: 'FLASH_NOTE_INPUT_ERROR',
+      });
+    expect(utils.httpPost).not.toHaveBeenCalled();
+  });
+
+  test('loadPromptBuilder resolves the packaged prompt builder', () => {
+    const promptBuilder = loadPromptBuilder();
+
+    expect(promptBuilder).toHaveProperty('buildFlashNoteToPrdPrompt');
   });
 });

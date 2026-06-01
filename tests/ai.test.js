@@ -21,6 +21,8 @@ jest.mock('../lib/core/chalk', () => ({
 
 const utils = require('../lib/core/utils');
 const {
+  run,
+  getAuthRef,
   callTextFromAI,
   uploadImageForAI,
   invokeImageRecognition,
@@ -111,6 +113,19 @@ describe('openyida ai command helpers', () => {
       prompt: '检查文本',
       maxTokens: '3000',
       skill: 'ToText',
+    });
+  });
+
+  test('callTextFromAI reports API failures as CliError', async () => {
+    utils.httpPost.mockResolvedValueOnce({
+      success: false,
+      errorMsg: 'AI quota exceeded',
+    });
+
+    await expect(callTextFromAI('检查文本', { maxTokens: 3000 }, authRef)).rejects.toMatchObject({
+      isCliError: true,
+      code: 'AI_TEXT_REQUEST_FAILED',
+      message: 'AI quota exceeded',
     });
   });
 
@@ -224,5 +239,36 @@ describe('openyida ai command helpers', () => {
         baikeInfo: { baike_url: '' },
       }),
     ]);
+  });
+
+  test('getAuthRef uses cached login state and allows base URL override', () => {
+    const result = getAuthRef({ baseUrl: 'https://custom.example.com' });
+
+    expect(result).toMatchObject({
+      csrfToken: 'csrf-token',
+      baseUrl: 'https://custom.example.com',
+    });
+    expect(result.cookies).toBe(authRef.cookies);
+  });
+
+  test('run returns help and unknown subcommands without process.exit', async () => {
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+
+    try {
+      await expect(run(['--help'])).resolves.toEqual({ help: true });
+      expect(utils.loadCookieData).not.toHaveBeenCalled();
+
+      await expect(run(['missing'])).rejects.toMatchObject({
+        isCliError: true,
+        code: 'AI_UNKNOWN_SUBCOMMAND',
+      });
+      expect(exitSpy).not.toHaveBeenCalled();
+    } finally {
+      logSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
   });
 });

@@ -4,6 +4,8 @@ jest.mock('../lib/core/utils', () => ({
   loadCookieData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
+  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf', corpId: 'corp', userId: 'user' })),
+  httpGet: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
 
@@ -27,7 +29,8 @@ describe('get-permission command regression', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     utils.loadCookieData.mockReturnValue(mockCookieData);
-    utils.requestWithAutoLogin.mockResolvedValue({ success: true, content: { formPermit: [] } });
+    utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
+    utils.httpGet.mockResolvedValue({ success: true, content: { formPermit: [] } });
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
@@ -40,7 +43,7 @@ describe('get-permission command regression', () => {
   });
 
   test('successful query formats permission package payloads', async () => {
-    utils.requestWithAutoLogin.mockResolvedValueOnce({
+    utils.httpGet.mockResolvedValueOnce({
       success: true,
       content: {
         formPermit: [
@@ -60,6 +63,17 @@ describe('get-permission command regression', () => {
 
     await run(['APP-1', 'FORM-1']);
 
+    expect(utils.httpGet).toHaveBeenCalledWith(
+      'https://www.aliwork.com',
+      '/APP-1/permission/manage/listPermitPackages.json',
+      expect.objectContaining({
+        _api: 'Permission.getPermitGroupList',
+        _csrf_token: 'csrf',
+        formUuid: 'FORM-1',
+        appType: 'APP-1',
+      }),
+      mockCookieData.cookies
+    );
     const output = JSON.parse(mockLog.mock.calls[0][0]);
     expect(output).toMatchObject({
       success: true,
@@ -83,30 +97,26 @@ describe('get-permission command regression', () => {
     await run(['APP-1', 'FORM-1']);
 
     expect(utils.triggerLogin).toHaveBeenCalledTimes(1);
-    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
   });
 
-  test('API failure prints structured JSON and exits with code 1', async () => {
-    utils.requestWithAutoLogin.mockResolvedValueOnce({
+  test('API failure rejects with CliError', async () => {
+    utils.httpGet.mockResolvedValueOnce({
       success: false,
       errorMsg: 'permission denied',
       errorCode: '403',
     });
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-
-    await expect(run(['APP-1', 'FORM-1'])).rejects.toThrow('process.exit(1)');
-
-    const output = JSON.parse(mockLog.mock.calls[0][0]);
-    expect(output).toEqual({
-      success: false,
-      message: 'permission denied',
-      errorCode: '403',
-    });
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
+    let error;
+    try {
+      await run(['APP-1', 'FORM-1']);
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeTruthy();
+    expect(error.isCliError).toBe(true);
+    expect(error.code).toBe('GET_PERMISSION_FAILED');
+    expect(error.message).toBe('permission denied');
+    expect(mockLog).not.toHaveBeenCalled();
   });
 });

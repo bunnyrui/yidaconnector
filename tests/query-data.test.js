@@ -23,6 +23,21 @@ const mockCookieData = {
   csrf_token: 'tok123',
 };
 
+async function expectCliError(promise, message, exitCode = 1) {
+  let error;
+  try {
+    await promise;
+  } catch (err) {
+    error = err;
+  }
+  expect(error).toBeTruthy();
+  expect(error.isCliError).toBe(true);
+  expect(error.exitCode).toBe(exitCode);
+  if (message) {
+    expect(error.message).toContain(message);
+  }
+}
+
 function buildAliasSchema() {
   return {
     success: true,
@@ -78,43 +93,15 @@ beforeEach(() => {
 
 describe('run() 参数校验', () => {
   test('参数不足时打印错误并以 exit code 1 退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['query'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('缺少必填参数'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['query']), '缺少必填参数');
   });
 
   test('参数为空数组时打印错误并以 exit code 1 退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run([])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run([]), '缺少必填参数');
   });
 
   test('未知 action/resource 组合时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['unknown', 'resource'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['unknown', 'resource']), '暂未实现的命令');
   });
 });
 
@@ -125,33 +112,14 @@ describe('run() 未登录场景', () => {
     utils.loadCookieData.mockReturnValue(null);
     utils.triggerLogin.mockReturnValue(null);
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['query', 'form', 'APP_XXX', 'FORM-XXX'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('无法获取有效登录态'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['query', 'form', 'APP_XXX', 'FORM-XXX']), '无法获取有效登录态');
   });
 
   test('loadCookieData 返回无 cookies 字段时尝试 triggerLogin，仍失败则退出', async () => {
     utils.loadCookieData.mockReturnValue({ csrf_token: 'tok' }); // 无 cookies 字段
     utils.triggerLogin.mockReturnValue(null);
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['query', 'form', 'APP_XXX', 'FORM-XXX'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['query', 'form', 'APP_XXX', 'FORM-XXX']), '无法获取有效登录态');
   });
 });
 
@@ -183,17 +151,7 @@ describe('run() query form', () => {
       errorCode: '403',
     });
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['query', 'form', 'APP_XXX', 'FORM-XXX'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('权限不足'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['query', 'form', 'APP_XXX', 'FORM-XXX']), '权限不足');
   });
 
   test('传入 --page 和 --size 参数时正常执行', async () => {
@@ -292,19 +250,10 @@ describe('run() query form', () => {
   });
 
   test('--search-json 传入非法 JSON 时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(
-      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', 'not-json'])
-    ).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('JSON'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(
+      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', 'not-json']),
+      'JSON'
+    );
   });
 
   test('传入 --search-file 时读取文件作为查询条件', async () => {
@@ -391,19 +340,10 @@ describe('run() query form', () => {
   });
 
   test('同时传入 --search-json 和 --search-file 时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(
-      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[]', '--search-file', '.cache/openyida/search.json'])
-    ).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('不能同时使用'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(
+      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[]', '--search-file', '.cache/openyida/search.json']),
+      '不能同时使用'
+    );
   });
 });
 
@@ -476,30 +416,11 @@ describe('run() get form', () => {
       errorCode: '404',
     });
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['get', 'form', 'APP_XXX', '--inst-id', 'INST-999'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('实例不存在'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['get', 'form', 'APP_XXX', '--inst-id', 'INST-999']), '实例不存在');
   });
 
   test('缺少 --inst-id 时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['get', 'form', 'APP_XXX'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['get', 'form', 'APP_XXX']), '缺少必填参数');
   });
 });
 
@@ -581,34 +502,16 @@ describe('run() create form', () => {
   });
 
   test('缺少 --data-json 时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['create', 'form', 'APP_XXX', 'FORM-XXX'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['create', 'form', 'APP_XXX', 'FORM-XXX']), '缺少必填参数');
   });
 });
 
 describe('run() update form alias resolution', () => {
   test('--resolve-aliases 缺少 --form-uuid 时提示错误', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(
-      run(['update', 'form', 'APP_XXX', '--inst-id', 'INST-001', '--data-json', '{"phone":"123"}', '--resolve-aliases'])
-    ).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('--resolve-aliases 需要提供 formUuid'));
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(
+      run(['update', 'form', 'APP_XXX', '--inst-id', 'INST-001', '--data-json', '{"phone":"123"}', '--resolve-aliases']),
+      '--resolve-aliases 需要提供 formUuid'
+    );
   });
 });
 
@@ -668,28 +571,10 @@ describe('run() query tasks', () => {
   });
 
   test('--type 传入非法值时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['query', 'tasks', 'APP_XXX', '--type', 'invalid'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['query', 'tasks', 'APP_XXX', '--type', 'invalid']), '--type 仅支持');
   });
 
   test('缺少 --type 时打印错误并退出', async () => {
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-    await expect(run(['query', 'tasks', 'APP_XXX'])).rejects.toThrow('process.exit(1)');
-    expect(mockExit).toHaveBeenCalledWith(1);
-
-    mockExit.mockRestore();
-    mockError.mockRestore();
+    await expectCliError(run(['query', 'tasks', 'APP_XXX']), '缺少必填参数');
   });
 });

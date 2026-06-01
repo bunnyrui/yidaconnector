@@ -46,20 +46,20 @@ describe('task-center run', () => {
   test('登录态失效内部标记应失败退出，不能当作成功 JSON 输出', async () => {
     utils.requestWithAutoLogin.mockResolvedValue({ __needLogin: true });
 
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
-      throw new Error('process.exit(1)');
-    });
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
-    const mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-    await expect(run(['todo', '--page', '1', '--size', '1'])).rejects.toThrow('process.exit(1)');
+    let error;
+    try {
+      await run(['todo', '--page', '1', '--size', '1']);
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeTruthy();
+    expect(error.isCliError).toBe(true);
+    expect(error.message).toContain('登录态已失效');
 
-    expect(mockExit).toHaveBeenCalledWith(1);
     expect(mockLog).not.toHaveBeenCalledWith(JSON.stringify({ __needLogin: true }, null, 2));
-    expect(mockError).toHaveBeenCalledWith(expect.stringContaining('登录态已失效'));
 
-    mockExit.mockRestore();
     mockLog.mockRestore();
-    mockError.mockRestore();
   });
 });

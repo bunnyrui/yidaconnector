@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const querystring = require('querystring');
 
 jest.mock('../lib/core/utils', () => ({
@@ -8,6 +11,7 @@ jest.mock('../lib/core/utils', () => ({
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
   httpGet: jest.fn(),
   httpPost: jest.fn(),
+  httpPostJson: jest.fn(),
   requestWithAutoLogin: jest.fn((requestFn, authRef) => requestFn(authRef)),
   isLoginExpired: jest.fn(() => false),
   isCsrfTokenExpired: jest.fn(() => false),
@@ -30,6 +34,7 @@ const mockCookieData = {
 beforeEach(() => {
   jest.clearAllMocks();
   utils.loadCookieData.mockReturnValue(mockCookieData);
+  utils.httpPostJson.mockResolvedValue({ success: true, content: { version: 3 } });
   process.env.YIDA_QUIET = '1';
 });
 
@@ -162,7 +167,7 @@ describe('ai-form-setting run', () => {
     utils.httpPost.mockResolvedValue({ success: true, content: { status: 'AUTO' } });
     const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    await run(['enable', 'APP_XXX', 'FORM_XXX', '--json']);
+    const result = await run(['enable', 'APP_XXX', 'FORM_XXX', '--json']);
 
     expect(utils.httpPost).toHaveBeenCalledWith(
       'https://www.aliwork.com',
@@ -182,7 +187,75 @@ describe('ai-form-setting run', () => {
       status: 'AUTO',
       enabled: true,
     });
+    expect(result).toMatchObject({
+      success: true,
+      status: 'AUTO',
+      enabled: true,
+    });
 
     mockLog.mockRestore();
+  });
+
+  test('save posts JSON config through yida-client', async () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-ai-form-setting-'));
+    const configFile = path.join(tempDir, 'ai-config.json');
+    fs.writeFileSync(configFile, JSON.stringify({
+      items: [
+        {
+          itemName: '文本风险检查',
+          itemType: 'TEXT',
+          modelId: 'qwen-plus',
+          prompt: '请检查备注',
+        },
+      ],
+    }));
+    const mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+    try {
+      const result = await run(['save', 'APP_XXX', 'FORM_XXX', configFile, '--json']);
+
+      expect(utils.httpPostJson).toHaveBeenCalledWith(
+        'https://www.aliwork.com',
+        '/APP_XXX/query/aiApprove/saveOrUpdateAIApproveConfig.json?_csrf_token=csrf-token',
+        expect.objectContaining({ formUuid: 'FORM_XXX' }),
+        mockCookieData.cookies,
+        {
+          csrfToken: 'csrf-token',
+          referer: 'https://www.aliwork.com/APP_XXX/admin/FORM_XXX/settings/aiFormSetting',
+        }
+      );
+      expect(result).toMatchObject({
+        success: true,
+        appType: 'APP_XXX',
+        formUuid: 'FORM_XXX',
+        version: 3,
+      });
+    } finally {
+      mockLog.mockRestore();
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  test('usage and argument errors do not exit the process', async () => {
+    const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {
+      throw new Error('process.exit should not be called');
+    });
+    const stderrSpy = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    try {
+      await expect(run([])).resolves.toEqual({ help: true });
+      await expect(run(['enable', 'APP_XXX'])).rejects.toMatchObject({
+        isCliError: true,
+        code: 'AI_FORM_SETTING_INVALID_ARGUMENTS',
+      });
+      await expect(run(['missing'])).rejects.toMatchObject({
+        isCliError: true,
+        code: 'AI_FORM_SETTING_UNKNOWN_SUBCOMMAND',
+      });
+      expect(exitSpy).not.toHaveBeenCalled();
+    } finally {
+      stderrSpy.mockRestore();
+      exitSpy.mockRestore();
+    }
   });
 });

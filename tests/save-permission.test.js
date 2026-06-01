@@ -1,11 +1,14 @@
 'use strict';
 
+const querystring = require('querystring');
+
 jest.mock('../lib/core/utils', () => ({
   loadCookieData: jest.fn(),
   triggerLogin: jest.fn(),
   resolveBaseUrl: jest.fn(() => 'https://www.aliwork.com'),
-  isLoginExpired: jest.fn(() => false),
-  isCsrfTokenExpired: jest.fn(() => false),
+  extractInfoFromCookies: jest.fn(() => ({ csrfToken: 'csrf', corpId: 'corp', userId: 'user' })),
+  httpGet: jest.fn(),
+  httpPost: jest.fn(),
   requestWithAutoLogin: jest.fn(),
 }));
 
@@ -29,6 +32,7 @@ describe('save-permission command', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     utils.loadCookieData.mockReturnValue(mockCookieData);
+    utils.requestWithAutoLogin.mockImplementation((requestFn, authRef) => requestFn(authRef));
     mockLog = jest.spyOn(console, 'log').mockImplementation(() => {});
     mockError = jest.spyOn(console, 'error').mockImplementation(() => {});
     mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => true);
@@ -41,7 +45,7 @@ describe('save-permission command', () => {
   });
 
   test('updates field permissions without requiring data or action permissions', async () => {
-    utils.requestWithAutoLogin
+    utils.httpGet
       .mockResolvedValueOnce({
         success: true,
         content: {
@@ -56,8 +60,8 @@ describe('save-permission command', () => {
             },
           ],
         },
-      })
-      .mockResolvedValueOnce({ success: true });
+      });
+    utils.httpPost.mockResolvedValueOnce({ success: true });
 
     await run([
       'APP-1',
@@ -66,7 +70,15 @@ describe('save-permission command', () => {
       '{"role":"DEFAULT","fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
     ]);
 
-    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(2);
+    expect(utils.httpGet).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(body).toMatchObject({
+      _csrf_token: 'csrf',
+      formUuid: 'FORM-1',
+      packageUuid: 'pkg-1',
+      fieldPermit: '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
+    });
     const output = JSON.parse(mockLog.mock.calls[0][0]);
     expect(output).toMatchObject({
       success: true,
@@ -78,7 +90,7 @@ describe('save-permission command', () => {
   });
 
   test('creates a permission group with custom fieldPermit payload', async () => {
-    utils.requestWithAutoLogin.mockResolvedValueOnce({
+    utils.httpPost.mockResolvedValueOnce({
       success: true,
       content: 'pkg-new',
     });
@@ -93,7 +105,14 @@ describe('save-permission command', () => {
       '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
     ]);
 
-    expect(utils.requestWithAutoLogin).toHaveBeenCalledTimes(1);
+    expect(utils.httpPost).toHaveBeenCalledTimes(1);
+    const body = querystring.parse(utils.httpPost.mock.calls[0][2]);
+    expect(body.packageUuid).toBeUndefined();
+    expect(body).toMatchObject({
+      _csrf_token: 'csrf',
+      formUuid: 'FORM-1',
+      fieldPermit: '{"fieldRange":"CUSTOM","fields":{"textField_a":"READONLY"}}',
+    });
     const output = JSON.parse(mockLog.mock.calls[0][0]);
     expect(output).toMatchObject({
       success: true,
@@ -104,5 +123,20 @@ describe('save-permission command', () => {
       },
       message: '权限组已新增',
     });
+  });
+
+  test('invalid JSON rejects with CliError instead of exiting', async () => {
+    let error;
+    try {
+      await run(['APP-1', 'FORM-1', '--field-permission', 'not-json']);
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeTruthy();
+    expect(error.isCliError).toBe(true);
+    expect(error.code).toBe('SAVE_PERMISSION_INVALID_ARGUMENTS');
+    expect(utils.httpGet).not.toHaveBeenCalled();
+    expect(utils.httpPost).not.toHaveBeenCalled();
   });
 });

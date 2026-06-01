@@ -141,7 +141,7 @@ describe('verify-short-url', () => {
       error = err;
     }
 
-    expectCliError(error, 'VERIFY_SHORT_URL_INVALID_ARGUMENTS', '验证失败');
+    expectCliError(error, 'VERIFY_SHORT_URL_INVALID_ARGUMENTS', 'bad-url');
     expect(utils.httpGet).not.toHaveBeenCalled();
   });
 });
@@ -215,7 +215,7 @@ describe('save-share-config', () => {
       error = err;
     }
 
-    expectCliError(error, 'SAVE_SHARE_CONFIG_INVALID_ARGUMENTS', '参数验证失败');
+    expectCliError(error, 'SAVE_SHARE_CONFIG_INVALID_ARGUMENTS', 'maybe');
     expect(utils.httpPost).not.toHaveBeenCalled();
   });
 });

@@ -173,6 +173,7 @@ describe('CLI offline smoke', () => {
     expect(commands).toContain('connector.smart-create');
     expect(commands).toContain('corp-manager');
     expect(commands).toContain('agent-center');
+    expect(commands).toContain('integration.diagnose');
     expect(commands).toContain('dingtalk-link');
     expect(commands).toContain('externalize-form');
     expect(commands).toContain('db-seq-fix');
@@ -198,6 +199,11 @@ describe('CLI offline smoke', () => {
       usage: 'openyida ai <text|image> [options]',
       output: 'text|json',
       requires_login: true,
+    });
+    expect(parsed.commands.find(entry => entry.id === 'integration.diagnose')).toMatchObject({
+      usage: 'openyida integration diagnose (--text <text>|--file <path>|--rules) [--json]',
+      output: 'text|json',
+      requires_login: false,
     });
     expect(parsed.commands.find(entry => entry.id === 'externalize-form')).toMatchObject({
       usage: 'openyida externalize-form <appType> <formUuid> [--schema-file file]',

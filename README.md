@@ -387,6 +387,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 | `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
 | `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
 | `openyida integration check <appType...>` | Check abnormal integration automation run logs |
+| `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | Diagnose integration automation tickets and common pitfalls |
 | `openyida dws <command> [args]` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
 | `openyida dws contact user search --keyword <text>` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
 | `openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink / legacy dingtalk:// page links |

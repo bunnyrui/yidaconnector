@@ -24,6 +24,8 @@ const {
   DocParserFactory,
 } = require('../lib/connector/doc-parser');
 const { generateConnectorDesc } = require('../lib/connector/desc-generator');
+const { normalizeOperations } = require('../lib/connector/operation-normalizer');
+const { buildOperationsSummary } = require('../lib/connector/api');
 
 describe('connector curl parsing and action generation', () => {
   test('parseCurl extracts URL, method, headers, query path, and JSON body', () => {
@@ -180,11 +182,43 @@ describe('connector response and API document parsing', () => {
     });
     expect(operation.summary).toBe('Search Users');
     expect(operation.method).toBe('post');
+    const headersInput = operation.inputs.find((input) => input.name === 'Headers');
+    const queryInput = operation.inputs.find((input) => input.name === 'Query');
+    const bodyInput = operation.inputs.find((input) => input.name === 'Body');
+    expect(headersInput.paramLocation).toBe('header');
+    expect(headersInput.childList.map((node) => node.name)).toEqual(['Authorization']);
+    expect(headersInput.childList[0].paramLocation).toBe('header');
+    expect(queryInput.paramLocation).toBe('query');
+    expect(queryInput.childList[0].paramLocation).toBe('query');
+    expect(bodyInput.paramLocation).toBe('body');
+    expect(bodyInput.childList.map((node) => node.paramLocation)).toEqual(['body', 'body']);
     expect(operation.parameters.header[0]).toEqual({
       name: 'Authorization',
       value: 'Bearer token',
     });
     expect(operation.parameters.query[0]).toEqual({ name: 'page', value: '1' });
+    expect(operation.outputs[0].childList.map((node) => node.name)).toContain('data');
+  });
+
+  test('convertToOperationConfig does not synthesize request body from response schema', () => {
+    const markdown = [
+      '# List Users',
+      '',
+      '- URL',
+      'https://api.example.com/v1/users',
+      '- Method',
+      'GET',
+      '',
+      '## 响应',
+      '```json',
+      '{"success":true,"data":[{"id":1}]}',
+      '```',
+    ].join('\n');
+
+    const operation = convertToOperationConfig(new MarkdownParser(markdown).parse());
+
+    expect(operation.inputs.map((input) => input.name)).not.toContain('Body');
+    expect(operation.parameters.body).toBeUndefined();
     expect(operation.outputs[0].childList.map((node) => node.name)).toContain('data');
   });
 
@@ -199,5 +233,41 @@ describe('connector response and API document parsing', () => {
     } finally {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('connector operation normalization', () => {
+  test('normalizes legacy name/path actions before saving to Yida', () => {
+    const [operation] = normalizeOperations([
+      {
+        name: '测试接口',
+        path: '/test',
+        method: 'GET',
+        description: '测试用接口',
+      },
+    ]);
+
+    expect(operation).toMatchObject({
+      id: 'operation-test',
+      operationId: 'test',
+      summary: '测试接口',
+      description: '测试用接口',
+      url: 'test',
+      method: 'get',
+      parameters: { header: [] },
+      responses: { type: 'object', properties: {} },
+      origin: true,
+    });
+    expect(operation.outputs[0]).toMatchObject({
+      name: 'Response',
+      paramType: 'Object',
+      childList: [],
+    });
+  });
+
+  test('buildOperationsSummary falls back to legacy action names', () => {
+    expect(buildOperationsSummary([
+      { name: '测试接口', path: '/test', method: 'get' },
+    ])).toBe('支持测试接口');
   });
 });

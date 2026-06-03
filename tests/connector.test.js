@@ -6,11 +6,13 @@ const path = require('path');
 
 const {
   parseCurl,
+  extractCurlUrl,
   detectAuthType,
   filterBrowserHeaders,
 } = require('../lib/connector/curl-parser');
 const {
   generateOperation,
+  isSensitiveHeader,
 } = require('../lib/connector/action-generator');
 const {
   generateChildList,
@@ -51,6 +53,34 @@ describe('connector curl parsing and action generation', () => {
     expect(parsed.headers.Authorization).toBe('Bearer token');
   });
 
+  test('parseCurl handles bare URL, single quotes, --url and -X before URL', () => {
+    // 裸 URL（无引号）
+    expect(parseCurl('curl https://api.example.com/v1/items').url)
+      .toBe('https://api.example.com/v1/items');
+    // 单引号 URL
+    expect(parseCurl("curl 'https://api.example.com/v1/items?a=1'").url)
+      .toBe('https://api.example.com/v1/items?a=1');
+    // --url 参数
+    expect(parseCurl('curl --url https://api.example.com/v1/items').url)
+      .toBe('https://api.example.com/v1/items');
+    // -X POST 在 URL 之前（裸 URL）
+    const parsed = parseCurl('curl -X POST https://api.example.com/v1/items -d \'{"a":1}\'');
+    expect(parsed.url).toBe('https://api.example.com/v1/items');
+    expect(parsed.method).toBe('POST');
+  });
+
+  test('extractCurlUrl prioritizes --url, then quoted, then bare URL', () => {
+    expect(extractCurlUrl('curl --url "https://a.com/x"')).toBe('https://a.com/x');
+    expect(extractCurlUrl('curl -X GET "https://a.com/y"')).toBe('https://a.com/y');
+    expect(extractCurlUrl('curl https://a.com/z -H "X: 1"')).toBe('https://a.com/z');
+    expect(extractCurlUrl('curl -H "X: 1"')).toBe('');
+  });
+
+  test('detectAuthType is case-insensitive for the auth scheme', () => {
+    expect(detectAuthType({ Authorization: 'bearer abc' }).code).toBe('ApiKeyAuth');
+    expect(detectAuthType({ authorization: 'BASIC abc' }).code).toBe('BasicAuth');
+  });
+
   test('detectAuthType recognizes common auth headers', () => {
     expect(detectAuthType({ Authorization: 'Bearer abc' })).toMatchObject({
       code: 'ApiKeyAuth',
@@ -82,9 +112,39 @@ describe('connector curl parsing and action generation', () => {
     expect(operation.method).toBe('post');
     expect(operation.operationId).toBe('users_search');
     expect(operation.inputs.map((input) => input.name)).toEqual(['Headers', 'Body', 'Query']);
-    expect(operation.parameters.header).toEqual([{ name: 'Authorization', value: 'Bearer token' }]);
+    // 安全：敏感头（Authorization）的真实凭证不得写入生成的 Action 配置，应脱敏为空值
+    expect(operation.parameters.header).toEqual([{ name: 'Authorization', value: '' }]);
     expect(operation.parameters.query).toEqual([{ name: 'q', value: '' }]);
     expect(operation.parameters.body.default).toBe('{"name":"Ada","age":3}');
+  });
+
+  test('generateOperation redacts sensitive header values but keeps business header values', () => {
+    const curlCommand = [
+      'curl "https://api.example.com/v1/users/search?q=ada"',
+      '-H "Authorization: Bearer super-secret-token-value"',
+      '-H "X-Tenant-Id: tenant-42"',
+    ].join(' ');
+    const curlData = parseCurl(curlCommand);
+    const relevantHeaders = filterBrowserHeaders(curlData.headers);
+    const operation = generateOperation(curlData, relevantHeaders);
+
+    const serialized = JSON.stringify(operation);
+    // 真实 token 绝不能出现在生成的配置里
+    expect(serialized).not.toContain('super-secret-token-value');
+    // 业务头的值应保留
+    const tenantHeader = operation.parameters.header.find((h) => h.name === 'X-Tenant-Id');
+    expect(tenantHeader.value).toBe('tenant-42');
+    const authHeader = operation.parameters.header.find((h) => h.name === 'Authorization');
+    expect(authHeader.value).toBe('');
+  });
+
+  test('isSensitiveHeader matches credential-bearing headers case-insensitively', () => {
+    expect(isSensitiveHeader('Authorization')).toBe(true);
+    expect(isSensitiveHeader('X-Api-Key')).toBe(true);
+    expect(isSensitiveHeader('Cookie')).toBe(true);
+    expect(isSensitiveHeader('x-acs-dingtalk-access-token')).toBe(true);
+    expect(isSensitiveHeader('Content-Type')).toBe(false);
+    expect(isSensitiveHeader('X-Tenant-Id')).toBe(false);
   });
 
   test('generateConnectorDesc identifies Yida and generic HTTP connectors', () => {

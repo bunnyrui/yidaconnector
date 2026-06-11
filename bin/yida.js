@@ -481,12 +481,12 @@ async function main() {
   if (!command || command === '--help' || command === '-h') {
     handleFirstRunGuide();
     printHelp();
-    process.exit(0);
+    return;
   }
 
   if (command === '--version' || command === '-v') {
     console.log(currentVersion);
-    process.exit(0);
+    return;
   }
 
   switch (command) {

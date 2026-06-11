@@ -71,6 +71,13 @@ openyida login
 
 In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
 
+When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
+
+```bash
+openyida login https://yida-group.alibaba-inc.com/
+openyida login --alibaba
+```
+
 The explicit QR polling command remains available:
 
 ```bash
@@ -279,7 +286,7 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
+| `openyida login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
 | `openyida logout` | Logout / switch account |
 | `openyida auth <status\|login\|refresh\|logout>` | Login state management |
 | `openyida org <list\|switch>` | Organization management (list / switch) |

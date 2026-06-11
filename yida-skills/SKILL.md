@@ -67,6 +67,8 @@ openyida login --check-only --json
 
 `openyida env --json` 用于确认当前 AI 工具、项目根目录、配置文件和登录态拆解项；`openyida login --check-only --json` 只读取本地登录缓存，不触发登录、不打开浏览器、不创建任何资源。
 
+若用户明确要求登录某个宜搭入口 URL，登录命令必须携带该 URL 或对应环境 flag。例如 `https://yida-group.alibaba-inc.com/` 是阿里内网宜搭，应执行 `openyida login https://yida-group.alibaba-inc.com/` 或 `openyida login --alibaba`，不要退化成裸 `openyida login`，否则会落到默认公有云 `www.aliwork.com` / `cookies-public.json`。
+
 **悟空（Wukong）降级规则**：如果在悟空环境中本地命令执行入口连续失败，不要继续重试，也不要判断为 OpenYida 登录失败。进入人工协同诊断模式，请用户在可用终端执行以下低风险命令并贴回输出：
 
 ```bash

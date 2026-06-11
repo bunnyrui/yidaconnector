@@ -457,6 +457,32 @@ describe('env-manager 海外登录环境', () => {
     expect(isYidaServiceHost('evil-yidaapps.com')).toBe(false);
   });
 
+  test('inferEnvironmentNameFromUrl 根据目标 URL 推断内置环境', () => {
+    const { inferEnvironmentNameFromUrl } = require('../lib/core/env-manager');
+
+    expect(inferEnvironmentNameFromUrl('https://yida-group.alibaba-inc.com/')).toBe('alibaba');
+    expect(inferEnvironmentNameFromUrl('https://yida-aliyun.alibaba-inc.com/home')).toBe('alibaba');
+    expect(inferEnvironmentNameFromUrl('https://www.yidaapps.com/')).toBe('intl');
+    expect(inferEnvironmentNameFromUrl('https://demo.aliwork.com/workPlatform')).toBe('public');
+  });
+
+  test('inferEnvironmentNameFromUrl 可从 OAuth redirect_uri 推断环境', () => {
+    const { buildDingtalkOAuthLoginUrl, inferEnvironmentNameFromUrl } = require('../lib/core/env-manager');
+
+    const intlLoginUrl = buildDingtalkOAuthLoginUrl({
+      loginOrigin: 'https://login.dingtalk.io',
+      baseUrl: 'https://www.yidaapps.com',
+      lang: 'en_US',
+    });
+    const alibabaLoginUrl = buildDingtalkOAuthLoginUrl({
+      loginOrigin: 'https://login.dingtalk.com',
+      baseUrl: 'https://yida-group.alibaba-inc.com',
+    });
+
+    expect(inferEnvironmentNameFromUrl(intlLoginUrl)).toBe('intl');
+    expect(inferEnvironmentNameFromUrl(alibabaLoginUrl)).toBe('alibaba');
+  });
+
   test('中文别名解析到对应内置环境', () => {
     const { resolveEnvNameAlias } = require('../lib/core/env-manager');
 

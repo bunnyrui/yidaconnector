@@ -105,7 +105,7 @@ describe('CLI offline smoke', () => {
     const output = runOk(['--help']);
     expect(output).toContain('OpenYida');
     expect(output).toContain('env [--json]');
-    expect(output).toContain('login [--qr|--agent-qr|--codex|--browser] [--env <name>|--intl|--overseas|--global|--yidaapps] [--corp-id <corpId>]');
+    expect(output).toContain('login [target-url] [--qr|--agent-qr|--codex|--browser] [--env <name>|--intl|--overseas|--global|--yidaapps|--alibaba] [--corp-id <corpId>]');
     expect(output).toContain('corp-efficiency');
     expect(output).toContain('create-form');
     expect(output).toContain('list-forms');
@@ -275,6 +275,46 @@ describe('CLI offline smoke', () => {
       const parsed = JSON.parse(output);
       expect(parsed).toHaveProperty('login.diagnostics.currentEnv', 'intl');
       expect(parsed.login.diagnostics.configuredCookieFile).toContain('cookies-intl.json');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('login target URL infers Alibaba intranet environment for check-only', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const output = runOkWithEnv([
+        'login',
+        'https://yida-group.alibaba-inc.com/',
+        '--check-only',
+        '--json',
+      ], {
+        CODEX_SHELL: '1',
+      }, workspace);
+      const parsed = JSON.parse(output);
+      expect(parsed.status).toBe('not_logged_in');
+      expect(parsed.diagnostics.currentEnv).toBe('alibaba');
+      expect(parsed.diagnostics.cookieFile).toContain('cookies-alibaba.json');
+    } finally {
+      fs.rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  test('login target URL is inferred even when it follows check-only flags', () => {
+    const workspace = createCodexWorkspace();
+    try {
+      const output = runOkWithEnv([
+        'login',
+        '--check-only',
+        '--json',
+        'https://www.yidaapps.com/',
+      ], {
+        CODEX_SHELL: '1',
+      }, workspace);
+      const parsed = JSON.parse(output);
+      expect(parsed.status).toBe('not_logged_in');
+      expect(parsed.diagnostics.currentEnv).toBe('intl');
+      expect(parsed.diagnostics.cookieFile).toContain('cookies-intl.json');
     } finally {
       fs.rmSync(workspace, { recursive: true, force: true });
     }

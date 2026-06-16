@@ -1,5 +1,5 @@
 ---
-name: openyida
+name: yidaconnector
 description: >
   宜搭数据查询与登录态管理技能。通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）查询宜搭表单、流程、任务数据并管理登录态。
   包含表单/流程/任务/子表单数据查询、登录、登出、环境检测等能力。
@@ -12,7 +12,7 @@ description: >
 
 本技能通过有 AI Coding 能力的智能体（悟空/Claude/Open Code 等）查询宜搭低代码平台的表单、流程、任务数据，并管理登录态。
 
-所有操作通过 **`openyida`** 命令行工具统一执行，无需关心脚本路径或运行环境差异。
+所有操作通过 **`yidaconnector`** 命令行工具统一执行，无需关心脚本路径或运行环境差异。
 
 **登录态说明**：所有命令自动读取 `.cache/cookies.json`，首次运行或 Cookie 失效时自动触发登录流程，也可手动执行登录命令。
 
@@ -22,14 +22,14 @@ description: >
 
 | 依赖 | 版本 | 用途 |
 |------|------|------|
-| Node.js | ≥ 16 | 运行 openyida |
+| Node.js | ≥ 16 | 运行 yidaconnector |
 
 ```bash
-# 安装 openyida（首次使用前执行）
-npm install -g openyida
+# 安装 yidaconnector（首次使用前执行）
+npm install -g yidaconnector
 
-# 更新 openyida 到最新版本
-npm install -g openyida@latest
+# 更新 yidaconnector 到最新版本
+npm install -g yidaconnector@latest
 ```
 
 ---
@@ -39,13 +39,13 @@ npm install -g openyida@latest
 **在执行任何宜搭操作前，必须先运行环境检测命令**，确认当前 AI 工具环境和登录态：
 
 ```bash
-openyida env --json
-openyida login --check-only --json
+yidaconnector env --json
+yidaconnector login --check-only --json
 ```
 
-`openyida env --json` 用于确认当前 AI 工具、项目根目录、配置文件和登录态拆解项；`openyida login --check-only --json` 只读取本地登录缓存，不触发登录、不打开浏览器、不创建任何资源。
+`yidaconnector env --json` 用于确认当前 AI 工具、项目根目录、配置文件和登录态拆解项；`yidaconnector login --check-only --json` 只读取本地登录缓存，不触发登录、不打开浏览器、不创建任何资源。
 
-若用户明确要求登录某个宜搭入口 URL，登录命令必须携带该 URL 或对应环境 flag。例如 `https://yida-group.alibaba-inc.com/` 是阿里内网宜搭，应执行 `openyida login https://yida-group.alibaba-inc.com/` 或 `openyida login --alibaba`，不要退化成裸 `openyida login`，否则会落到默认公有云 `www.aliwork.com`。
+若用户明确要求登录某个宜搭入口 URL，登录命令必须携带该 URL 或对应环境 flag。例如 `https://yida-group.alibaba-inc.com/` 是阿里内网宜搭，应执行 `yidaconnector login https://yida-group.alibaba-inc.com/` 或 `yidaconnector login --alibaba`，不要退化成裸 `yidaconnector login`，否则会落到默认公有云 `www.aliwork.com`。
 
 **输出解读**：
 
@@ -55,7 +55,7 @@ openyida login --check-only --json
 | 当前生效环境 | 显示项目根目录路径 |
 | 登录态检测 | 显示是否已登录、域名、组织 ID |
 
-> **若显示"未登录"，先执行 `openyida login`。Codex 中默认返回内置浏览器 handoff：用 Browser Use 打开 `login_url`，让钉钉/宜搭页面承接扫码和组织选择。页面登录完成后必须再次执行 `openyida login --check-only --json` 验证缓存写入。**
+> **若显示"未登录"，先执行 `yidaconnector login`。Codex 中默认返回内置浏览器 handoff：用 Browser Use 打开 `login_url`，让钉钉/宜搭页面承接扫码和组织选择。页面登录完成后必须再次执行 `yidaconnector login --check-only --json` 验证缓存写入。**
 
 ---
 
@@ -75,9 +75,9 @@ openyida login --check-only --json
 
 | 技能 | SKILL.md 路径 | 用途 | 典型命令 |
 |------|--------------|------|---------|
-| `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/子表/流程/任务数据查询与变更 | `openyida data query form <appType> <formUuid>` |
-| `yida-login` | `skills/yida-login/SKILL.md` | 登录态管理（通常自动触发） | `openyida login` |
-| `yida-logout` | `skills/yida-logout/SKILL.md` | 退出登录 / 切换账号 | `openyida logout` |
+| `yida-data-management` | `skills/yida-data-management/SKILL.md` | 表单/子表/流程/任务数据查询与变更 | `yidaconnector data query form <appType> <formUuid>` |
+| `yida-login` | `skills/yida-login/SKILL.md` | 登录态管理（通常自动触发） | `yidaconnector login` |
+| `yida-logout` | `skills/yida-logout/SKILL.md` | 退出登录 / 切换账号 | `yidaconnector logout` |
 | `large-file-write` | `skills/large-file-write/SKILL.md` | 大文件可靠写入辅助技能 | 详见 SKILL.md |
 
 ---
@@ -110,11 +110,11 @@ openyida login --check-only --json
 
 | 工件类型 | 推荐位置 |
 |---------|---------|
-| 查询结果 / 数据导出 | `.cache/openyida/data-export/` |
+| 查询结果 / 数据导出 | `.cache/yidaconnector/data-export/` |
 | 字段 ID 映射 | `.cache/<项目名>-schema.json` |
-| 一次性 Python / JS 执行脚本 | `.cache/openyida/scripts/` |
+| 一次性 Python / JS 执行脚本 | `.cache/yidaconnector/scripts/` |
 
-> 若只是为了调用 `openyida` 命令临时生成的 `*.json`、`*.js`、`*.py`、`*.csv` 文件，一律放入 `.cache/openyida/` 子目录。
+> 若只是为了调用 `yidaconnector` 命令临时生成的 `*.json`、`*.js`、`*.py`、`*.csv` 文件，一律放入 `.cache/yidaconnector/` 子目录。
 
 ---
 
@@ -137,25 +137,25 @@ openyida login --check-only --json
 
 重新登录后再查询：
 ```bash
-openyida login
-openyida data query form <appType> <formUuid>
+yidaconnector login
+yidaconnector data query form <appType> <formUuid>
 ```
 
 **Q：如何切换到其他组织？**
 
 ```bash
-openyida org list
-openyida org switch --corp-id <corpId>
+yidaconnector org list
+yidaconnector org switch --corp-id <corpId>
 ```
 
 **Q：如何切换到私有化/国际版环境？**
 
 ```bash
-openyida env list
-openyida env switch <name>
+yidaconnector env list
+yidaconnector env switch <name>
 # 或登录时直接指定
-openyida login --intl
-openyida login --alibaba
+yidaconnector login --intl
+yidaconnector login --alibaba
 ```
 
 **Q：完整 API 参考在哪里？**

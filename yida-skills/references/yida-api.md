@@ -391,13 +391,13 @@ this.utils.yida.getFormDataById({
 > var total = (res && res.totalCount) || (res && res.content && res.content.totalCount) || 0;
 > ```
 >
-> 使用 `openyida data query form` CLI 命令时，工具已自动归一化为直接结构，无需手动兼容。
+> 使用 `yidaconnector data query form` CLI 命令时，工具已自动归一化为直接结构，无需手动兼容。
 
 > ⚠️ **pageSize 上限**：`pageSize` 最大值为 **100**，超过 100 会导致宜搭 API 返回 HTTP 500 错误（错误信息为"参数校验失败pageSize"）。推荐使用 `10`～`100` 之间的值。
 
 > 📌 **appType 参数说明**：
 > - **页面内部调用**（即在宜搭自定义页面的 JS 代码中调用 `this.utils.yida.searchFormDatas`）：**不需要传 `appType`**，SDK 会自动从当前页面上下文中获取。
-> - **外部 HTTP 直接调用**（如通过 `openyida data query form` CLI 或服务端脚本）：**必须传 `appType`**，即应用的唯一标识（可在宜搭应用 URL 中找到，格式如 `APP_XXXXXXXX`）。
+> - **外部 HTTP 直接调用**（如通过 `yidaconnector data query form` CLI 或服务端脚本）：**必须传 `appType`**，即应用的唯一标识（可在宜搭应用 URL 中找到，格式如 `APP_XXXXXXXX`）。
 
 **请求示例**：
 

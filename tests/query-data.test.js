@@ -257,7 +257,7 @@ describe('run() query form', () => {
   });
 
   test('传入 --search-file 时读取文件作为查询条件', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-search-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yidaconnector-search-'));
     const searchPath = path.join(tmpDir, 'search.json');
     fs.writeFileSync(searchPath, JSON.stringify([{ key: 'field_1', value: 'value' }]), 'utf-8');
 
@@ -341,7 +341,7 @@ describe('run() query form', () => {
 
   test('同时传入 --search-json 和 --search-file 时打印错误并退出', async () => {
     await expectCliError(
-      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[]', '--search-file', '.cache/openyida/search.json']),
+      run(['query', 'form', 'APP_XXX', 'FORM-XXX', '--search-json', '[]', '--search-file', '.cache/yidaconnector/search.json']),
       '不能同时使用'
     );
   });
@@ -445,7 +445,7 @@ describe('run() create form', () => {
   });
 
   test('传入 --data-file 时读取文件作为创建数据', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-data-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yidaconnector-data-'));
     const dataPath = path.join(tmpDir, 'data.json');
     fs.writeFileSync(dataPath, JSON.stringify({ textField_1: 'from-file' }), 'utf-8');
 

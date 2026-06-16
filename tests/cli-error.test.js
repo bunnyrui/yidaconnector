@@ -8,12 +8,12 @@ describe('CliError', () => {
       code: 'BAD_INPUT',
       exitCode: 2,
       details: { token: 'secret-token-value' },
-      usage: 'openyida example',
+      usage: 'yidaconnector example',
     });
 
     expect(isCliError(error)).toBe(true);
     expect(error.exitCode).toBe(2);
-    expect(error.usage).toBe('openyida example');
+    expect(error.usage).toBe('yidaconnector example');
     expect(toErrorPayload(error)).toEqual({
       success: false,
       errorCode: 'BAD_INPUT',

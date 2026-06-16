@@ -6,7 +6,7 @@ const { t, getLanguage, setLanguage, detectLanguage, SUPPORTED_LANGUAGES } = req
 
 const originalLang = getLanguage();
 const originalEnv = {
-  OPENYIDA_LANG: process.env.OPENYIDA_LANG,
+  YIDACONNECTOR_LANG: process.env.YIDACONNECTOR_LANG,
   LANG: process.env.LANG,
   LC_ALL: process.env.LC_ALL,
 };
@@ -15,10 +15,10 @@ afterEach(() => {
   // 还原语言设置
   setLanguage(originalLang);
   // 还原环境变量
-  if (originalEnv.OPENYIDA_LANG === undefined) {
-    delete process.env.OPENYIDA_LANG;
+  if (originalEnv.YIDACONNECTOR_LANG === undefined) {
+    delete process.env.YIDACONNECTOR_LANG;
   } else {
-    process.env.OPENYIDA_LANG = originalEnv.OPENYIDA_LANG;
+    process.env.YIDACONNECTOR_LANG = originalEnv.YIDACONNECTOR_LANG;
   }
   if (originalEnv.LANG === undefined) {
     delete process.env.LANG;
@@ -84,63 +84,63 @@ describe('setLanguage / getLanguage', () => {
 // ── detectLanguage ────────────────────────────────────────────────────
 
 describe('detectLanguage', () => {
-  test('OPENYIDA_LANG=en 时检测为 en', () => {
-    process.env.OPENYIDA_LANG = 'en';
+  test('YIDACONNECTOR_LANG=en 时检测为 en', () => {
+    process.env.YIDACONNECTOR_LANG = 'en';
     delete process.env.LANG;
     delete process.env.LC_ALL;
     expect(detectLanguage()).toBe('en');
   });
 
-  test('OPENYIDA_LANG=zh-HK 时检测为 zh-HK', () => {
-    process.env.OPENYIDA_LANG = 'zh-HK';
+  test('YIDACONNECTOR_LANG=zh-HK 时检测为 zh-HK', () => {
+    process.env.YIDACONNECTOR_LANG = 'zh-HK';
     expect(detectLanguage()).toBe('zh-HK');
   });
 
-  test('OPENYIDA_LANG=zh-TW 时兼容映射为 zh-HK', () => {
-    process.env.OPENYIDA_LANG = 'zh-TW';
+  test('YIDACONNECTOR_LANG=zh-TW 时兼容映射为 zh-HK', () => {
+    process.env.YIDACONNECTOR_LANG = 'zh-TW';
     expect(detectLanguage()).toBe('zh-HK');
   });
 
-  test('OPENYIDA_LANG=en-US 时提取主语言代码 en', () => {
-    process.env.OPENYIDA_LANG = 'en-US';
+  test('YIDACONNECTOR_LANG=en-US 时提取主语言代码 en', () => {
+    process.env.YIDACONNECTOR_LANG = 'en-US';
     expect(detectLanguage()).toBe('en');
   });
 
-  test('OPENYIDA_LANG=ja 时检测为 ja', () => {
-    process.env.OPENYIDA_LANG = 'ja';
+  test('YIDACONNECTOR_LANG=ja 时检测为 ja', () => {
+    process.env.YIDACONNECTOR_LANG = 'ja';
     expect(detectLanguage()).toBe('ja');
   });
 
-  test('OPENYIDA_LANG 不支持时回退到系统 LANG', () => {
-    process.env.OPENYIDA_LANG = 'xx-UNKNOWN';
+  test('YIDACONNECTOR_LANG 不支持时回退到系统 LANG', () => {
+    process.env.YIDACONNECTOR_LANG = 'xx-UNKNOWN';
     process.env.LANG = 'ko_KR.UTF-8';
     delete process.env.LC_ALL;
     expect(detectLanguage()).toBe('ko');
   });
 
   test('系统 LANG=zh_HK.UTF-8 时检测为 zh-HK', () => {
-    delete process.env.OPENYIDA_LANG;
+    delete process.env.YIDACONNECTOR_LANG;
     process.env.LANG = 'zh_HK.UTF-8';
     delete process.env.LC_ALL;
     expect(detectLanguage()).toBe('zh-HK');
   });
 
   test('系统 LANG=zh_TW.UTF-8 时兼容映射为 zh-HK', () => {
-    delete process.env.OPENYIDA_LANG;
+    delete process.env.YIDACONNECTOR_LANG;
     process.env.LANG = 'zh_TW.UTF-8';
     delete process.env.LC_ALL;
     expect(detectLanguage()).toBe('zh-HK');
   });
 
   test('LC_ALL 优先于 LANG', () => {
-    delete process.env.OPENYIDA_LANG;
+    delete process.env.YIDACONNECTOR_LANG;
     process.env.LC_ALL = 'fr_FR.UTF-8';
     process.env.LANG = 'en_US.UTF-8';
     expect(detectLanguage()).toBe('fr');
   });
 
   test('无任何语言环境变量时默认返回 zh', () => {
-    delete process.env.OPENYIDA_LANG;
+    delete process.env.YIDACONNECTOR_LANG;
     delete process.env.LANG;
     delete process.env.LC_ALL;
     expect(detectLanguage()).toBe('zh');

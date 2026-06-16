@@ -196,7 +196,7 @@ describe('fetchSchemaRecord', () => {
 
 describe('run --all', () => {
   test('writes individual schema files and an index when output-dir is provided', async () => {
-    const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'openyida-schemas-'));
+    const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'yidaconnector-schemas-'));
     fetchFormPageList.mockResolvedValue([
       { formUuid: 'FORM-A', formName: '客户信息', formType: 'form', pathName: 'customer' },
     ]);

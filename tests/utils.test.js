@@ -73,7 +73,7 @@ describe('extractInfoFromCookies', () => {
 describe('hasDesktopEnvironment', () => {
   test('CI 环境视为无桌面，除非显式声明有桌面', () => {
     expect(hasDesktopEnvironment({ CI: '1', DISPLAY: ':0' }, 'linux')).toBe(false);
-    expect(hasDesktopEnvironment({ CI: '1', OPENYIDA_ASSUME_DESKTOP: '1' }, 'linux')).toBe(true);
+    expect(hasDesktopEnvironment({ CI: '1', YIDACONNECTOR_ASSUME_DESKTOP: '1' }, 'linux')).toBe(true);
   });
 
   test('Linux 需要图形会话信号才视为有桌面', () => {
@@ -86,7 +86,7 @@ describe('hasDesktopEnvironment', () => {
   test('macOS 和 Windows 默认视为有桌面，强制 terminal QR 时除外', () => {
     expect(hasDesktopEnvironment({}, 'darwin')).toBe(true);
     expect(hasDesktopEnvironment({}, 'win32')).toBe(true);
-    expect(hasDesktopEnvironment({ OPENYIDA_FORCE_TERMINAL_QR: '1' }, 'darwin')).toBe(false);
+    expect(hasDesktopEnvironment({ YIDACONNECTOR_FORCE_TERMINAL_QR: '1' }, 'darwin')).toBe(false);
   });
 });
 
@@ -121,24 +121,24 @@ describe('resolveBaseUrl', () => {
   });
 
   test('登录缓存中的实际 base_url 优先于内置非默认环境域名', () => {
-    const originalEnv = process.env.OPENYIDA_ENV;
-    const originalEndpoint = process.env.OPENYIDA_ENDPOINT;
-    process.env.OPENYIDA_ENV = 'alibaba';
-    delete process.env.OPENYIDA_ENDPOINT;
+    const originalEnv = process.env.YIDACONNECTOR_ENV;
+    const originalEndpoint = process.env.YIDACONNECTOR_ENDPOINT;
+    process.env.YIDACONNECTOR_ENV = 'alibaba';
+    delete process.env.YIDACONNECTOR_ENDPOINT;
 
     try {
       const cookieData = { base_url: 'https://yida-aliyun.alibaba-inc.com/home' };
       expect(resolveBaseUrl(cookieData)).toBe('https://yida-aliyun.alibaba-inc.com');
     } finally {
       if (originalEnv === undefined) {
-        delete process.env.OPENYIDA_ENV;
+        delete process.env.YIDACONNECTOR_ENV;
       } else {
-        process.env.OPENYIDA_ENV = originalEnv;
+        process.env.YIDACONNECTOR_ENV = originalEnv;
       }
       if (originalEndpoint === undefined) {
-        delete process.env.OPENYIDA_ENDPOINT;
+        delete process.env.YIDACONNECTOR_ENDPOINT;
       } else {
-        process.env.OPENYIDA_ENDPOINT = originalEndpoint;
+        process.env.YIDACONNECTOR_ENDPOINT = originalEndpoint;
       }
     }
   });

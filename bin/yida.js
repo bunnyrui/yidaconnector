@@ -340,6 +340,106 @@ function throwCliUsage(...lines) {
   });
 }
 
+function throwNeedLogin(message) {
+  throw new CliError(message, {
+    code: 'NEED_LOGIN',
+  });
+}
+
+function shouldUseEnvManagement(argsList) {
+  const subCommand = argsList[0];
+  return !!subCommand && subCommand !== '--json';
+}
+
+function getArgValue(cliArgs, name) {
+  const index = cliArgs.indexOf(name);
+  if (index === -1 || !cliArgs[index + 1] || cliArgs[index + 1].startsWith('--')) {
+    return null;
+  }
+  return cliArgs[index + 1];
+}
+
+function isAgentConversationEnvironment() {
+  const { detectActiveTool } = require('../lib/core/utils');
+  return !!detectActiveTool() || process.env.OPENYIDA_AGENT_MODE === '1';
+}
+
+function shouldUseBrowserHandoffLogin(cliArgs) {
+  if (cliArgs.includes('--qr') || cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return false;}
+  if (cliArgs.includes('--browser') || cliArgs.includes('--codex') || cliArgs.includes('--qoder') || cliArgs.includes('--wukong')) {return true;}
+  return false;
+}
+
+function shouldUseAgentLogin(cliArgs) {
+  if (cliArgs.includes('--qr') || cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return false;}
+  if (shouldUseBrowserHandoffLogin(cliArgs)) {return false;}
+  return isAgentConversationEnvironment();
+}
+
+function shouldUsePlaywrightFallbackInAgentLogin() {
+  const { hasDesktopEnvironment } = require('../lib/core/utils');
+  return hasDesktopEnvironment() || process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
+}
+
+function shouldUseDesktopBrowserLogin() {
+  const { hasDesktopEnvironment } = require('../lib/core/utils');
+  return hasDesktopEnvironment();
+}
+
+function shouldUseCodexQrLogin(cliArgs) {
+  if (cliArgs.includes('--codex-qr') || cliArgs.includes('--agent-qr')) {return true;}
+  return false;
+}
+
+// feedback 登录死循环检测已移除（依赖已删的 feedback 模块）。
+// 保留为 no-op，保证 printLoginResult 调用链不断裂。
+function noteLoginCommandResult() {}
+
+function printLoginResult(result) {
+  noteLoginCommandResult(result);
+
+  if (result && (result.status === 'need_qr_scan' || result.status === 'need_corp_selection')) {
+    console.log(JSON.stringify(result));
+    return;
+  }
+
+  if (result && result.status === 'need_codex_browser_login') {
+    const handoff = {
+      status: result.status,
+      handoff_type: result.handoff_type || 'browser',
+      can_auto_use: false,
+      browser: result.browser,
+      login_url: result.login_url,
+      message: result.message,
+    };
+    [
+      'agent_action',
+      'browser_open_strategy',
+      'browser_use_local_redirect_fallback',
+      'required_agent_tool',
+      'required_runtime_tool',
+      'cookie_export_file',
+      'cookie_file',
+      'post_login_check_command',
+      'fallback_command',
+    ].forEach((key) => {
+      if (result[key]) {handoff[key] = result[key];}
+    });
+    console.log(JSON.stringify(handoff));
+    return;
+  }
+
+  const summary = {
+    ok: true,
+    base_url: result && result.base_url,
+    corp_id: result && result.corp_id,
+    user_id: result && result.user_id,
+    csrf_token: result && result.csrf_token ? `${result.csrf_token.slice(0, 16)}...` : undefined,
+    cookies_count: Array.isArray(result && result.cookies) ? result.cookies.length : 0,
+  };
+  console.log(JSON.stringify(summary));
+}
+
 async function main() {
   applyQuietFlag();
   applyGlobalEnvironmentFlags();
@@ -359,6 +459,180 @@ async function main() {
     case 'commands': {
       const manifest = buildCommandManifest({ t, version: currentVersion });
       console.log(JSON.stringify(manifest, null, 2));
+      break;
+    }
+
+    case 'env': {
+      if (shouldUseEnvManagement(args)) {
+        const { run } = require('../lib/core/env-cmd');
+        await run(args);
+      } else {
+        const { run } = require('../lib/core/env');
+        run(args);
+      }
+      break;
+    }
+
+    case 'login': {
+      const { checkLoginOnly } = require('../lib/auth/login');
+      const loginArgs = applyLoginEnvironmentFlags(args, { inferTargetUrl: true });
+      if (loginArgs.includes('--agent-poll') || loginArgs.includes('--codex-poll')) {
+        const sessionFile = getArgValue(loginArgs, '--agent-poll') || getArgValue(loginArgs, '--codex-poll');
+        const { pollCodexQrLogin } = require('../lib/auth/qr-login');
+        const result = await pollCodexQrLogin(sessionFile, {
+          corpId: getArgValue(loginArgs, '--corp-id'),
+        });
+        printLoginResult(result);
+      } else if (loginArgs.includes('--agent-select') || loginArgs.includes('--codex-select')) {
+        const sessionFile = getArgValue(loginArgs, '--agent-select') || getArgValue(loginArgs, '--codex-select');
+        const { selectCodexQrCorp } = require('../lib/auth/qr-login');
+        const result = await selectCodexQrCorp(sessionFile, {
+          corpId: getArgValue(loginArgs, '--corp-id'),
+        });
+        printLoginResult(result);
+      } else if (loginArgs[0] === '--check-only') {
+        const result = checkLoginOnly({ includeSecrets: loginArgs.includes('--with-cookies') });
+        console.log(JSON.stringify(result, null, 2));
+      } else if (shouldUseCodexQrLogin(loginArgs)) {
+        const { startCodexQrLogin } = require('../lib/auth/qr-login');
+        const result = await startCodexQrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
+        printLoginResult(result);
+      } else if (loginArgs.includes('--browser')) {
+        const { interactiveLogin } = require('../lib/auth/login');
+        const result = interactiveLogin({ force: true });
+        printLoginResult(result);
+      } else if (loginArgs.includes('--qoder') || loginArgs.includes('--wukong')) {
+        const { codexLogin } = require('../lib/auth/codex-login');
+        const result = await codexLogin({ tool: loginArgs.includes('--qoder') ? 'qoder' : 'wukong' });
+        printLoginResult(result);
+      } else if (loginArgs.includes('--qr')) {
+        const { qrLogin } = require('../lib/auth/qr-login');
+        const result = await qrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
+        printLoginResult(result);
+      } else if (shouldUseAgentLogin(loginArgs)) {
+        const cachedResult = checkLoginOnly({ includeSecrets: true });
+        if (cachedResult.status === 'ok') {
+          printLoginResult(cachedResult);
+        } else {
+          const { detectActiveTool } = require('../lib/core/utils');
+          const activeTool = detectActiveTool();
+          const { interactiveLogin } = require('../lib/auth/login');
+          const browserResult = interactiveLogin({
+            playwrightFallback: shouldUsePlaywrightFallbackInAgentLogin(),
+          });
+          if (browserResult) {
+            printLoginResult(browserResult);
+          } else {
+            if (activeTool && (activeTool.tool === 'wukong' || activeTool.tool === 'qoderwork')) {
+              const { codexLogin } = require('../lib/auth/codex-login');
+              const result = await codexLogin({ tool: activeTool.tool });
+              printLoginResult(result);
+            } else {
+              const { startCodexQrLogin } = require('../lib/auth/qr-login');
+              const result = await startCodexQrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
+              printLoginResult(result);
+            }
+          }
+        }
+      } else if (shouldUseBrowserHandoffLogin(loginArgs)) {
+        const cachedResult = checkLoginOnly({ includeSecrets: true });
+        if (cachedResult.status === 'ok') {
+          printLoginResult(cachedResult);
+        } else {
+          const { codexLogin } = require('../lib/auth/codex-login');
+          const result = await codexLogin({ tool: loginArgs.includes('--codex') ? 'codex' : undefined });
+          printLoginResult(result);
+        }
+      } else {
+        const cachedResult = checkLoginOnly({ includeSecrets: true });
+        if (cachedResult.status === 'ok') {
+          printLoginResult(cachedResult);
+          break;
+        }
+        if (shouldUseDesktopBrowserLogin()) {
+          const { interactiveLogin } = require('../lib/auth/login');
+          const browserResult = interactiveLogin({ playwrightFallback: true });
+          if (browserResult) {
+            printLoginResult(browserResult);
+            break;
+          }
+        }
+        const { qrLogin } = require('../lib/auth/qr-login');
+        const result = await qrLogin({ corpId: getArgValue(loginArgs, '--corp-id') });
+        printLoginResult(result);
+      }
+      break;
+    }
+
+    case 'logout': {
+      const { logout } = require('../lib/auth/login');
+      logout();
+      break;
+    }
+
+    case 'auth': {
+      const subCommand = args[0];
+      const { authStatus, authLogin, authRefresh, authLogout } = require('../lib/auth/auth');
+
+      if (subCommand === 'status') {
+        authStatus();
+      } else if (subCommand === 'login') {
+        const authArgs = applyLoginEnvironmentFlags(args.slice(1), { inferTargetUrl: true });
+        let loginType = 'qrcode';
+        if (authArgs.includes('--codex')) {
+          loginType = 'codex';
+        } else if (authArgs.includes('--qoder')) {
+          loginType = 'qoder';
+        } else if (authArgs.includes('--wukong')) {
+          loginType = 'wukong';
+        } else if (authArgs.includes('--browser')) {
+          loginType = 'browser';
+        }
+        const result = await authLogin({
+          type: loginType,
+          corpId: getArgValue(authArgs, '--corp-id'),
+          forceTerminalQr: authArgs.includes('--qr'),
+        });
+        if (result) {
+          printLoginResult(result);
+        }
+      } else if (subCommand === 'refresh') {
+        authRefresh();
+      } else if (subCommand === 'logout') {
+        authLogout();
+      } else {
+        throwCliUsage(t('cli.auth_usage'), t('cli.auth_example'));
+      }
+      break;
+    }
+
+    case 'org': {
+      const subCommand = args[0];
+      const { listOrganizations, switchOrganization, interactiveSwitch } = require('../lib/auth/org');
+      const { loadCookieData } = require('../lib/core/utils');
+
+      if (subCommand === 'list') {
+        const cookieData = loadCookieData();
+        if (!cookieData || !cookieData.cookies) {
+          throwNeedLogin(t('org.no_login'));
+        }
+        await listOrganizations(cookieData);
+      } else if (subCommand === 'switch') {
+        const cookieData = loadCookieData();
+        if (!cookieData || !cookieData.cookies) {
+          throwNeedLogin(t('org.no_login'));
+        }
+
+        const corpIdIndex = args.indexOf('--corp-id');
+        if (corpIdIndex !== -1 && args[corpIdIndex + 1]) {
+          const targetCorpId = args[corpIdIndex + 1];
+          await switchOrganization(targetCorpId, cookieData);
+        } else {
+          await interactiveSwitch(cookieData);
+        }
+      } else {
+        throwCliUsage(t('cli.org_usage'), t('cli.org_example'));
+      }
       break;
     }
 

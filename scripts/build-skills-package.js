@@ -9,8 +9,8 @@ const zlib = require('zlib');
 const ROOT = path.resolve(__dirname, '..');
 const SOURCE_ROOT = path.join(ROOT, 'yida-skills');
 const SOURCE_SUBSKILLS_ROOT = path.join(SOURCE_ROOT, 'skills');
-const DEFAULT_OUTPUT_ROOT = path.join(ROOT, 'dist', 'skills', 'openyida');
-const DEFAULT_ZIP_OUT = path.join(ROOT, 'openyida-skills.zip');
+const DEFAULT_OUTPUT_ROOT = path.join(ROOT, 'dist', 'skills', 'yidaconnector');
+const DEFAULT_ZIP_OUT = path.join(ROOT, 'yidaconnector-skills.zip');
 
 function parseArgs(argv) {
   const options = {
@@ -395,7 +395,7 @@ function formatBytes(size) {
 function run() {
   const options = parseArgs(process.argv.slice(2));
   const count = buildSkillsPackage(options.out);
-  console.log('Built OpenYida skills package: ' + path.relative(ROOT, options.out));
+  console.log('Built YidaConnector skills package: ' + path.relative(ROOT, options.out));
   console.log('Files copied: ' + count);
   if (options.zip) {
     const zipSize = buildZipPackage(options.out, options.zipOut);

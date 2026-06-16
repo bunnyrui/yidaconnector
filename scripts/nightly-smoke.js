@@ -9,26 +9,26 @@ const { spawnSync } = require('child_process');
 const ROOT = path.resolve(__dirname, '..');
 const BIN = path.join(ROOT, 'bin', 'yida.js');
 const BASE_REQUIRED_ENV = [
-  'OPENYIDA_SMOKE_COOKIES_BASE64',
-  'OPENYIDA_SMOKE_APP_TYPE',
+  'YIDACONNECTOR_SMOKE_COOKIES_BASE64',
+  'YIDACONNECTOR_SMOKE_APP_TYPE',
 ];
 
 function getSmokeConfig(env = process.env) {
   const missing = BASE_REQUIRED_ENV.filter((name) => !env[name]);
-  const hasFormSmoke = Boolean(env.OPENYIDA_SMOKE_FORM_UUID);
-  const hasPageSmoke = Boolean(env.OPENYIDA_SMOKE_PAGE_UUID);
+  const hasFormSmoke = Boolean(env.YIDACONNECTOR_SMOKE_FORM_UUID);
+  const hasPageSmoke = Boolean(env.YIDACONNECTOR_SMOKE_PAGE_UUID);
   if (!hasFormSmoke && !hasPageSmoke) {
-    missing.push('OPENYIDA_SMOKE_FORM_UUID or OPENYIDA_SMOKE_PAGE_UUID');
+    missing.push('YIDACONNECTOR_SMOKE_FORM_UUID or YIDACONNECTOR_SMOKE_PAGE_UUID');
   }
-  if (env.OPENYIDA_SMOKE_PAGE_SOURCE && !hasPageSmoke) {
-    missing.push('OPENYIDA_SMOKE_PAGE_UUID');
+  if (env.YIDACONNECTOR_SMOKE_PAGE_SOURCE && !hasPageSmoke) {
+    missing.push('YIDACONNECTOR_SMOKE_PAGE_UUID');
   }
   return {
     missing,
-    appType: env.OPENYIDA_SMOKE_APP_TYPE,
-    formUuid: env.OPENYIDA_SMOKE_FORM_UUID,
-    pageUuid: env.OPENYIDA_SMOKE_PAGE_UUID,
-    pageSource: env.OPENYIDA_SMOKE_PAGE_SOURCE,
+    appType: env.YIDACONNECTOR_SMOKE_APP_TYPE,
+    formUuid: env.YIDACONNECTOR_SMOKE_FORM_UUID,
+    pageUuid: env.YIDACONNECTOR_SMOKE_PAGE_UUID,
+    pageSource: env.YIDACONNECTOR_SMOKE_PAGE_SOURCE,
   };
 }
 
@@ -42,13 +42,13 @@ function hasRequiredConfig(env = process.env) {
 }
 
 function decodeCookieData(env = process.env) {
-  const raw = Buffer.from(env.OPENYIDA_SMOKE_COOKIES_BASE64, 'base64').toString('utf8');
+  const raw = Buffer.from(env.YIDACONNECTOR_SMOKE_COOKIES_BASE64, 'base64').toString('utf8');
   const parsed = JSON.parse(raw);
   const cookieData = Array.isArray(parsed) ? { cookies: parsed } : parsed;
   if (!Array.isArray(cookieData.cookies) || cookieData.cookies.length === 0) {
-    throw new Error('OPENYIDA_SMOKE_COOKIES_BASE64 must decode to a cookie array or an object with cookies');
+    throw new Error('YIDACONNECTOR_SMOKE_COOKIES_BASE64 must decode to a cookie array or an object with cookies');
   }
-  cookieData.base_url = env.OPENYIDA_SMOKE_BASE_URL || cookieData.base_url || 'https://www.aliwork.com';
+  cookieData.base_url = env.YIDACONNECTOR_SMOKE_BASE_URL || cookieData.base_url || 'https://www.aliwork.com';
   return cookieData;
 }
 
@@ -63,13 +63,13 @@ function writeCookieCache(cookieData) {
 }
 
 function runCli(args, env = process.env) {
-  console.log(`Running: openyida ${args.join(' ')}`);
+  console.log(`Running: yidaconnector ${args.join(' ')}`);
   const result = spawnSync(process.execPath, [BIN, ...args], {
     cwd: ROOT,
     encoding: 'utf8',
     env: {
       ...env,
-      OPENYIDA_LANG: 'zh',
+      YIDACONNECTOR_LANG: 'zh',
       CI: '1',
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -79,10 +79,10 @@ function runCli(args, env = process.env) {
     const stderr = (result.stderr || '').trim();
     const stdout = (result.stdout || '').trim();
     const details = (stderr || stdout).slice(0, 1000);
-    throw new Error(`Command failed: openyida ${args.join(' ')}\n${details}`);
+    throw new Error(`Command failed: yidaconnector ${args.join(' ')}\n${details}`);
   }
   const outputLength = (result.stdout || '').trim().length;
-  console.log(`OK: openyida ${args[0]} (${outputLength} stdout chars)`);
+  console.log(`OK: yidaconnector ${args[0]} (${outputLength} stdout chars)`);
 }
 
 function run(options = {}) {

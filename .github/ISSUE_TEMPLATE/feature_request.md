@@ -25,7 +25,7 @@ assignees: ''
 <!-- 描述理想的命令形态、参数、输出格式、交互方式或文档呈现方式。 -->
 
 ```bash
-openyida ...
+yidaconnector ...
 ```
 
 ## 验收标准

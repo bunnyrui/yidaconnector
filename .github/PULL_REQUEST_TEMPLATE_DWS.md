@@ -2,7 +2,7 @@
 
 ## 改动概述
 
-<!-- 请说明本 PR 对 `openyida dws`、钉钉 CLI 集成、相关文档或测试做了什么调整，以及为什么需要该调整。 -->
+<!-- 请说明本 PR 对 `yidaconnector dws`、钉钉 CLI 集成、相关文档或测试做了什么调整，以及为什么需要该调整。 -->
 
 ## 改动类型
 
@@ -33,7 +33,7 @@
 <!-- 如涉及命令行为变化，请写清楚命令、参数、输出格式、错误处理和兼容策略。 -->
 
 ```bash
-openyida dws ...
+yidaconnector dws ...
 ```
 
 ## DWS 安装与运行环境
@@ -58,8 +58,8 @@ openyida dws ...
 - [ ] `npm run lint`
 - [ ] `npm run test:unit -- tests/dws-integration.test.js --runInBand`
 - [ ] `node --check lib/dws/dws-wrapper.js`
-- [ ] `openyida dws --help`
-- [ ] `openyida dws <service> <command> -f json`（如适用）
+- [ ] `yidaconnector dws --help`
+- [ ] `yidaconnector dws <service> <command> -f json`（如适用）
 - [ ] 真实钉钉 CLI 环境验证（如适用）
 
 ```text

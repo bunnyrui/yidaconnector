@@ -9,8 +9,8 @@ const en = require('../lib/core/locales/en');
 
 const ROOT = path.resolve(__dirname, '..');
 const README_FILE = path.join(ROOT, 'README.md');
-const START = '<!-- OPENYIDA_COMMANDS_START -->';
-const END = '<!-- OPENYIDA_COMMANDS_END -->';
+const START = '<!-- YIDACONNECTOR_COMMANDS_START -->';
+const END = '<!-- YIDACONNECTOR_COMMANDS_END -->';
 
 function getByPath(object, keyPath) {
   return String(keyPath || '').split('.').reduce((current, key) => {
@@ -32,7 +32,7 @@ function escapeTableCell(value) {
 }
 
 function commandRow(entry) {
-  return `| \`openyida ${escapeTableCell(entry.usage)}\` | ${escapeTableCell(translate(entry.descriptionKey))} |`;
+  return `| \`yidaconnector ${escapeTableCell(entry.usage)}\` | ${escapeTableCell(translate(entry.descriptionKey))} |`;
 }
 
 function renderGroup(group) {
@@ -69,7 +69,7 @@ function replaceGeneratedBlock(readme, generated) {
     return readme.slice(0, startIndex) + generated + readme.slice(endIndex + END.length);
   }
 
-  const anchor = 'Run `openyida --help` or `openyida <command> --help` for detailed usage.\n';
+  const anchor = 'Run `yidaconnector --help` or `yidaconnector <command> --help` for detailed usage.\n';
   const anchorIndex = readme.indexOf(anchor);
   if (anchorIndex === -1) {
     throw new Error('README CLI reference anchor not found');

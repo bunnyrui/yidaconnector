@@ -87,9 +87,9 @@ jobs:
       run: |
         TAG="${{ github.ref_name }}"
         VERSION="${TAG#v}"
-        if npm view "openyida@$VERSION" version >/dev/null 2>&1; then
+        if npm view "yidaconnector@$VERSION" version >/dev/null 2>&1; then
           echo "exists=true" >> $GITHUB_OUTPUT
-          echo "openyida@$VERSION already exists on npm; skipping npm publish."
+          echo "yidaconnector@$VERSION already exists on npm; skipping npm publish."
         else
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
@@ -108,7 +108,7 @@ jobs:
       with:
         tag_name: ${{ github.ref_name }}
         name: ${{ github.ref_name }}
-        files: openyida-skills.zip
+        files: yidaconnector-skills.zip
         prerelease: ${{ contains(github.ref_name, '-beta') || contains(github.ref_name, '-alpha') || contains(github.ref_name, '-rc') }}
         body: |
           ## 安装 / 更新
@@ -116,20 +116,20 @@ jobs:
           Beta / RC 预发布：
 
           ```bash
-          npm install -g openyida@beta
+          npm install -g yidaconnector@beta
           ```
 
           正式版：
 
           ```bash
-          npm install -g openyida
+          npm install -g yidaconnector
           ```
 
           安装后即可在 Claude Code / OpenCode / Aone Copilot / Cursor / Qoder / 悟空 中直接使用，零配置。
 
-          ## OpenYida 悟空技能包
+          ## YidaConnector 悟空技能包
 
-          在本 Release 页面底部的 **Assets** 中下载 `openyida-skills.zip`，然后在悟空技能中心通过「上传技能」导入。该包按悟空 SKILL.md 规范生成：
-          根目录为 `openyida/`，只包含一个根 `SKILL.md`，长文档和子能力放在 `references/` 中。
+          在本 Release 页面底部的 **Assets** 中下载 `yidaconnector-skills.zip`，然后在悟空技能中心通过「上传技能」导入。该包按悟空 SKILL.md 规范生成：
+          根目录为 `yidaconnector/`，只包含一个根 `SKILL.md`，长文档和子能力放在 `references/` 中。
 
         generate_release_notes: true

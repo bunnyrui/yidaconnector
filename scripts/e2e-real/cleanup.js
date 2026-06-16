@@ -9,7 +9,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const DEFAULT_REGISTRY_DIR = path.join(ROOT, 'project', '.cache', 'e2e-real');
 
 function getRegistryDir(env = process.env) {
-  return env.OPENYIDA_E2E_REGISTRY_DIR || DEFAULT_REGISTRY_DIR;
+  return env.YIDACONNECTOR_E2E_REGISTRY_DIR || DEFAULT_REGISTRY_DIR;
 }
 
 function listRegistries(registryDir = getRegistryDir()) {
@@ -41,7 +41,7 @@ function printSummary(items) {
     }
   }
 
-  console.log('\nOpenYida does not yet expose a safe app/form deletion command, so this script lists disposable resources recorded by real E2E runs for manual cleanup.');
+  console.log('\nYidaConnector does not yet expose a safe app/form deletion command, so this script lists disposable resources recorded by real E2E runs for manual cleanup.');
 }
 
 function run(options = {}) {

@@ -3,7 +3,7 @@
     "type": "TextField",
     "label": "E2E Text",
     "required": true,
-    "placeholder": "Created by OpenYida real E2E"
+    "placeholder": "Created by YidaConnector real E2E"
   },
   {
     "type": "NumberField",

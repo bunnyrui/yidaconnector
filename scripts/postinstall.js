@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * postinstall hook: skills installation + Codex plugin import + welcome guide after `npm install -g openyida`
+ * postinstall hook: skills installation + Codex plugin import + welcome guide after `npm install -g yidaconnector`
  *
  * 职责：
  *   1. 清理旧版本遗留的错误安装（~/.xxx/yida-skills/，缺少 skills/ 中间层级）
@@ -29,8 +29,8 @@ const PACKAGE_ROOT = path.resolve(__dirname, '..');
 const PACKAGE_JSON = require(path.join(PACKAGE_ROOT, 'package.json'));
 const SKILLS_DIR = path.join(PACKAGE_ROOT, 'yida-skills');
 const HOME_DIR = os.homedir();
-const CODEX_MARKETPLACE_NAME = 'openyida';
-const CODEX_PLUGIN_NAME = 'openyida';
+const CODEX_MARKETPLACE_NAME = 'yidaconnector';
+const CODEX_PLUGIN_NAME = 'yidaconnector';
 const CODEX_PLUGIN_LOGO_SVG = '<svg height="200" viewBox="0 0 1024 1024" width="200" xmlns="http://www.w3.org/2000/svg"><g fill="#0089FF"><path d="M966.743 0H57.498A57.197 57.197 0 0 0 .06 57.077v218.07a61.772 61.772 0 0 1 12.042 4.936L348.538 473.83l336.196-193.987a64.421 64.421 0 0 1 87.902 23.36l34.92 60.208a63.94 63.94 0 0 1-23.24 87.54L449.084 643.613v379.905h517.78a57.197 57.197 0 0 0 56.714-56.594V57.077A57.197 57.197 0 0 0 966.743 0z"/><path d="M.663 501.163v465.76a56.715 56.715 0 0 0 16.255 40.34 57.558 57.558 0 0 0 40.58 16.255H252.93V646.141z"/></g></svg>\n';
 
 /**
@@ -130,27 +130,27 @@ function createCodexPluginManifest() {
   return {
     name: CODEX_PLUGIN_NAME,
     version: PACKAGE_JSON.version,
-    description: 'OpenYida CLI plugin for building and managing Yida low-code apps from Codex.',
+    description: 'YidaConnector CLI plugin for building and managing Yida low-code apps from Codex.',
     author: {
-      name: 'OpenYida Contributors',
+      name: 'YidaConnector Contributors',
       email: 'yize.shc@gmail.com',
-      url: 'https://github.com/openyida/openyida',
+      url: 'https://github.com/bunnyrui/yidaconnector',
     },
-    homepage: 'https://github.com/openyida/openyida',
-    repository: 'https://github.com/openyida/openyida',
+    homepage: 'https://github.com/bunnyrui/yidaconnector',
+    repository: 'https://github.com/bunnyrui/yidaconnector',
     license: PACKAGE_JSON.license || 'MIT',
-    keywords: ['openyida', 'yida', 'low-code', 'aliyun', 'codex'],
+    keywords: ['yidaconnector', 'yida', 'low-code', 'aliyun', 'codex'],
     skills: './skills/',
     interface: {
       displayName: '宜搭',
-      shortDescription: '通过 OpenYida CLI 创建和管理宜搭应用、表单、页面与数据',
-      longDescription: 'Use OpenYida from Codex to log in to Yida, create low-code apps, manage forms, publish custom pages, configure permissions, build reports, and query data through the openyida command line.',
-      developerName: 'OpenYida Contributors',
+      shortDescription: '通过 YidaConnector CLI 创建和管理宜搭应用、表单、页面与数据',
+      longDescription: 'Use YidaConnector from Codex to log in to Yida, create low-code apps, manage forms, publish custom pages, configure permissions, build reports, and query data through the yidaconnector command line.',
+      developerName: 'YidaConnector Contributors',
       category: 'Productivity',
       capabilities: ['Interactive', 'Write'],
-      websiteURL: 'https://github.com/openyida/openyida',
-      privacyPolicyURL: 'https://github.com/openyida/openyida',
-      termsOfServiceURL: 'https://github.com/openyida/openyida',
+      websiteURL: 'https://github.com/bunnyrui/yidaconnector',
+      privacyPolicyURL: 'https://github.com/bunnyrui/yidaconnector',
+      termsOfServiceURL: 'https://github.com/bunnyrui/yidaconnector',
       defaultPrompt: [
         '帮我检查宜搭登录态并初始化项目',
         '帮我创建一个宜搭应用和表单',
@@ -170,7 +170,7 @@ function createCodexPluginManifest() {
 function createCodexMcpConfig() {
   return {
     mcpServers: {
-      openyida: {
+      yidaconnector: {
         command: process.execPath,
         args: [
           path.join(PACKAGE_ROOT, 'bin', 'yida.js'),
@@ -187,40 +187,40 @@ function createCodexMcpConfig() {
  */
 function createCodexPluginSkill() {
   return `---
-name: openyida
+name: yidaconnector
 description: >
-  OpenYida / 宜搭总入口技能。用户提到宜搭、OpenYida、Yida、低代码应用、创建应用、创建表单、自定义页面、
-  页面发布、权限、报表、连接器、流程、数据查询或登录态管理时使用。通过 openyida CLI 在 Codex 中操作宜搭平台。
+  YidaConnector / 宜搭总入口技能。用户提到宜搭、YidaConnector、Yida、低代码应用、创建应用、创建表单、自定义页面、
+  页面发布、权限、报表、连接器、流程、数据查询或登录态管理时使用。通过 yidaconnector CLI 在 Codex 中操作宜搭平台。
 ---
 
-# OpenYida 宜搭开发总入口
+# YidaConnector 宜搭开发总入口
 
 ## 目标
 
-使用 \`openyida\` CLI 帮用户在 Codex 中完成宜搭低代码平台操作，包括登录态检查、应用创建、表单管理、自定义页面开发、页面发布、权限配置、报表、连接器、流程和数据查询。
+使用 \`yidaconnector\` CLI 帮用户在 Codex 中完成宜搭低代码平台操作，包括登录态检查、应用创建、表单管理、自定义页面开发、页面发布、权限配置、报表、连接器、流程和数据查询。
 
 ## 首要步骤
 
 在执行任何会创建、修改或发布真实宜搭资源的操作前，先运行只读检查：
 
 \`\`\`bash
-openyida env --json
-openyida login --check-only --json
+yidaconnector env --json
+yidaconnector login --check-only --json
 \`\`\`
 
-如果 \`openyida\` 不存在，先提醒用户需要安装，或在用户同意后执行：
+如果 \`yidaconnector\` 不存在，先提醒用户需要安装，或在用户同意后执行：
 
 \`\`\`bash
-npm install -g openyida@latest
+npm install -g yidaconnector@latest
 \`\`\`
 
 若登录态无效，执行：
 
 \`\`\`bash
-openyida login --browser
+yidaconnector login --browser
 \`\`\`
 
-登录完成后再次运行 \`openyida login --check-only --json\` 验证缓存写入，再继续真实资源操作。
+登录完成后再次运行 \`yidaconnector login --check-only --json\` 验证缓存写入，再继续真实资源操作。
 
 ## Codex Browser 边界
 
@@ -231,21 +231,21 @@ Codex App 的 in-app browser / \`@Browser\` 适合打开本地开发服务器、
 需要登录并获得 CLI Cookie 时，优先运行：
 
 \`\`\`bash
-openyida login --browser
+yidaconnector login --browser
 \`\`\`
 
-\`--browser\` 会打开常规本地浏览器并在登录成功后将 Cookie 写入 OpenYida 缓存。只有在需要纯浏览器预览或检查公开页面时才使用 \`@Browser\`。
+\`--browser\` 会打开常规本地浏览器并在登录成功后将 Cookie 写入 YidaConnector 缓存。只有在需要纯浏览器预览或检查公开页面时才使用 \`@Browser\`。
 
-在 Codex 中如果 \`openyida login --codex-poll\` 返回 \`need_corp_selection\`，优先调用 OpenYida MCP 工具
+在 Codex 中如果 \`yidaconnector login --codex-poll\` 返回 \`need_corp_selection\`，优先调用 YidaConnector MCP 工具
 \`select_yida_login_organization\`，传入返回值里的 \`session_file\`。该工具会通过 MCP \`elicitation/create\`
-展示 Codex 原生组织单选控件，并在用户选择后完成 \`openyida login --codex-select\`。
+展示 Codex 原生组织单选控件，并在用户选择后完成 \`yidaconnector login --codex-select\`。
 
 ## 工作目录
 
 执行宜搭开发前检查当前工作区是否已有 \`project/\` 目录。没有时运行：
 
 \`\`\`bash
-openyida copy
+yidaconnector copy
 \`\`\`
 
 ## 子技能索引
@@ -281,9 +281,9 @@ openyida copy
 
 - 不要编造 \`appType\`、\`formUuid\`、\`fieldId\`、\`reportId\`；必须从命令输出、缓存或 schema 中读取。
 - 同一命令失败后，根据错误信息检查登录态、组织、参数和字段 ID；不要无修改地连续重试。
-- 自定义页面发布前先运行 \`openyida check-page\` 和 \`openyida compile\`。
+- 自定义页面发布前先运行 \`yidaconnector check-page\` 和 \`yidaconnector compile\`。
 - JSON 配置写入文件后先解析校验，再调用会修改平台资源的命令。
-- 新增用户可见文案或 CLI 行为时，遵循当前 OpenYida 仓库的 \`AGENTS.md\` 开发规范。
+- 新增用户可见文案或 CLI 行为时，遵循当前 YidaConnector 仓库的 \`AGENTS.md\` 开发规范。
 `;
 }
 
@@ -294,7 +294,7 @@ function writeCodexMarketplace(marketplaceRoot) {
   writeJsonFile(path.join(marketplaceRoot, '.agents', 'plugins', 'marketplace.json'), {
     name: CODEX_MARKETPLACE_NAME,
     interface: {
-      displayName: 'OpenYida',
+      displayName: 'YidaConnector',
     },
     plugins: [
       {
@@ -314,7 +314,7 @@ function writeCodexMarketplace(marketplaceRoot) {
 }
 
 /**
- * 确保 Codex 配置中启用了 OpenYida marketplace 和插件。
+ * 确保 Codex 配置中启用了 YidaConnector marketplace 和插件。
  * 保守策略：只追加缺失 section；如果用户已经手动配置或禁用，不覆盖。
  */
 function ensureCodexConfig(codexDir, marketplaceRoot) {
@@ -347,13 +347,13 @@ function ensureCodexConfig(codexDir, marketplaceRoot) {
 }
 
 /**
- * 将 OpenYida 导入为 Codex 本地插件。
+ * 将 YidaConnector 导入为 Codex 本地插件。
  */
 function installCodexPlugin() {
   const codexDir = path.join(HOME_DIR, '.codex');
   if (!fs.existsSync(codexDir)) {return false;}
 
-  const marketplaceRoot = path.join(HOME_DIR, '.openyida', 'codex-plugin');
+  const marketplaceRoot = path.join(HOME_DIR, '.yidaconnector', 'codex-plugin');
   const pluginRoot = path.join(marketplaceRoot, 'plugins', CODEX_PLUGIN_NAME);
 
   cleanupLegacy(pluginRoot);
@@ -441,7 +441,7 @@ safeExec(() => {
 // ── 2. 首次安装欢迎引导 ──────────────────────────────────────────────
 
 safeExec(() => {
-  const FIRST_INSTALL_FLAG = path.join(HOME_DIR, '.openyida', 'installed');
+  const FIRST_INSTALL_FLAG = path.join(HOME_DIR, '.yidaconnector', 'installed');
 
   const isFirstInstall = !fs.existsSync(FIRST_INSTALL_FLAG);
   if (isFirstInstall) {
@@ -473,7 +473,7 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
 
   console.log('');
   console.log(
-    `${BG_CYAN}${WHITE}${BOLD}  🎉 欢迎使用 OpenYida！                                    ${RESET}`,
+    `${BG_CYAN}${WHITE}${BOLD}  🎉 欢迎使用 YidaConnector！                                    ${RESET}`,
   );
   console.log(SEP);
 
@@ -483,7 +483,7 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
     );
   } else {
     console.log(
-      `${BOLD}${GREEN}  ✅ 更新成功！${RESET} OpenYida 已升级到最新版本。`,
+      `${BOLD}${GREEN}  ✅ 更新成功！${RESET} YidaConnector 已升级到最新版本。`,
     );
   }
 
@@ -515,7 +515,7 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
   );
   console.log(`  ${BOLD}Step 2${RESET}  直接用自然语言描述你想要的应用`);
   console.log(
-    `  ${BOLD}Step 3${RESET}  AI 自动调用 openyida 命令完成创建和发布`,
+    `  ${BOLD}Step 3${RESET}  AI 自动调用 yidaconnector 命令完成创建和发布`,
   );
   console.log(`  ${BOLD}Step 4${RESET}  获得可访问的宜搭应用链接 🎉`);
   if (hasCodexPlugin) {
@@ -529,17 +529,17 @@ function printWelcomeGuide(isFirstInstall, hasCodexPlugin) {
   console.log(`${BOLD}${MAGENTA}  ⚡ 快捷命令${RESET}`);
   console.log('');
   console.log(
-    `  ${CYAN}openyida env${RESET}      ${DIM}# 检测当前 AI 工具环境和登录态${RESET}`,
+    `  ${CYAN}yidaconnector env${RESET}      ${DIM}# 检测当前 AI 工具环境和登录态${RESET}`,
   );
   console.log(
-    `  ${CYAN}openyida login${RESET}    ${DIM}# 登录宜搭账号${RESET}`,
+    `  ${CYAN}yidaconnector login${RESET}    ${DIM}# 登录宜搭账号${RESET}`,
   );
   console.log(
-    `  ${CYAN}openyida --help${RESET}   ${DIM}# 查看所有命令${RESET}`,
+    `  ${CYAN}yidaconnector --help${RESET}   ${DIM}# 查看所有命令${RESET}`,
   );
   console.log('');
   console.log(SEP);
-  console.log(`  ${DIM}📚 文档：https://github.com/openyida/openyida${RESET}`);
-  console.log(`  ${DIM}💬 社区：钉钉扫码加入 OpenYida 社区${RESET}`);
+  console.log(`  ${DIM}📚 文档：https://github.com/bunnyrui/yidaconnector${RESET}`);
+  console.log(`  ${DIM}💬 社区：钉钉扫码加入 YidaConnector 社区${RESET}`);
   console.log('');
 }

@@ -59,18 +59,18 @@ function getFullConfig(env = process.env, date = new Date()) {
   const base = getConfig(env, date);
   return {
     ...base,
-    stages: parseStages(env.OPENYIDA_E2E_FULL_STAGES || env.OPENYIDA_E2E_STAGES),
+    stages: parseStages(env.YIDACONNECTOR_E2E_FULL_STAGES || env.YIDACONNECTOR_E2E_STAGES),
     full: true,
-    updateAppName: env.OPENYIDA_E2E_UPDATE_APP_NAME || `${base.prefix}_App_Renamed`,
-    resultAppName: env.OPENYIDA_E2E_RESULT_APP_NAME || `${base.prefix}_PASSED`,
-    importAppName: env.OPENYIDA_E2E_IMPORT_APP_NAME || `${base.prefix}_Imported`,
-    pageSource: env.OPENYIDA_E2E_PAGE_SOURCE || DEFAULT_PAGE_SOURCE,
+    updateAppName: env.YIDACONNECTOR_E2E_UPDATE_APP_NAME || `${base.prefix}_App_Renamed`,
+    resultAppName: env.YIDACONNECTOR_E2E_RESULT_APP_NAME || `${base.prefix}_PASSED`,
+    importAppName: env.YIDACONNECTOR_E2E_IMPORT_APP_NAME || `${base.prefix}_Imported`,
+    pageSource: env.YIDACONNECTOR_E2E_PAGE_SOURCE || DEFAULT_PAGE_SOURCE,
   };
 }
 
 function ensureEnabled(config) {
   if (!config.enabled) {
-    console.log('Skipping full real E2E; missing: OPENYIDA_E2E=1');
+    console.log('Skipping full real E2E; missing: YIDACONNECTOR_E2E=1');
     return false;
   }
   return true;
@@ -518,7 +518,7 @@ export default function Page() {
         }}>
           <div>
             <div style={{ fontSize: 13, color: '#2864d8', fontWeight: 800, marginBottom: 8 }}>
-              OPENYIDA REAL ENVIRONMENT E2E
+              YIDACONNECTOR REAL ENVIRONMENT E2E
             </div>
             <div style={{ fontSize: 30, lineHeight: '38px', fontWeight: 850, color: '#101828' }}>
               Full E2E Dashboard
@@ -586,7 +586,7 @@ export default function Page() {
               fontSize: 13,
               lineHeight: '20px',
             }}>
-              This app is the human-inspectable artifact for the latest successful OpenYida full real-environment test.
+              This app is the human-inspectable artifact for the latest successful YidaConnector full real-environment test.
             </div>
           </section>
         </div>
@@ -601,7 +601,7 @@ function buildDashboardSkillSource(config, context) {
   return `import React from 'react';
 
 var DASHBOARD = {
-  title: 'OpenYida Dashboard Skill E2E',
+  title: 'YidaConnector Dashboard Skill E2E',
   subtitle: ${escapeJsString(config.prefix + ' · yida-dashboard verification')},
   formUuid: ${escapeJsString(context.formUuid || '')},
   reportId: ${escapeJsString(context.reportId || '')},
@@ -1173,7 +1173,7 @@ function run(options = {}) {
         'create-app',
         config.appName,
         '--desc',
-        'OpenYida full real E2E disposable app',
+        'YidaConnector full real E2E disposable app',
         '--no-open',
       ]).json;
       context.appType = app.appType;

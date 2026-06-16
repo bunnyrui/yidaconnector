@@ -21,7 +21,7 @@ assignees: ''
 
 ## 预期行为
 
-<!-- 描述你期望 OpenYida 或宜搭侧产生的正确结果。 -->
+<!-- 描述你期望 YidaConnector 或宜搭侧产生的正确结果。 -->
 
 ## 实际行为
 
@@ -32,7 +32,7 @@ assignees: ''
 - **操作系统**：<!-- 如 macOS 15.2 / Ubuntu 24.04 / Windows 11 -->
 - **Node.js 版本**：<!-- 运行 `node -v` -->
 - **npm 版本**：<!-- 运行 `npm -v` -->
-- **OpenYida 版本**：<!-- 运行 `openyida --version` 或 `npm list -g openyida` -->
+- **YidaConnector 版本**：<!-- 运行 `yidaconnector --version` 或 `npm list -g yidaconnector` -->
 - **AI 工具**：<!-- 如 Codex / Claude Code / Cursor / Aone Copilot / OpenCode / Qoder / Wukong -->
 - **AI 工具版本**：<!-- 如适用 -->
 - **宜搭环境**：<!-- 公有云 / 私有化部署；如为私有化请说明 base URL 是否已配置 -->
@@ -49,8 +49,8 @@ assignees: ''
 如可以，请补充以下命令输出：
 
 ```bash
-openyida env --json
-openyida commands --json
+yidaconnector env --json
+yidaconnector commands --json
 ```
 
 ## 截图或录屏

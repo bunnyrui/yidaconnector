@@ -1,6 +1,6 @@
 {
   "name": "yidaconnector",
-  "version": "2026.6.17",
+  "version": "2026.6.16",
   "description": "YidaConnector CLI - 宜搭数据查询与登录态管理工具（安装即用，零配置）",
   "bin": {
     "yidaconnector": "bin/yida.js",

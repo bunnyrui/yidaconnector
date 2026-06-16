@@ -1,9 +1,9 @@
 {
-  "name": "openyida",
+  "name": "yidaconnector",
   "version": "2026.6.11",
-  "description": "OpenYida CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
+  "description": "YidaConnector CLI - 宜搭低代码 AI 开发工具（安装即用，零配置）",
   "bin": {
-    "openyida": "bin/yida.js",
+    "yidaconnector": "bin/yida.js",
     "yida": "bin/yida.js"
   },
   "files": [
@@ -15,8 +15,8 @@
     "project/pages/src/demo-*.oyd.jsx",
     "!project/pages/src/demo-agent-chatbox.oyd.jsx",
     "!project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx",
-    "!project/pages/src/demo-openyida-image2-slider.oyd.jsx",
-    "project/pages/src/openyida-knowledge-doc.oyd.jsx",
+    "!project/pages/src/demo-yidaconnector-image2-slider.oyd.jsx",
+    "project/pages/src/yidaconnector-knowledge-doc.oyd.jsx",
     "project/prd/demo-*.md",
     "yida-skills/",
     "scripts/",
@@ -53,22 +53,22 @@
     "aliwork",
     "dingtalk",
     "cli",
-    "openyida",
+    "yidaconnector",
     "low-code",
     "ai",
     "qoder",
     "wukong"
   ],
-  "author": "OpenYida Contributors",
+  "author": "YidaConnector Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openyida/openyida.git"
+    "url": "git+https://github.com/bunnyrui/yidaconnector.git"
   },
   "bugs": {
-    "url": "https://github.com/openyida/openyida/issues"
+    "url": "https://github.com/bunnyrui/yidaconnector/issues"
   },
-  "homepage": "https://github.com/openyida/openyida#readme",
+  "homepage": "https://github.com/bunnyrui/yidaconnector#readme",
   "dependencies": {
     "@babel/standalone": "^7.15.1",
     "qrcode": "^1.5.4",

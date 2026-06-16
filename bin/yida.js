@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * openyida - 宜搭命令行工具
+ * yidaconnector - 宜搭命令行工具
  *
- * 安装：npm install -g openyida
- * 用法：openyida <命令> [参数]（别名：yida）
+ * 安装：npm install -g yidaconnector
+ * 用法：yidaconnector <命令> [参数]（别名：yida）
  *
  * 命令清单维护在 lib/core/command-manifest.js，供 help 和 agent JSON 共用。
  */
@@ -34,14 +34,14 @@ function isAgentEnvironment(env) {
     env.QODERCLI_INTEGRATION_MODE ||
     env.CURSOR_TRACE_ID ||
     env.AGENT_WORK_ROOT ||
-    env.OPENYIDA_AGENT_MODE ||
+    env.YIDACONNECTOR_AGENT_MODE ||
     (env.__CFBundleIdentifier || '').toLowerCase().includes('codex') ||
     (env.__CFBundleIdentifier || '').toLowerCase().includes('qoder')
   );
 }
 
 function shouldRunUpdateCheck() {
-  if (process.env.OPENYIDA_SKIP_UPDATE_CHECK || process.env.NO_UPDATE_NOTIFIER) {
+  if (process.env.YIDACONNECTOR_SKIP_UPDATE_CHECK || process.env.NO_UPDATE_NOTIFIER) {
     return false;
   }
   if (process.env.CI || isAgentEnvironment(process.env)) {
@@ -103,11 +103,11 @@ function printHelp() {
 
   // ── 标题 ──
   console.log('');
-  console.log(`  ${BOLD}${CYAN}OpenYida${RESET} ${DIM}v${currentVersion}${RESET}`);
+  console.log(`  ${BOLD}${CYAN}YidaConnector${RESET} ${DIM}v${currentVersion}${RESET}`);
   console.log(`  ${DIM}${t('help.subtitle')}${RESET}`);
   console.log(`  ${DIM}"We are on the verge of the Singularity"${RESET}`);
   console.log('');
-  console.log(`  ${YELLOW}${t('help.usage')}${RESET}  openyida <command> [args...]`);
+  console.log(`  ${YELLOW}${t('help.usage')}${RESET}  yidaconnector <command> [args...]`);
   console.log(`  ${DIM}${t('help.alias')}${RESET}  yida`);
   console.log(SEP);
 
@@ -123,15 +123,15 @@ function printHelp() {
   // ── 快速上手 ──
   console.log(SEP);
   console.log(`\n  ${BOLD}${CYAN}${t('help.quickstart_title')}${RESET}`);
-  console.log(`    ${DIM}${RESET} openyida data query form APP_XXX FORM_XXX --page 1 --size 20`);
+  console.log(`    ${DIM}${RESET} yidaconnector data query form APP_XXX FORM_XXX --page 1 --size 20`);
   console.log('');
-  console.log(`  ${DIM}${t('help.docs')} https://openyida.ai  ·  https://github.com/openyida/openyida${RESET}`);
+  console.log(`  ${DIM}${t('help.docs')} https://github.com/bunnyrui/yidaconnector${RESET}`);
   console.log('');
 }
 
 /**
- * 检测是否首次运行（安装后第一次执行 openyida 命令）。
- * 通过 ~/.openyida/first-run-done 标记文件判断。
+ * 检测是否首次运行（安装后第一次执行 yidaconnector 命令）。
+ * 通过 ~/.yidaconnector/first-run-done 标记文件判断。
  * 若是首次运行，打印新手引导并写入标记文件。
  */
 function handleFirstRunGuide() {
@@ -139,15 +139,15 @@ function handleFirstRunGuide() {
   const path = require('path');
   const fs = require('fs');
 
-  const OPENYIDA_DIR = path.join(os.homedir(), '.openyida');
-  const FIRST_RUN_FLAG = path.join(OPENYIDA_DIR, 'first-run-done');
+  const YIDACONNECTOR_DIR = path.join(os.homedir(), '.yidaconnector');
+  const FIRST_RUN_FLAG = path.join(YIDACONNECTOR_DIR, 'first-run-done');
 
   // 已运行过，跳过引导
   if (fs.existsSync(FIRST_RUN_FLAG)) {return;}
 
   // 写入标记，避免重复展示
   try {
-    fs.mkdirSync(OPENYIDA_DIR, { recursive: true });
+    fs.mkdirSync(YIDACONNECTOR_DIR, { recursive: true });
     fs.writeFileSync(FIRST_RUN_FLAG, new Date().toISOString(), 'utf8');
   } catch {
     // 写入失败不影响主流程
@@ -237,17 +237,17 @@ function applyLoginTargetUrl(value) {
   const inferredEnv = inferEnvironmentNameFromUrl(redirectBaseUrl || targetHref);
 
   if (inferredEnv) {
-    process.env.OPENYIDA_ENV = inferredEnv;
+    process.env.YIDACONNECTOR_ENV = inferredEnv;
   }
   if (endpoint) {
-    process.env.OPENYIDA_ENDPOINT = endpoint;
+    process.env.YIDACONNECTOR_ENDPOINT = endpoint;
   }
 
   const host = normalizeHostname(targetHref);
   const isDingtalkLoginHost = host.endsWith('dingtalk.com') || host.endsWith('dingtalk.io');
   const normalizedPath = parsedUrl.pathname.replace(/\/+$/, '') || '/';
   const hasCustomLoginPath = normalizedPath !== '/' && normalizedPath !== '/workPlatform';
-  process.env.OPENYIDA_LOGIN_URL = isDingtalkLoginHost || hasCustomLoginPath
+  process.env.YIDACONNECTOR_LOGIN_URL = isDingtalkLoginHost || hasCustomLoginPath
     ? targetHref
     : inferLoginUrlForBaseUrl(endpoint || parsedUrl.origin);
 
@@ -286,7 +286,7 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
     if (arg === '--env') {
       const envName = cliArgs[index + 1];
       if (envName && !envName.startsWith('--')) {
-        process.env.OPENYIDA_ENV = envName;
+        process.env.YIDACONNECTOR_ENV = envName;
         index++;
       }
       continue;
@@ -307,7 +307,7 @@ function applyLoginEnvironmentFlags(cliArgs, options = {}) {
       continue;
     }
     if (envFlagMap[arg]) {
-      process.env.OPENYIDA_ENV = envFlagMap[arg];
+      process.env.YIDACONNECTOR_ENV = envFlagMap[arg];
       continue;
     }
     if (inferTargetUrl && !arg.startsWith('--') && applyLoginTargetUrl(arg)) {
@@ -361,7 +361,7 @@ function getArgValue(cliArgs, name) {
 
 function isAgentConversationEnvironment() {
   const { detectActiveTool } = require('../lib/core/utils');
-  return !!detectActiveTool() || process.env.OPENYIDA_AGENT_MODE === '1';
+  return !!detectActiveTool() || process.env.YIDACONNECTOR_AGENT_MODE === '1';
 }
 
 function shouldUseBrowserHandoffLogin(cliArgs) {
@@ -378,7 +378,7 @@ function shouldUseAgentLogin(cliArgs) {
 
 function shouldUsePlaywrightFallbackInAgentLogin() {
   const { hasDesktopEnvironment } = require('../lib/core/utils');
-  return hasDesktopEnvironment() || process.env.OPENYIDA_AGENT_PLAYWRIGHT_FALLBACK === '1';
+  return hasDesktopEnvironment() || process.env.YIDACONNECTOR_AGENT_PLAYWRIGHT_FALLBACK === '1';
 }
 
 function shouldUseDesktopBrowserLogin() {
@@ -639,8 +639,8 @@ async function main() {
     case 'data': {
       if (args.length < 2) {
         throwCliUsage(
-          '用法: openyida data <action> <resource> [args] [options]',
-          '示例: openyida data query form APP_XXX FORM_XXX --page 1 --size 20'
+          '用法: yidaconnector data <action> <resource> [args] [options]',
+          '示例: yidaconnector data query form APP_XXX FORM_XXX --page 1 --size 20'
         );
       }
       const { run: runDataManagement } = require('../lib/core/query-data');

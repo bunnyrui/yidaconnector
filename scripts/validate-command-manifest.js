@@ -79,7 +79,7 @@ function validateReadmeCoverage(commands) {
   const visibleRoots = new Set(commands.filter(entry => !entry.hidden).map(entry => entry.path[0]));
 
   for (const root of [...visibleRoots].sort()) {
-    const pattern = new RegExp(`openyida\\s+${escapeRegExp(root)}(\\s|\`|$)`);
+    const pattern = new RegExp(`yidaconnector\\s+${escapeRegExp(root)}(\\s|\`|$)`);
     if (!pattern.test(readme)) {
       errors.push(`${toRelative(README_FILE)}: visible command root "${root}" is missing from CLI reference`);
     }

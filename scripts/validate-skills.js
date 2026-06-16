@@ -119,8 +119,8 @@ function validateRootSkillFrontmatter() {
   }
 
   const name = frontmatterField(frontmatter, 'name');
-  if (name !== 'openyida') {
-    errors.push(toRelative(INDEX_FILE) + ': root skill name must be "openyida"');
+  if (name !== 'yidaconnector') {
+    errors.push(toRelative(INDEX_FILE) + ': root skill name must be "yidaconnector"');
   }
 
   const description = frontmatterField(frontmatter, 'description');

@@ -153,7 +153,7 @@ function buildFieldMapSkeleton(blueprint, createdForms) {
   return {
     generatedAt: new Date().toISOString(),
     appType: createdForms[0] ? createdForms[0].appType : '',
-    note: 'Run openyida get-schema for each form and fill fields.* with real fieldId values before copying into FORM_CONFIG.',
+    note: 'Run yidaconnector get-schema for each form and fill fields.* with real fieldId values before copying into FORM_CONFIG.',
     forms: formEntries,
   };
 }
@@ -250,7 +250,7 @@ function main() {
   }
 
   const blueprint = readJson(BLUEPRINT_PATH);
-  console.log('OpenYida solution center builder');
+  console.log('YidaConnector solution center builder');
   console.log('AppType: ' + options.appType);
   console.log('Mode: ' + (options.execute ? 'execute' : 'dry-run'));
   console.log('');
@@ -282,7 +282,7 @@ function main() {
     console.log('');
     console.log('Created forms summary: ' + options.out);
     console.log('Field map skeleton: ' + options.fieldMapOut);
-    console.log('Next: run openyida get-schema for each form and fill field IDs into FORM_CONFIG.');
+    console.log('Next: run yidaconnector get-schema for each form and fill field IDs into FORM_CONFIG.');
   } else {
     console.log('');
     console.log('Dry-run only. Add --execute to create forms.');

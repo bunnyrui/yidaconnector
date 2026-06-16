@@ -114,7 +114,7 @@ export function registerReportTools(server: McpServer): void {
 
       try {
         const output = execSync(
-          `openyida create-report "${appType}" "${escapedName}" '${escapedDef}'`,
+          `yidaconnector create-report "${appType}" "${escapedName}" '${escapedDef}'`,
           { encoding: "utf-8", timeout: 30000 },
         );
         return { content: [{ type: "text" as const, text: output }] };

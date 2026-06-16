@@ -1,11 +1,11 @@
 {
-  "name": "@openyida/mcp-app",
+  "name": "@yidaconnector/mcp-app",
   "version": "0.1.1",
-  "description": "OpenYida MCP App — Interactive UIs for Yida low-code platform in Claude, ChatGPT and other MCP hosts",
+  "description": "YidaConnector MCP App — Interactive UIs for Yida low-code platform in Claude, ChatGPT and other MCP hosts",
   "type": "module",
   "main": "dist/main.js",
   "bin": {
-    "openyida-mcp": "./dist/main.js"
+    "yidaconnector-mcp": "./dist/main.js"
   },
   "files": [
     "dist/",
@@ -25,29 +25,29 @@
     "mcp-app",
     "mcp-server",
     "yida",
-    "openyida",
+    "yidaconnector",
     "low-code",
     "interactive-ui",
     "dingtalk",
     "aliwork"
   ],
-  "author": "OpenYida Contributors",
+  "author": "YidaConnector Contributors",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/openyida/openyida.git",
+    "url": "git+https://github.com/bunnyrui/yidaconnector.git",
     "directory": "mcp-app"
   },
   "bugs": {
-    "url": "https://github.com/openyida/openyida/issues"
+    "url": "https://github.com/bunnyrui/yidaconnector/issues"
   },
-  "homepage": "https://github.com/openyida/openyida/tree/main/mcp-app#readme",
+  "homepage": "https://github.com/bunnyrui/yidaconnector/tree/main/mcp-app#readme",
   "dependencies": {
     "@modelcontextprotocol/ext-apps": "^1.1.0",
     "@modelcontextprotocol/sdk": "^1.12.0",
     "cors": "^2.8.5",
     "express": "^4.21.0",
-    "openyida": ">=2026.0.0",
+    "yidaconnector": ">=2026.0.0",
     "zod": "^3.24.0"
   },
   "devDependencies": {

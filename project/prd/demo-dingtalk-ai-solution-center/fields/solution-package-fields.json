@@ -5,7 +5,7 @@
   { "type": "MultiSelectField", "label": "适用场景", "options": ["巡检", "督办", "工单", "CRM", "审批", "报表", "集成", "AI助理", "经营看板"] },
   { "type": "SelectField", "label": "成熟度等级", "required": true, "options": ["S-可直接演示交付", "A-可演示需少量客户化", "B-可参考需补资产", "C-概念待完善"] },
   { "type": "NumberField", "label": "成熟度评分", "placeholder": "0-100" },
-  { "type": "NumberField", "label": "OpenYida覆盖度", "placeholder": "0-100" },
+  { "type": "NumberField", "label": "YidaConnector覆盖度", "placeholder": "0-100" },
   { "type": "TextareaField", "label": "客户问题", "placeholder": "这个方案解决哪些客户问题" },
   { "type": "TextareaField", "label": "价值主张", "placeholder": "面向客户的价值表达" },
   { "type": "TextareaField", "label": "应用蓝图", "placeholder": "表单、流程、报表、权限、连接器、自定义页面" },

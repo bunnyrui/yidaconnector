@@ -20,7 +20,7 @@
 ### 检查 Sequence 状态
 
 ```bash
-openyida db-seq-fix
+yidaconnector db-seq-fix
 ```
 
 输出示例：
@@ -51,13 +51,13 @@ openyida db-seq-fix
 ──────────────────────────────────────────────────────────────────────
 
 💡 发现 2 个 Sequence 需要修复
-   运行 openyida db-seq-fix --fix 进行修复
+   运行 yidaconnector db-seq-fix --fix 进行修复
 ```
 
 ### 预览修复 SQL
 
 ```bash
-openyida db-seq-fix --dry-run
+yidaconnector db-seq-fix --dry-run
 ```
 
 输出示例：
@@ -73,7 +73,7 @@ openyida db-seq-fix --dry-run
 ### 自动修复
 
 ```bash
-openyida db-seq-fix --fix
+yidaconnector db-seq-fix --fix
 ```
 
 输出示例：
@@ -134,13 +134,13 @@ openyida db-seq-fix --fix
 
 ```bash
 # 环境检测（自动建表）
-openyida env
+yidaconnector env
 
 # 检查并修复 Sequence
-openyida db-seq-fix --fix
+yidaconnector db-seq-fix --fix
 ```
 
 ## 相关命令
 
-- `openyida db-index` - 检测和分析数据库索引
-- `openyida env` - 检测环境和登录态
+- `yidaconnector db-index` - 检测和分析数据库索引
+- `yidaconnector env` - 检测环境和登录态

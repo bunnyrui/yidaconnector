@@ -1,5 +1,5 @@
 // ══════════════════════════════════════════════════════════════
-// OpenYida PPT 演示 — 包含数字键翻页、导航隐藏、全屏、中英文切换
+// YidaConnector PPT 演示 — 包含数字键翻页、导航隐藏、全屏、中英文切换
 // ══════════════════════════════════════════════════════════════
 
 // ── 国际化文案 ──────────────────────────────────────────────
@@ -33,7 +33,7 @@ var SLIDES = [
     bg: '#1a1a2e', bgLight: '#ffffff',
     accent: '#0089ff',
     eyebrow: '2026 技术分享',
-    title: 'OpenYida 2.0',
+    title: 'YidaConnector 2.0',
     subtitle: 'AI 驱动的低代码开发平台',
     tags: ['AI 原生', '低代码', '企业级'],
   },
@@ -112,7 +112,7 @@ var SLIDES = [
     title: '三层架构',
     subtitle: 'CLI → API → Platform',
     points: [
-      { icon: '🖥️', title: 'CLI 层', desc: 'openyida 命令行工具，Node.js 实现' },
+      { icon: '🖥️', title: 'CLI 层', desc: 'yidaconnector 命令行工具，Node.js 实现' },
       { icon: '🔌', title: 'API 层', desc: '宜搭 OpenAPI，RESTful 接口' },
       { icon: '☁️', title: '平台层', desc: '宜搭低代码平台，阿里云基础设施' },
     ],
@@ -134,9 +134,9 @@ var SLIDES = [
     title: '三步上手',
     subtitle: '安装 → 登录 → 创建',
     points: [
-      { icon: '1️⃣', title: '安装', desc: 'npm install -g openyida' },
-      { icon: '2️⃣', title: '登录', desc: 'openyida login（扫码登录）' },
-      { icon: '3️⃣', title: '创建', desc: 'openyida create-app "我的应用"' },
+      { icon: '1️⃣', title: '安装', desc: 'npm install -g yidaconnector' },
+      { icon: '2️⃣', title: '登录', desc: 'yidaconnector login（扫码登录）' },
+      { icon: '3️⃣', title: '创建', desc: 'yidaconnector create-app "我的应用"' },
     ],
   },
   {
@@ -151,8 +151,8 @@ var SLIDES = [
     type: 'ending',
     bg: '#0089ff', bgLight: '#0089ff',
     accent: '#ffffff',
-    title: '立即体验 OpenYida',
-    subtitle: 'npm install -g openyida',
+    title: '立即体验 YidaConnector',
+    subtitle: 'npm install -g yidaconnector',
     quote: '让 AI 成为你的低代码开发伙伴',
   },
 ];

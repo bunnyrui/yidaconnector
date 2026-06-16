@@ -10,16 +10,16 @@
 
 ## 1. 创建表单
 
-按 `openyida-build-plan.md` 创建 7 张表单。
+按 `yidaconnector-build-plan.md` 创建 7 张表单。
 
 ## 2. 导出 Schema
 
 ```bash
-openyida get-schema APP_XXX FORM_CUSTOMER_XXX > .cache/solution-center/customer-schema.json
-openyida get-schema APP_XXX FORM_VISIT_XXX > .cache/solution-center/visit-schema.json
-openyida get-schema APP_XXX FORM_DEMO_XXX > .cache/solution-center/demo-schema.json
-openyida get-schema APP_XXX FORM_RISK_XXX > .cache/solution-center/risk-schema.json
-openyida get-schema APP_XXX FORM_WEEKLY_XXX > .cache/solution-center/weekly-schema.json
+yidaconnector get-schema APP_XXX FORM_CUSTOMER_XXX > .cache/solution-center/customer-schema.json
+yidaconnector get-schema APP_XXX FORM_VISIT_XXX > .cache/solution-center/visit-schema.json
+yidaconnector get-schema APP_XXX FORM_DEMO_XXX > .cache/solution-center/demo-schema.json
+yidaconnector get-schema APP_XXX FORM_RISK_XXX > .cache/solution-center/risk-schema.json
+yidaconnector get-schema APP_XXX FORM_WEEKLY_XXX > .cache/solution-center/weekly-schema.json
 ```
 
 ## 3. 填字段映射

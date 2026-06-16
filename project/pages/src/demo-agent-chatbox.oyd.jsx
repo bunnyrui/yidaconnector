@@ -1,13 +1,13 @@
 /**
- * OpenYida Assistant
+ * YidaConnector Assistant
  *
- * 一个可运行在宜搭自定义页面里的正式 OpenYida 助手模块：
+ * 一个可运行在宜搭自定义页面里的正式 YidaConnector 助手模块：
  * - 通过宜搭 AI 文本接口接入 Qwen 生成回答
- * - 面向 OpenYida 查询、登录诊断、资料检索、发布排查等场景给出可执行建议
+ * - 面向 YidaConnector 查询、登录诊断、资料检索、发布排查等场景给出可执行建议
  * - 支持在对话框里上传或粘贴图片附件，后续可替换为 OCR / 视觉理解服务
  */
 
-var STORAGE_KEY = 'openyida.agentChatboxDemo.v9';
+var STORAGE_KEY = 'yidaconnector.agentChatboxDemo.v9';
 var MARKDOWN_IT_URL = 'https://g.alicdn.com/code/lib/markdown-it/13.0.1/markdown-it.min.js';
 var TAILWIND_CDN = 'https://g.alicdn.com/code/lib/tailwindcss-browser/0.0.0-insiders.fed6c6a/index.global.min.js';
 var DEFAULT_REQUEST_TIMEOUT_MS = 30000;
@@ -15,12 +15,12 @@ var MODEL_TIMEOUT_MS = 120000;
 var DEFAULT_MAX_TOKENS = '3000';
 var BRIDGE_DEFAULT_PORTS = [6736, 9432];
 var BRIDGE_REQUEST_TIMEOUT_MS = 2800;
-var BRIDGE_SESSION_KEY = 'openyida.localBridge.v1';
-var BRIDGE_PAIR_TOKEN_KEY = 'openyida.localBridge.pairToken.v1';
+var BRIDGE_SESSION_KEY = 'yidaconnector.localBridge.v1';
+var BRIDGE_PAIR_TOKEN_KEY = 'yidaconnector.localBridge.pairToken.v1';
 var BRIDGE_PAIR_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 var BRIDGE_MIN_VERSION = '2026.5.21';
-var BRIDGE_INSTALL_COMMAND = 'npm i -g openyida';
-var BRIDGE_START_COMMAND_PREFIX = 'openyida bridge start --token ';
+var BRIDGE_INSTALL_COMMAND = 'npm i -g yidaconnector';
+var BRIDGE_START_COMMAND_PREFIX = 'yidaconnector bridge start --token ';
 var BRIDGE_UPDATE_COMMAND = BRIDGE_INSTALL_COMMAND;
 var DEFAULT_IMAGE_CONNECTOR = {
   connectorId: 'Http_2aa221179eef4c128de666c5b9c8df1b',
@@ -53,7 +53,7 @@ var KNOWLEDGE_DATA_FIELDS = {
 var KNOWLEDGE_QUERY_PAGE_SIZE = 100;
 var KNOWLEDGE_QUERY_MAX_PAGES = 60;
 var KNOWLEDGE_MAX_RESULTS = 4;
-var KNOWLEDGE_CACHE_KEY = 'openyida.knowledgeBase.cache.v2.' + KNOWLEDGE_DATA_FORM_UUID;
+var KNOWLEDGE_CACHE_KEY = 'yidaconnector.knowledgeBase.cache.v2.' + KNOWLEDGE_DATA_FORM_UUID;
 var KNOWLEDGE_CACHE_TTL_MS = 30 * 60 * 1000;
 var KNOWLEDGE_CACHE_STALE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 var REMOTE_SYNC_DEBOUNCE_MS = 2500;
@@ -63,11 +63,11 @@ var REMOTE_MAX_MESSAGES_PER_SESSION = 400;
 var MESSAGE_RENDER_INITIAL_COUNT = 40;
 var MESSAGE_RENDER_STEP = 30;
 var MESSAGE_SCROLL_TOP_THRESHOLD = 36;
-var KNOWLEDGE_DOC_PAGE_PATH = '/s/openyida-doc';
-var OPENYIDA_DOCS_URL = 'https://openyida.ai/docs';
+var KNOWLEDGE_DOC_PAGE_PATH = '/s/yidaconnector-doc';
+var YIDACONNECTOR_DOCS_URL = 'https://yidaconnector.ai/docs';
 var YIDA_DOCS_URL = 'https://docs.aliwork.com/docs/developer/learning';
 var CHATGPT_FONT_FAMILY = '"-apple-system-body", "ui-sans-serif", "-apple-system", "system-ui", "Segoe UI", "Helvetica", "Apple Color Emoji", "Arial", "sans-serif", "Segoe UI Emoji", "Segoe UI Symbol"';
-var DEFAULT_COMPOSER_PLACEHOLDER = '查询 OpenYida / 宜搭资料、应用或问题';
+var DEFAULT_COMPOSER_PLACEHOLDER = '查询 YidaConnector / 宜搭资料、应用或问题';
 var YIDA_SOURCE_ICON_DATA_URI = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%201024%201024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22%230089ff%22%3E%3Cpath%20d%3D%22M966.743%200H57.498A57.197%2057.197%200%200%200%20.06%2057.077v218.07a61.772%2061.772%200%200%201%2012.042%204.936L348.538%20473.83l336.196-193.987a64.421%2064.421%200%200%201%2087.902%2023.36l34.92%2060.208a63.94%2063.94%200%200%201-23.24%2087.54L449.084%20643.613v379.905h517.78a57.197%2057.197%200%200%200%2056.714-56.594V57.077A57.197%2057.197%200%200%200%20966.743%200z%22%2F%3E%3Cpath%20d%3D%22M.663%20501.163v465.76a56.715%2056.715%200%200%200%2016.255%2040.34%2057.558%2057.558%200%200%200%2040.58%2016.255H252.93V646.141z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
 
 var TAILWIND_SOURCE_CSS = [
@@ -103,8 +103,8 @@ var MARKDOWN_CSS = [
   '.oy-agent-markdown pre code{border:0;background:transparent;color:inherit;padding:0;}',
   '.oy-agent-markdown blockquote{margin:14px 0;padding:10px 14px;border-left:3px solid #5f5f5f;background:#1f1f1f;color:#d7d7d7;}',
   '.oy-agent-markdown a{color:#ffffff;text-decoration:underline;text-underline-offset:4px;font-weight:650;}',
-  '.oy-agent-markdown a[href*="/s/openyida-doc"],.oy-agent-markdown a[href*="/workbench/' + KNOWLEDGE_DATA_FORM_UUID + '"]{display:inline-flex;align-items:center;gap:7px;}',
-  '.oy-agent-markdown a[href*="/s/openyida-doc"]::before,.oy-agent-markdown a[href*="/workbench/' + KNOWLEDGE_DATA_FORM_UUID + '"]::before{content:"";display:inline-block;width:15px;height:15px;flex:0 0 15px;background:url("' + YIDA_SOURCE_ICON_DATA_URI + '") center/contain no-repeat;}',
+  '.oy-agent-markdown a[href*="/s/yidaconnector-doc"],.oy-agent-markdown a[href*="/workbench/' + KNOWLEDGE_DATA_FORM_UUID + '"]{display:inline-flex;align-items:center;gap:7px;}',
+  '.oy-agent-markdown a[href*="/s/yidaconnector-doc"]::before,.oy-agent-markdown a[href*="/workbench/' + KNOWLEDGE_DATA_FORM_UUID + '"]::before{content:"";display:inline-block;width:15px;height:15px;flex:0 0 15px;background:url("' + YIDA_SOURCE_ICON_DATA_URI + '") center/contain no-repeat;}',
   '.oy-agent-markdown table{border-collapse:collapse;width:100%;margin:12px 0;font-size:12px;}',
   '.oy-agent-markdown th,.oy-agent-markdown td{border:1px solid #343434;padding:7px 9px;text-align:left;}',
   '.oy-agent-markdown th{background:#202020;font-weight:600;}',
@@ -124,15 +124,15 @@ function cx() {
 var TEXT_PROMPTS = [
   '你能做什么？',
   '查一下我的宜搭应用列表',
-  '悟空怎么使用 OpenYida？把完整链路讲清楚',
-  'OpenYida 发布页面失败，应该怎么排查？',
-  'openyida login 一直不生效怎么排查？',
+  '悟空怎么使用 YidaConnector？把完整链路讲清楚',
+  'YidaConnector 发布页面失败，应该怎么排查？',
+  'yidaconnector login 一直不生效怎么排查？',
 ];
 
 var IMAGE_PROMPTS = [
-  '我上传了页面截图，帮我判断能不能用 OpenYida 改造',
+  '我上传了页面截图，帮我判断能不能用 YidaConnector 改造',
   '根据上传的表单截图，帮我整理字段、权限和流程规则',
-  '分析这张流程图，拆成宜搭流程节点和 OpenYida 执行计划',
+  '分析这张流程图，拆成宜搭流程节点和 YidaConnector 执行计划',
 ];
 
 var QUICK_PROMPTS = [
@@ -145,10 +145,10 @@ var QUICK_PROMPTS = [
 
 var KNOWLEDGE_SOURCES = [
   {
-    id: 'openyida-docs',
-    title: 'OpenYida Docs',
+    id: 'yidaconnector-docs',
+    title: 'YidaConnector Docs',
     type: '官方文档',
-    url: OPENYIDA_DOCS_URL,
+    url: YIDACONNECTOR_DOCS_URL,
     detail: 'CLI、技能、页面发布、数据管理与 AI Coding 工作流',
   },
   {
@@ -166,17 +166,17 @@ var KNOWLEDGE_SOURCES = [
     detail: '普通表单、流程表单、报表、自定义页面和门户等模块边界',
   },
   {
-    id: 'openyida-skills',
-    title: 'openyida-skills.zip',
+    id: 'yidaconnector-skills',
+    title: 'yidaconnector-skills.zip',
     type: '技能包',
-    url: OPENYIDA_DOCS_URL,
-    detail: '悟空上传技能包，AI Coding 工具环境使用 OpenYida 技能',
+    url: YIDACONNECTOR_DOCS_URL,
+    detail: '悟空上传技能包，AI Coding 工具环境使用 YidaConnector 技能',
   },
   {
     id: 'security-boundary',
     title: '数据安全边界',
     type: '权限策略',
-    url: OPENYIDA_DOCS_URL,
+    url: YIDACONNECTOR_DOCS_URL,
     detail: '默认只处理当前用户会话、上传内容和公开文档；业务数据按宜搭权限读取',
   },
 ];
@@ -195,7 +195,7 @@ var DEFAULT_MESSAGES = {
 };
 
 var DEFAULT_TOOL_RUNS = [
-  { id: 'run-1', name: 'support.init', status: 'done', detail: 'OpenYida 助手已准备', time: '09:30' },
+  { id: 'run-1', name: 'support.init', status: 'done', detail: 'YidaConnector 助手已准备', time: '09:30' },
   { id: 'run-2', name: 'ai.model', status: 'done', detail: 'Qwen 文本模型已接入', time: '09:30' },
   { id: 'run-3', name: 'support.datasource', status: 'done', detail: '宜搭会话表与知识库已接入', time: '09:30' },
   { id: 'run-4', name: 'security.scope', status: 'done', detail: '每个人只能看自己的数据', time: '09:30' },
@@ -395,7 +395,7 @@ var _customState = {
   bridgeAccessToken: '',
   bridgePairToken: '',
   bridgeVersion: '',
-  bridgeMessage: '等待连接本地 OpenYida',
+  bridgeMessage: '等待连接本地 YidaConnector',
   bridgeLogin: null,
   bridgeAllowedOrigins: [],
   bridgeQrUrl: '',
@@ -635,7 +635,7 @@ function getSessionDisplayTitle(session) {
 
 function getActiveDocumentTitle() {
   var title = getSessionDisplayTitle(getActiveSession());
-  return title || 'OpenYida 助手';
+  return title || 'YidaConnector 助手';
 }
 
 function updateDocumentTitle() {
@@ -759,8 +759,8 @@ function cloneToolRuns(runs) {
 function normalizeRestoredToolRuns(runs) {
   return cloneToolRuns(runs).map((item) => {
     if (item && item.detail) {
-      var legacyAssistantName = ['OpenYida AI', String.fromCharCode(23458, 26381)].join(' ');
-      item.detail = String(item.detail).split(legacyAssistantName).join('OpenYida 助手');
+      var legacyAssistantName = ['YidaConnector AI', String.fromCharCode(23458, 26381)].join(' ');
+      item.detail = String(item.detail).split(legacyAssistantName).join('YidaConnector 助手');
     }
     if (item && item.status === 'running') {
       return {
@@ -998,16 +998,16 @@ function hasBridgeCapability(name) {
 }
 
 function canRunCreateAppBridgeAction() {
-  return _customState.bridgeStatus === 'paired' && !!_customState.bridgeAccessToken && hasBridgeCapability('openyida.create-app');
+  return _customState.bridgeStatus === 'paired' && !!_customState.bridgeAccessToken && hasBridgeCapability('yidaconnector.create-app');
 }
 
 function canRunAppListBridgeAction() {
-  return _customState.bridgeStatus === 'paired' && !!_customState.bridgeAccessToken && hasBridgeCapability('openyida.app-list');
+  return _customState.bridgeStatus === 'paired' && !!_customState.bridgeAccessToken && hasBridgeCapability('yidaconnector.app-list');
 }
 
 function getBridgeUpgradeMessage(version) {
   var current = version ? '当前版本 ' + version + '，' : '';
-  return current + '本地连接需 OpenYida ' + BRIDGE_MIN_VERSION + ' 或更新版本。请先升级后重新启动 bridge。';
+  return current + '本地连接需 YidaConnector ' + BRIDGE_MIN_VERSION + ' 或更新版本。请先升级后重新启动 bridge。';
 }
 
 function createBridgePairToken() {
@@ -1105,7 +1105,7 @@ function bridgeRequest(baseUrl, path, options) {
     'Content-Type': 'application/json',
   };
   if (opts.token) {
-    headers['X-OpenYida-Token'] = opts.token;
+    headers['X-YidaConnector-Token'] = opts.token;
   }
 
   return new Promise(function(resolve, reject) {
@@ -1288,8 +1288,8 @@ function getBridgeLoginLabel(login) {
 function buildBridgeDiagnostics() {
   var login = _customState.bridgeLogin || {};
   return JSON.stringify({
-    signal: 'openyida_page_bridge',
-    page: '/s/openyida',
+    signal: 'yidaconnector_page_bridge',
+    page: '/s/yidaconnector',
     bridgeStatus: _customState.bridgeStatus,
     bridgeBaseUrl: _customState.bridgeBaseUrl,
     loginStatus: login.status || '',
@@ -1331,7 +1331,7 @@ function buildMockText(prompt, providerNote) {
     '',
     '1. 识别对象：从你的描述中提取应用、页面、表单、流程和报表。',
     '2. 生成计划：把需求拆成字段、页面布局、权限和自动化动作。',
-    '3. 执行边界：高风险动作先给出确认卡片，再调用 OpenYida 或宜搭接口。',
+    '3. 执行边界：高风险动作先给出确认卡片，再调用 YidaConnector 或宜搭接口。',
     '',
     '针对这次输入，我会先生成助手答复、可复制 prompt 和需要确认的执行步骤。',
   ];
@@ -1385,7 +1385,7 @@ function buildPromptWithAttachment(prompt, attachment) {
     '用户本次消息附带了一张图片。',
     '图片名称：' + attachment.name,
     '图片大小：' + attachment.sizeLabel,
-    '当前 OpenYida 助手已完成图片上传/粘贴和消息附件展示；如需读取图片内容，请接入 OCR 或视觉理解服务。',
+    '当前 YidaConnector 助手已完成图片上传/粘贴和消息附件展示；如需读取图片内容，请接入 OCR 或视觉理解服务。',
   ].join('\n');
   if (!text) {
     return note + '\n\n请先说明你已收到图片，并询问用户希望分析什么。';
@@ -1447,11 +1447,11 @@ function resolveAiRoute(prompt, attachment) {
 function buildQwenPrompt(prompt, context) {
   var profile = getCurrentUserProfile();
   var lines = [
-    '你是 OpenYida 助手，底层模型是 Qwen。',
-    '你运行在宜搭自定义页面中，主要回答 OpenYida / 宜搭查询、资料检索、登录诊断、页面发布、表单、流程、报表、权限和排障问题。',
+    '你是 YidaConnector 助手，底层模型是 Qwen。',
+    '你运行在宜搭自定义页面中，主要回答 YidaConnector / 宜搭查询、资料检索、登录诊断、页面发布、表单、流程、报表、权限和排障问题。',
     '你没有真实互联网访问能力，不能声称已经联网搜索、打开网页、查看实时信息或访问外部网站。',
     '涉及事实性问题时，只能基于用户输入、当前会话附件、宜搭表单数据查询结果和页面内置公开说明回答；没有检索命中时必须明确说没有查到，不要编造。',
-    '请用中文回答，给出清晰、可执行的建议；遇到创建应用、搭建系统、发布页面、移动导航或写业务数据等高风险写入需求时，建议用户切换到 Codex / OpenYida 强模型链路，不要假装已经执行。',
+    '请用中文回答，给出清晰、可执行的建议；遇到创建应用、搭建系统、发布页面、移动导航或写业务数据等高风险写入需求时，建议用户切换到 Codex / YidaConnector 强模型链路，不要假装已经执行。',
     '当前用户：' + profile.name + (profile.userId ? '（' + profile.userId + '）' : ''),
     '当前组织：' + (profile.subtitle || '未知'),
     '当前应用：' + (getRuntimeAppType() || '未识别'),
@@ -1670,11 +1670,11 @@ var KNOWLEDGE_CONCEPT_TERMS = [
   '聚合表', '数据准备', '数据集', '数据源', '报表', '仪表盘', '图表',
   '表单', '流程', '审批', '权限', '成员组件', '部门组件', '子表单',
   '关联表单', '关联记录', '公式', '连接器', '集成自动化', '自定义页面',
-  '页面发布', '导航分组', '导入', '导出', '登录', 'bridge', 'openyida', '宜搭',
+  '页面发布', '导航分组', '导入', '导出', '登录', 'bridge', 'yidaconnector', '宜搭',
 ];
 
 var KNOWLEDGE_GENERIC_ANCHORS = [
-  '宜搭', 'openyida', '应用', '页面', '数据', '功能', '问题', '使用', '设置',
+  '宜搭', 'yidaconnector', '应用', '页面', '数据', '功能', '问题', '使用', '设置',
   '配置', '操作', '处理', '解决', '支持', '实现', '获取', '查询', '创建',
   '选择', '方式', '区别', '不同', '边界', '相关', '说明',
 ];
@@ -2065,7 +2065,7 @@ function pickKnowledgeResults(rows, prompt) {
 
 function formatKnowledgeResults(results) {
   return (results || []).map((item, index) => {
-    var sourceTitle = item.title || item.source || 'OpenYida 助手知识库';
+    var sourceTitle = item.title || item.source || 'YidaConnector 助手知识库';
     var sourceLink = item.detailUrl
       ? '[' + escapeMarkdownLinkText(sourceTitle) + '](' + item.detailUrl + ')'
       : escapeMarkdownLinkText(sourceTitle);
@@ -2074,7 +2074,7 @@ function formatKnowledgeResults(results) {
       '类型：' + (item.type || '未分类'),
       '摘要：' + limitText(item.summary || item.body || '', 420),
       '正文摘录：' + limitText(item.body || item.summary || '', 900),
-      '来源名称：' + (item.source || item.title || 'OpenYida 助手知识库'),
+      '来源名称：' + (item.source || item.title || 'YidaConnector 助手知识库'),
       '资料详情链接：' + sourceLink,
     ].join('\n');
   }).join('\n\n');
@@ -2086,7 +2086,7 @@ function buildKnowledgeSourceLinks(results) {
     if (!item || !item.detailUrl) {
       return;
     }
-    var title = item.title || item.source || 'OpenYida 助手知识库';
+    var title = item.title || item.source || 'YidaConnector 助手知识库';
     var line = '- [' + escapeMarkdownLinkText(title) + '](' + item.detailUrl + ')';
     if (links.indexOf(line) < 0) {
       links.push(line);
@@ -2111,7 +2111,7 @@ function appendKnowledgeSourceLinks(content, results) {
 function shouldRequireKnowledgeGrounding(prompt) {
   return hasAny(prompt, [
     '是什么', '介绍', '说明', '怎么', '如何', '为什么', '搜索', '查一下', '查询', '联网', '网页',
-    '文档', '资料', '来源', 'openyida', '宜搭', 'bridge', '发布', '登录', '报错',
+    '文档', '资料', '来源', 'yidaconnector', '宜搭', 'bridge', '发布', '登录', '报错',
   ]);
 }
 
@@ -2142,39 +2142,39 @@ function buildKnowledgeMissAnswer(prompt, reason, analysis) {
 
 function getSourceLinks() {
   return [
-    '[OpenYida Docs](' + OPENYIDA_DOCS_URL + ')',
+    '[YidaConnector Docs](' + YIDACONNECTOR_DOCS_URL + ')',
     '[宜搭开发者手册](' + YIDA_DOCS_URL + ')',
   ].join(' / ');
 }
 
 function buildCapabilityAnswer() {
   return [
-    '我是 **OpenYida 助手**，当前网页侧更适合做查询、诊断和资料检索，不把老 Qwen 当成完整搭建模型来用。',
+    '我是 **YidaConnector 助手**，当前网页侧更适合做查询、诊断和资料检索，不把老 Qwen 当成完整搭建模型来用。',
     '',
     '我现在优先处理这些事：',
     '',
-    '1. **只读查询**：通过本地 OpenYida 查询应用列表、登录态和环境信息。',
-    '2. **资料检索**：从页面内置知识库里找 OpenYida / 宜搭相关说明，并附上来源。',
+    '1. **只读查询**：通过本地 YidaConnector 查询应用列表、登录态和环境信息。',
+    '2. **资料检索**：从页面内置知识库里找 YidaConnector / 宜搭相关说明，并附上来源。',
     '3. **问题排查**：发布参数顺序、登录态、目标页面类型、宜搭接口返回、页面白屏等。',
-    '4. **使用指导**：解释 OpenYida CLI、悟空接入、数据查询、权限边界和常见命令。',
-    '5. **搭建分流**：如果你要“帮我用宜搭做个系统”，我会建议切换到 Codex / OpenYida 强模型链路执行。',
+    '4. **使用指导**：解释 YidaConnector CLI、悟空接入、数据查询、权限边界和常见命令。',
+    '5. **搭建分流**：如果你要“帮我用宜搭做个系统”，我会建议切换到 Codex / YidaConnector 强模型链路执行。',
     '',
     '你可以直接这样问：',
     '',
     '- “查一下我的宜搭应用列表”',
-    '- “悟空怎么使用 OpenYida”',
+    '- “悟空怎么使用 YidaConnector”',
     '- “这个发布失败日志怎么排查”',
-    '- “openyida login 一直不生效怎么办”',
+    '- “yidaconnector login 一直不生效怎么办”',
     '',
-    '**权限边界**：每个人只能看自己的数据。助手回答默认基于当前会话、用户上传内容和公开文档；本地查询也只按当前 OpenYida 登录人的宜搭权限返回。',
+    '**权限边界**：每个人只能看自己的数据。助手回答默认基于当前会话、用户上传内容和公开文档；本地查询也只按当前 YidaConnector 登录人的宜搭权限返回。',
     '',
-    '资料来源：' + getSourceLinks() + '。如果你贴截图或错误日志，我会优先按 OpenYida 助手工单方式分诊，再给执行建议。',
+    '资料来源：' + getSourceLinks() + '。如果你贴截图或错误日志，我会优先按 YidaConnector 助手工单方式分诊，再给执行建议。',
   ].join('\n');
 }
 
 function buildCrmPrompt() {
   return [
-    '请使用 OpenYida 帮我搭建一个 CRM 宜搭应用。',
+    '请使用 YidaConnector 帮我搭建一个 CRM 宜搭应用。',
     '',
     '业务目标：',
     '- 管理客户、联系人、销售机会、报价、合同、回款和跟进记录。',
@@ -2190,7 +2190,7 @@ function buildCrmPrompt() {
     '8. 数据权限要求：销售只能看自己的客户和商机；主管看团队；财务只看合同、发票和回款；不要越权展示其他人的数据。',
     '',
     '约束：',
-    '- 优先使用 OpenYida CLI 和宜搭原生能力。',
+    '- 优先使用 YidaConnector CLI 和宜搭原生能力。',
     '- 自定义页面代码需通过 check-page 和 compile。',
     '- 发布命令参数顺序必须是：sourceFile appType formUuid。',
   ].join('\n');
@@ -2198,23 +2198,23 @@ function buildCrmPrompt() {
 
 function buildCrmAnswer() {
   return [
-    '可以，CRM 很适合用 **OpenYida + 宜搭** 来做。我的建议不是先写代码，而是先把业务对象和流程拆清楚，然后交给 OpenYida 创建应用、表单、流程、报表和自定义页面。',
+    '可以，CRM 很适合用 **YidaConnector + 宜搭** 来做。我的建议不是先写代码，而是先把业务对象和流程拆清楚，然后交给 YidaConnector 创建应用、表单、流程、报表和自定义页面。',
     '',
     '**推荐链路**',
     '',
-    '1. 用 OpenYida 创建 CRM 应用。',
+    '1. 用 YidaConnector 创建 CRM 应用。',
     '2. 先建客户、联系人、商机、跟进、报价、合同、回款这些核心表单。',
     '3. 把报价、合同、回款做成流程或权限受控表单。',
     '4. 用报表和自定义首页做销售漏斗、回款看板和待办聚合。',
     '5. 最后配置权限和导航分组，让销售、主管、财务看到不同入口。',
     '',
-    '**可以复制给 OpenYida 的 prompt**',
+    '**可以复制给 YidaConnector 的 prompt**',
     '',
     '```text',
     buildCrmPrompt(),
     '```',
     '',
-    '下一步你可以把这段 prompt 交给 OpenYida 执行，也可以继续补充你的 CRM 行业，比如“教育销售”“B2B 大客户”“项目制交付”，我会把字段和流程再收窄。',
+    '下一步你可以把这段 prompt 交给 YidaConnector 执行，也可以继续补充你的 CRM 行业，比如“教育销售”“B2B 大客户”“项目制交付”，我会把字段和流程再收窄。',
     '',
     '资料来源：' + getSourceLinks() + '。',
   ].join('\n');
@@ -2222,21 +2222,21 @@ function buildCrmAnswer() {
 
 function buildWukongAnswer() {
   return [
-    '悟空可以使用 OpenYida，核心是先把 **OpenYida 技能包** 给到悟空，再让它按宜搭应用开发链路执行。',
+    '悟空可以使用 YidaConnector，核心是先把 **YidaConnector 技能包** 给到悟空，再让它按宜搭应用开发链路执行。',
     '',
     '**完整链路**',
     '',
-    '1. 在 OpenYida 仓库里生成技能包：',
+    '1. 在 YidaConnector 仓库里生成技能包：',
     '',
     '```bash',
     'npm run build:skills',
     '```',
     '',
     '生成物包括：',
-    '- `dist/skills/openyida/`',
-    '- `openyida-skills.zip`',
+    '- `dist/skills/yidaconnector/`',
+    '- `yidaconnector-skills.zip`',
     '',
-    '2. 在悟空里上传 `openyida-skills.zip`，让悟空获得 OpenYida 子技能，例如创建应用、创建页面、发布页面、数据管理、导航分组等。',
+    '2. 在悟空里上传 `yidaconnector-skills.zip`，让悟空获得 YidaConnector 子技能，例如创建应用、创建页面、发布页面、数据管理、导航分组等。',
     '',
     '3. 悟空环境执行 Node/npm 前先设置 PATH：',
     '',
@@ -2247,19 +2247,19 @@ function buildWukongAnswer() {
     '4. 登录宜搭并确认环境：',
     '',
     '```bash',
-    'openyida env',
-    'openyida login',
+    'yidaconnector env',
+    'yidaconnector login',
     '```',
     '',
     '5. 让悟空按目标执行，比如：',
     '',
     '```text',
-    '使用 OpenYida 帮我创建一个 CRM 宜搭应用。先创建应用和核心表单，再创建报表和自定义首页；每次发布前先 check-page 和 compile，涉及写入前先给我确认卡。',
+    '使用 YidaConnector 帮我创建一个 CRM 宜搭应用。先创建应用和核心表单，再创建报表和自定义首页；每次发布前先 check-page 和 compile，涉及写入前先给我确认卡。',
     '```',
     '',
     '**助手建议**：如果你是第一次用，先从“创建一个只读验证页面”开始，确认登录态、appType、formUuid、发布参数顺序都通了，再做完整应用。',
     '',
-    '**安全提醒**：悟空和 OpenYida 执行时仍以当前登录人的宜搭权限为边界，不应绕过宜搭的数据权限。',
+    '**安全提醒**：悟空和 YidaConnector 执行时仍以当前登录人的宜搭权限为边界，不应绕过宜搭的数据权限。',
     '',
     '资料来源：' + getSourceLinks() + '。',
   ].join('\n');
@@ -2267,20 +2267,20 @@ function buildWukongAnswer() {
 
 function buildPublishAnswer() {
   return [
-    'OpenYida 发布失败时，我会按排查单来处理，先看 4 件事：',
+    'YidaConnector 发布失败时，我会按排查单来处理，先看 4 件事：',
     '',
-    '1. **参数顺序**：发布命令必须是 `openyida publish <sourceFile> <appType> <formUuid>`，不要把 appType 和 formUuid 传反。',
+    '1. **参数顺序**：发布命令必须是 `yidaconnector publish <sourceFile> <appType> <formUuid>`，不要把 appType 和 formUuid 传反。',
     '2. **目标类型**：`formUuid` 必须是自定义展示页面，也就是 `display` 类型，不要发布到普通表单或流程表单。',
-    '3. **本地预检**：先跑 `openyida check-page <sourceFile>` 和 `openyida compile <sourceFile>`。',
-    '4. **登录态与组织**：用 `openyida env` 和 `openyida login` 确认当前 baseUrl、Cookie、corpId 都对。',
+    '3. **本地预检**：先跑 `yidaconnector check-page <sourceFile>` 和 `yidaconnector compile <sourceFile>`。',
+    '4. **登录态与组织**：用 `yidaconnector env` 和 `yidaconnector login` 确认当前 baseUrl、Cookie、corpId 都对。',
     '5. **数据权限**：如果发布页会读取业务数据，确认页面接口只查询当前用户可见范围，不要把全量数据暴露给普通用户。',
     '',
     '**推荐命令顺序**',
     '',
     '```bash',
-    'openyida check-page project/pages/src/your-page.oyd.jsx',
-    'openyida compile project/pages/src/your-page.oyd.jsx',
-    'openyida publish project/pages/src/your-page.oyd.jsx APP_XXX FORM_XXX',
+    'yidaconnector check-page project/pages/src/your-page.oyd.jsx',
+    'yidaconnector compile project/pages/src/your-page.oyd.jsx',
+    'yidaconnector publish project/pages/src/your-page.oyd.jsx APP_XXX FORM_XXX',
     '```',
     '',
     '如果你把错误日志贴给我，我会继续帮你判断是 JSX 规范、登录态、目标页面类型，还是宜搭接口返回异常。',
@@ -2298,12 +2298,12 @@ function buildGroupAnswer() {
     '3. 财务：回款、发票、付款、费用、预算。',
     '4. 系统设置：成员、权限、字典、集成、自动化。',
     '',
-    '**OpenYida 执行方式**',
+    '**YidaConnector 执行方式**',
     '',
     '```bash',
-    'openyida nav-group list APP_XXX',
-    'openyida nav-group create APP_XXX <groupName>',
-    'openyida nav-group move APP_XXX <sourceNode> <targetGroup>',
+    'yidaconnector nav-group list APP_XXX',
+    'yidaconnector nav-group create APP_XXX <groupName>',
+    'yidaconnector nav-group move APP_XXX <sourceNode> <targetGroup>',
     '```',
     '',
     '我已经可以先生成右侧确认卡。你确认后，再把 `APP_XXX` 和真实节点替换成当前应用的 appType 与导航节点。',
@@ -2312,26 +2312,26 @@ function buildGroupAnswer() {
 
 function buildImageSupportAnswer() {
   return [
-    '可以。你上传或粘贴截图后，我会把它当作 OpenYida 助手工单附件来处理：',
+    '可以。你上传或粘贴截图后，我会把它当作 YidaConnector 助手工单附件来处理：',
     '',
     '1. 先识别截图属于页面、表单、流程、报表还是发布错误。',
-    '2. 再判断能否用 OpenYida/宜搭能力落地。',
+    '2. 再判断能否用 YidaConnector/宜搭能力落地。',
     '3. 最后输出字段、流程、权限、页面或排查步骤。',
     '',
-    '当前 OpenYida 助手已完成图片附件接收和消息展示；如果接入 OCR/视觉理解服务，就可以进一步自动读取截图内容。',
+    '当前 YidaConnector 助手已完成图片附件接收和消息展示；如果接入 OCR/视觉理解服务，就可以进一步自动读取截图内容。',
   ].join('\n');
 }
 
 function buildFallbackSupportAnswer(prompt) {
   var text = limitText(prompt || '你的问题', 72);
   return [
-    '我会按 **OpenYida 助手工单** 先帮你分诊：',
+    '我会按 **YidaConnector 助手工单** 先帮你分诊：',
     '',
     '- 问题：' + text,
     '- 判断：优先看它属于应用搭建、发布排查、数据管理、导航分组、权限配置，还是悟空/技能包接入。',
-    '- 下一步：如果是业务目标，我会生成可复制 prompt；如果是报错，我会让你贴日志并按 OpenYida 发布链路排查；如果是宜搭配置，我会给出表单、流程、报表或权限方案。',
+    '- 下一步：如果是业务目标，我会生成可复制 prompt；如果是报错，我会让你贴日志并按 YidaConnector 发布链路排查；如果是宜搭配置，我会给出表单、流程、报表或权限方案。',
     '',
-    '你可以继续补充：目标应用、截图、错误日志、appType、formUuid，或者直接说“帮我写成 OpenYida prompt”。',
+    '你可以继续补充：目标应用、截图、错误日志、appType、formUuid，或者直接说“帮我写成 YidaConnector prompt”。',
     '',
     '资料来源：' + getSourceLinks() + '。',
   ].join('\n');
@@ -2345,7 +2345,7 @@ function buildServiceAnswer(prompt) {
   if (hasAny(value, ['crm', '客户管理', '客户关系', '销售管理'])) {
     return buildCrmAnswer();
   }
-  if (hasAny(value, ['悟空', 'wukong', '技能包', 'openyida-skills', 'openyida skills'])) {
+  if (hasAny(value, ['悟空', 'wukong', '技能包', 'yidaconnector-skills', 'yidaconnector skills'])) {
     return buildWukongAnswer();
   }
   if (hasAny(value, ['发布失败', '发布页面失败', 'publish', 'formuuid', 'sourcefile', '参数顺序', '白屏'])) {
@@ -2441,7 +2441,7 @@ function encodeForm(data) {
 function getRemoteWorkspaceKey() {
   var profile = getCurrentUserProfile();
   var owner = profile.userId || profile.name || 'anonymous';
-  return 'openyida-chatbox:' + (getRuntimeAppType() || 'APP') + ':' + owner;
+  return 'yidaconnector-chatbox:' + (getRuntimeAppType() || 'APP') + ':' + owner;
 }
 
 function canUseRemoteStorage(ctx) {
@@ -2550,11 +2550,11 @@ function isLegacyCreateAppSession(session, messages) {
   return list.some((message) => {
     var content = String(message && message.content ? message.content : '');
     var meta = String(message && message.meta ? message.meta : '');
-    return meta === 'OpenYida · create-app'
-      || meta === 'OpenYida · 本地动作'
-      || content.indexOf('可以，我先把这个需求转成一个可确认的 OpenYida 动作') >= 0
-      || content.indexOf('OpenYida 创建应用失败：bridge_request_failed') >= 0
-      || content.indexOf('通过本地 OpenYida 创建宜搭应用') >= 0;
+    return meta === 'YidaConnector · create-app'
+      || meta === 'YidaConnector · 本地动作'
+      || content.indexOf('可以，我先把这个需求转成一个可确认的 YidaConnector 动作') >= 0
+      || content.indexOf('YidaConnector 创建应用失败：bridge_request_failed') >= 0
+      || content.indexOf('通过本地 YidaConnector 创建宜搭应用') >= 0;
   });
 }
 
@@ -2664,8 +2664,8 @@ function getExecutionStepLabel(name) {
     'bridge.pair': '配对本地桥接',
     'bridge.login': '检查本地登录',
     'bridge.feedback': '打开反馈表单',
-    'openyida.app-list': '查询应用列表',
-    'openyida.create-app': '创建宜搭应用',
+    'yidaconnector.app-list': '查询应用列表',
+    'yidaconnector.create-app': '创建宜搭应用',
     'guardrail.confirm': '等待用户确认',
     'knowledge.search': '查询知识库',
     'knowledge.miss': '知识库未命中',
@@ -2734,14 +2734,14 @@ function parseCreateAppIntent(text) {
     '搭建一个',
     '搭建个',
     '开发一个',
-  ]) || lower.indexOf('openyida') >= 0;
+  ]) || lower.indexOf('yidaconnector') >= 0;
   if (!actionLike) {
     return null;
   }
 
   var patterns = [
-    /(?:帮我|请帮我|请|麻烦)?(?:用|在)?(?:宜搭|OpenYida|openyida)?(?:做|搭建|创建|新建|生成|开发|制作)(?:一个|个|一套|套)?(.+)$/i,
-    /(?:我要|我想要|我想|需要)(?:用|在)?(?:宜搭|OpenYida|openyida)?(?:做|搭建|创建|新建|生成|开发|制作)(?:一个|个|一套|套)?(.+)$/i,
+    /(?:帮我|请帮我|请|麻烦)?(?:用|在)?(?:宜搭|YidaConnector|yidaconnector)?(?:做|搭建|创建|新建|生成|开发|制作)(?:一个|个|一套|套)?(.+)$/i,
+    /(?:我要|我想要|我想|需要)(?:用|在)?(?:宜搭|YidaConnector|yidaconnector)?(?:做|搭建|创建|新建|生成|开发|制作)(?:一个|个|一套|套)?(.+)$/i,
     /(?:创建|新建)(?:一个|个|一套|套)?(.+?)(?:应用)?$/i,
   ];
   var appName = '';
@@ -2757,7 +2757,7 @@ function parseCreateAppIntent(text) {
   }
   return {
     appName: appName,
-    description: limitText('由 OpenYida 助手根据需求创建：' + value, 200),
+    description: limitText('由 YidaConnector 助手根据需求创建：' + value, 200),
     prompt: value,
   };
 }
@@ -2767,8 +2767,8 @@ function buildCreateAppConfirmCard(intent) {
   return {
     title: '创建宜搭应用确认',
     source: appName,
-    summary: '将通过本地 OpenYida 创建一个宜搭应用，创建后返回 appType 和管理地址；后续可以继续补表单、流程、报表和自定义页面。',
-    action: 'openyida.create-app',
+    summary: '将通过本地 YidaConnector 创建一个宜搭应用，创建后返回 appType 和管理地址；后续可以继续补表单、流程、报表和自定义页面。',
+    action: 'yidaconnector.create-app',
     confirmText: '创建应用',
     payload: {
       appName: appName,
@@ -2776,13 +2776,13 @@ function buildCreateAppConfirmCard(intent) {
       prompt: intent && intent.prompt ? intent.prompt : appName,
     },
     steps: [
-      '检查本地 OpenYida bridge 与宜搭登录态',
-      '调用 openyida create-app 创建宜搭应用',
+      '检查本地 YidaConnector bridge 与宜搭登录态',
+      '调用 yidaconnector create-app 创建宜搭应用',
       '返回 appType 与管理地址',
       '继续按需求拆解表单、流程、报表和页面',
     ],
     commands: [
-      'openyida create-app --name "' + appName + '" --desc "' + limitText(intent && intent.description ? intent.description : appName, 80) + '"',
+      'yidaconnector create-app --name "' + appName + '" --desc "' + limitText(intent && intent.description ? intent.description : appName, 80) + '"',
     ],
   };
 }
@@ -2794,13 +2794,13 @@ function buildCreateAppReadyAnswer(intent) {
     '',
     '**建议链路**',
     '',
-    '1. 在 Codex / OpenYida 这类更强模型环境里发起搭建。',
+    '1. 在 Codex / YidaConnector 这类更强模型环境里发起搭建。',
     '2. 先让模型拆清楚表单、流程、权限、报表和页面。',
-    '3. 涉及创建、发布、移动导航、写业务数据时，再由 OpenYida CLI 执行并给你确认。',
+    '3. 涉及创建、发布、移动导航、写业务数据时，再由 YidaConnector CLI 执行并给你确认。',
     '',
     '**我在当前网页里先不执行写入动作**，避免老模型把业务拆错或给出不稳定方案。这里更适合做查询、资料检索、登录诊断和发布排查。',
     '',
-    '你可以复制下面这段到 Codex / OpenYida：',
+    '你可以复制下面这段到 Codex / YidaConnector：',
     '',
     '```text',
     '帮我用宜搭搭建「' + appName + '」。请先拆解业务对象、表单字段、流程节点、权限范围、报表和自定义页面；每一步涉及创建或发布前先给确认项，不要直接越权读取或写入业务数据。',
@@ -2834,7 +2834,7 @@ function parseAppListIntent(text) {
 function buildAppListMarkdown(apps) {
   var list = apps || [];
   if (!list.length) {
-    return '没有查到当前登录人创建的宜搭应用。可以先确认本地 OpenYida 登录态，或在宜搭控制台检查当前组织。';
+    return '没有查到当前登录人创建的宜搭应用。可以先确认本地 YidaConnector 登录态，或在宜搭控制台检查当前组织。';
   }
   var lines = [
     '**已查询到 ' + list.length + ' 个宜搭应用。**',
@@ -2849,7 +2849,7 @@ function buildAppListMarkdown(apps) {
     lines.push('| ' + name + ' | `' + appType + '` | ' + link + ' |');
   });
   lines.push('');
-  lines.push('这是只读查询，数据来自本机 OpenYida 登录态和宜搭权限范围。');
+  lines.push('这是只读查询，数据来自本机 YidaConnector 登录态和宜搭权限范围。');
   return lines.join('\n');
 }
 
@@ -2866,9 +2866,9 @@ function buildGroupConfirmCard(sourceText) {
       '返回移动结果和未识别页面清单',
     ],
     commands: [
-      'openyida nav-group list APP_XXX',
-      'openyida nav-group create APP_XXX <groupName>',
-      'openyida nav-group move APP_XXX <sourceNode> <targetGroup>',
+      'yidaconnector nav-group list APP_XXX',
+      'yidaconnector nav-group create APP_XXX <groupName>',
+      'yidaconnector nav-group move APP_XXX <sourceNode> <targetGroup>',
     ],
   };
 }
@@ -2878,7 +2878,7 @@ function buildPlanConfirmCard(sourceText) {
   return {
     title: '执行计划确认',
     source: source,
-    summary: '把当前回答沉淀为可执行计划；涉及写入、发布或移动节点时，先展示确认卡再调用 OpenYida。',
+    summary: '把当前回答沉淀为可执行计划；涉及写入、发布或移动节点时，先展示确认卡再调用 YidaConnector。',
     steps: [
       '确认目标应用和目标页面',
       '拆解只读分析、配置变更和发布动作',
@@ -2886,9 +2886,9 @@ function buildPlanConfirmCard(sourceText) {
       '输出执行结果、风险和回滚建议',
     ],
     commands: [
-      'openyida env',
-      'openyida check-page <sourceFile>',
-      'openyida publish <sourceFile> <appType> <formUuid>',
+      'yidaconnector env',
+      'yidaconnector check-page <sourceFile>',
+      'yidaconnector publish <sourceFile> <appType> <formUuid>',
     ],
   };
 }
@@ -3049,22 +3049,22 @@ export function ensureTailwind() {
 }
 
 export function injectTailwindSource() {
-  if (typeof document === 'undefined' || document.getElementById('openyida-agent-chat-tailwind-source')) {
+  if (typeof document === 'undefined' || document.getElementById('yidaconnector-agent-chat-tailwind-source')) {
     return;
   }
   var style = document.createElement('style');
-  style.id = 'openyida-agent-chat-tailwind-source';
+  style.id = 'yidaconnector-agent-chat-tailwind-source';
   style.type = 'text/tailwindcss';
   style.innerHTML = TAILWIND_SOURCE_CSS;
   document.head.appendChild(style);
 }
 
 export function injectTailwindFallback() {
-  if (typeof document === 'undefined' || document.getElementById('openyida-agent-chat-tailwind-fallback')) {
+  if (typeof document === 'undefined' || document.getElementById('yidaconnector-agent-chat-tailwind-fallback')) {
     return;
   }
   var style = document.createElement('style');
-  style.id = 'openyida-agent-chat-tailwind-fallback';
+  style.id = 'yidaconnector-agent-chat-tailwind-fallback';
   style.innerHTML = TAILWIND_FALLBACK_CSS;
   document.head.appendChild(style);
 }
@@ -3388,7 +3388,7 @@ export function initLocalBridge() {
   this.setCustomState({
     bridgeStatus: 'probing',
     bridgePairToken: pairToken,
-    bridgeMessage: '正在探测本地 OpenYida',
+    bridgeMessage: '正在探测本地 YidaConnector',
     bridgeBusy: true,
     toolRuns: prependToolRun('bridge.probe', 'running', '127.0.0.1:6736 / 9432'),
   });
@@ -3406,7 +3406,7 @@ export function probeBridgeCandidates(candidates, index) {
       bridgeVersion: '',
       bridgeBusy: false,
       bridgePairToken: ensureBridgePairToken(),
-      bridgeMessage: '未检测到本地 OpenYida。复制页面里的启动命令到本机终端运行即可连接。',
+      bridgeMessage: '未检测到本地 YidaConnector。复制页面里的启动命令到本机终端运行即可连接。',
       toolRuns: prependToolRun('bridge.probe', 'error', getBridgeStartCommand()),
     });
     return;
@@ -3426,7 +3426,7 @@ export function probeBridgeCandidates(candidates, index) {
         bridgeBusy: false,
         bridgePanelOpen: true,
         bridgeMessage: getBridgeUpgradeMessage(version),
-        toolRuns: prependToolRun('bridge.probe', 'error', version ? ('OpenYida ' + version) : 'OpenYida 版本过旧'),
+        toolRuns: prependToolRun('bridge.probe', 'error', version ? ('YidaConnector ' + version) : 'YidaConnector 版本过旧'),
       });
       return;
     }
@@ -3437,7 +3437,7 @@ export function probeBridgeCandidates(candidates, index) {
       bridgeCapabilities: data && data.capabilities ? data.capabilities : [],
       bridgeAllowedOrigins: data && data.allowedOrigins ? data.allowedOrigins : [],
       bridgeBusy: false,
-      bridgeMessage: '已检测到本地 OpenYida，等待配对',
+      bridgeMessage: '已检测到本地 YidaConnector，等待配对',
       toolRuns: prependToolRun('bridge.probe', 'done', item.baseUrl),
     });
     if (item.accessToken) {
@@ -3474,7 +3474,7 @@ export function pairLocalBridge(baseUrl, pairToken, onRetryNext) {
   if (!targetBase || !token) {
     self.setCustomState({
       bridgeStatus: 'detected',
-      bridgeMessage: '请复制页面里的 openyida bridge start --token 命令启动本地连接',
+      bridgeMessage: '请复制页面里的 yidaconnector bridge start --token 命令启动本地连接',
       bridgeBusy: false,
     });
     return;
@@ -3482,7 +3482,7 @@ export function pairLocalBridge(baseUrl, pairToken, onRetryNext) {
 
   self.setCustomState({
     bridgeBusy: true,
-    bridgeMessage: '正在配对本地 OpenYida',
+    bridgeMessage: '正在配对本地 YidaConnector',
     toolRuns: prependToolRun('bridge.pair', 'running', targetBase),
   });
   bridgeRequest(targetBase, '/v1/pair', {
@@ -3499,7 +3499,7 @@ export function pairLocalBridge(baseUrl, pairToken, onRetryNext) {
       bridgeCapabilities: data.capabilities || _customState.bridgeCapabilities,
       bridgeAllowedOrigins: data.allowedOrigins || _customState.bridgeAllowedOrigins,
       bridgeBusy: false,
-      bridgeMessage: '本地 OpenYida 已连接',
+      bridgeMessage: '本地 YidaConnector 已连接',
       bridgePanelOpen: _customState.bridgePanelOpen,
       toolRuns: prependToolRun('bridge.pair', 'done', 'local bridge'),
     });
@@ -3540,7 +3540,7 @@ export function refreshBridgeStatus(baseUrl, accessToken) {
       bridgeAllowedOrigins: data.allowedOrigins || _customState.bridgeAllowedOrigins,
       bridgeLogin: data.login || _customState.bridgeLogin,
       bridgeBusy: false,
-      bridgeMessage: '本地 OpenYida 已连接',
+      bridgeMessage: '本地 YidaConnector 已连接',
       toolRuns: prependToolRun('bridge.pair', 'done', targetBase),
     });
   }).catch(function() {
@@ -3614,7 +3614,7 @@ export function startBridgeLogin() {
       bridgeQrUrl: login.qrUrl || '',
       bridgeLoginSessionId: login.loginSessionId || '',
       bridgeOrganizations: login.organizations || [],
-      bridgeMessage: data.alreadyLoggedIn ? '本地 OpenYida 已登录' : '请用钉钉扫码确认',
+      bridgeMessage: data.alreadyLoggedIn ? '本地 YidaConnector 已登录' : '请用钉钉扫码确认',
       toolRuns: prependToolRun('bridge.login', 'done', login.status || 'started'),
     });
     if (login.loginSessionId) {
@@ -3720,8 +3720,8 @@ export function openBridgeFeedback() {
     token: _customState.bridgeAccessToken,
     body: {
       tool: 'Yida Page',
-      command: 'https://demo.aliwork.com/s/openyida',
-      reason: 'openyida_page_bridge',
+      command: 'https://demo.aliwork.com/s/yidaconnector',
+      reason: 'yidaconnector_page_bridge',
       diagnostics: buildBridgeDiagnostics(),
     },
     timeout: 5000,
@@ -3745,7 +3745,7 @@ export function openBridgeFeedback() {
 
 export function callBridgeCreateApp(payload) {
   if (!_customState.bridgeBaseUrl || !_customState.bridgeAccessToken) {
-    return Promise.reject(new Error('请先连接本地 OpenYida'));
+    return Promise.reject(new Error('请先连接本地 YidaConnector'));
   }
   return bridgeRequest(_customState.bridgeBaseUrl, '/v1/actions/create-app', {
     method: 'POST',
@@ -3760,7 +3760,7 @@ export function callBridgeCreateApp(payload) {
 
 export function callBridgeAppList(payload) {
   if (!_customState.bridgeBaseUrl || !_customState.bridgeAccessToken) {
-    return Promise.reject(new Error('请先连接本地 OpenYida'));
+    return Promise.reject(new Error('请先连接本地 YidaConnector'));
   }
   return bridgeRequest(_customState.bridgeBaseUrl, '/v1/actions/app-list', {
     method: 'POST',
@@ -3778,29 +3778,29 @@ export function executeAppListQuery(intent, sessionId, pendingId) {
     self.setCustomState({
       messages: replaceMessage(sessionId, pendingId, {
         status: 'error',
-        content: '应用列表属于本地只读查询。请先点击右上角连接本地 OpenYida，或复制启动命令到本机终端运行后再试。',
-        meta: 'OpenYida · 需要连接',
+        content: '应用列表属于本地只读查询。请先点击右上角连接本地 YidaConnector，或复制启动命令到本机终端运行后再试。',
+        meta: 'YidaConnector · 需要连接',
       }),
       isSending: false,
-      bridgeMessage: '请先连接本地 OpenYida',
+      bridgeMessage: '请先连接本地 YidaConnector',
       statusText: '等待本地连接',
-      toolRuns: prependToolRun('openyida.app-list', 'error', 'bridge not connected'),
+      toolRuns: prependToolRun('yidaconnector.app-list', 'error', 'bridge not connected'),
     });
     self.focusMainComposerInput();
     return;
   }
 
-  if (!hasBridgeCapability('openyida.app-list')) {
+  if (!hasBridgeCapability('yidaconnector.app-list')) {
     self.setCustomState({
       messages: replaceMessage(sessionId, pendingId, {
         status: 'error',
-        content: '当前本地 OpenYida bridge 还不支持应用列表查询。请升级 OpenYida 并重启 bridge 后再试。',
-        meta: 'OpenYida · 需要升级',
+        content: '当前本地 YidaConnector bridge 还不支持应用列表查询。请升级 YidaConnector 并重启 bridge 后再试。',
+        meta: 'YidaConnector · 需要升级',
       }),
       isSending: false,
-      bridgeMessage: '需要升级本地 OpenYida',
-      statusText: '需要升级本地 OpenYida',
-      toolRuns: prependToolRun('openyida.app-list', 'error', 'missing capability'),
+      bridgeMessage: '需要升级本地 YidaConnector',
+      statusText: '需要升级本地 YidaConnector',
+      toolRuns: prependToolRun('yidaconnector.app-list', 'error', 'missing capability'),
     });
     self.focusMainComposerInput();
     return;
@@ -3810,7 +3810,7 @@ export function executeAppListQuery(intent, sessionId, pendingId) {
     bridgeBusy: true,
     bridgeMessage: '正在查询应用列表',
     statusText: '正在查询应用列表',
-    toolRuns: prependToolRun('openyida.app-list', 'running', 'app-list'),
+    toolRuns: prependToolRun('yidaconnector.app-list', 'running', 'app-list'),
   });
 
   self.callBridgeAppList(intent || {}).then(function(data) {
@@ -3819,13 +3819,13 @@ export function executeAppListQuery(intent, sessionId, pendingId) {
       messages: replaceMessage(sessionId, pendingId, {
         status: 'done',
         content: buildAppListMarkdown(apps),
-        meta: 'OpenYida · 应用列表',
+        meta: 'YidaConnector · 应用列表',
       }),
       isSending: false,
       bridgeBusy: false,
       bridgeMessage: '应用列表查询完成',
       statusText: '查询完成',
-      toolRuns: prependToolRun('openyida.app-list', 'done', String(apps.length) + ' apps'),
+      toolRuns: prependToolRun('yidaconnector.app-list', 'done', String(apps.length) + ' apps'),
     });
     self.scrollChatToBottom();
     self.focusMainComposerInput();
@@ -3834,14 +3834,14 @@ export function executeAppListQuery(intent, sessionId, pendingId) {
     self.setCustomState({
       messages: replaceMessage(sessionId, pendingId, {
         status: 'error',
-        content: 'OpenYida 应用列表查询失败：' + message + '\n\n请确认右上角本地连接、宜搭登录态和当前组织是否正确。',
-        meta: 'OpenYida · error',
+        content: 'YidaConnector 应用列表查询失败：' + message + '\n\n请确认右上角本地连接、宜搭登录态和当前组织是否正确。',
+        meta: 'YidaConnector · error',
       }),
       isSending: false,
       bridgeBusy: false,
       bridgeMessage: message,
       statusText: '查询失败',
-      toolRuns: prependToolRun('openyida.app-list', 'error', message),
+      toolRuns: prependToolRun('yidaconnector.app-list', 'error', message),
     });
     self.utils.toast({ title: message, type: 'error' });
     self.focusMainComposerInput();
@@ -3855,21 +3855,21 @@ export function executeCreateAppConfirmCard(card) {
   if (!_customState.bridgeBaseUrl || !_customState.bridgeAccessToken || _customState.bridgeStatus !== 'paired') {
     self.setCustomState({
       bridgePanelOpen: true,
-      bridgeMessage: '请先连接本地 OpenYida，再执行创建应用',
-      statusText: '等待本地 OpenYida 连接',
-      toolRuns: prependToolRun('openyida.create-app', 'error', 'bridge not connected'),
+      bridgeMessage: '请先连接本地 YidaConnector，再执行创建应用',
+      statusText: '等待本地 YidaConnector 连接',
+      toolRuns: prependToolRun('yidaconnector.create-app', 'error', 'bridge not connected'),
     });
-    self.utils.toast({ title: '请先连接本地 OpenYida', type: 'warning' });
+    self.utils.toast({ title: '请先连接本地 YidaConnector', type: 'warning' });
     return;
   }
-  if (!hasBridgeCapability('openyida.create-app')) {
+  if (!hasBridgeCapability('yidaconnector.create-app')) {
     self.setCustomState({
       bridgePanelOpen: true,
-      bridgeMessage: '当前本地 bridge 缺少创建应用能力，请升级 OpenYida 并重启 bridge',
-      statusText: '需要升级本地 OpenYida',
-      toolRuns: prependToolRun('openyida.create-app', 'error', 'missing capability'),
+      bridgeMessage: '当前本地 bridge 缺少创建应用能力，请升级 YidaConnector 并重启 bridge',
+      statusText: '需要升级本地 YidaConnector',
+      toolRuns: prependToolRun('yidaconnector.create-app', 'error', 'missing capability'),
     });
-    self.utils.toast({ title: '请升级并重启 OpenYida bridge', type: 'warning' });
+    self.utils.toast({ title: '请升级并重启 YidaConnector bridge', type: 'warning' });
     return;
   }
 
@@ -3881,9 +3881,9 @@ export function executeCreateAppConfirmCard(card) {
     role: 'assistant',
     type: 'text',
     status: 'thinking',
-    content: '正在通过本地 OpenYida 创建宜搭应用',
+    content: '正在通过本地 YidaConnector 创建宜搭应用',
     createdAt: getTimeLabel(),
-    meta: 'OpenYida · create-app',
+    meta: 'YidaConnector · create-app',
   };
   self.setCustomState({
     messages: appendMessages(sessionId, [pendingMessage]),
@@ -3891,7 +3891,7 @@ export function executeCreateAppConfirmCard(card) {
     bridgeBusy: true,
     bridgeMessage: '正在创建应用：' + appName,
     statusText: '正在创建宜搭应用',
-    toolRuns: prependToolRun('openyida.create-app', 'running', appName),
+    toolRuns: prependToolRun('yidaconnector.create-app', 'running', appName),
   });
 
   self.callBridgeCreateApp(payload).then(function(data) {
@@ -3916,14 +3916,14 @@ export function executeCreateAppConfirmCard(card) {
       messages: replaceMessage(sessionId, pendingId, {
         status: 'done',
         content: lines.join('\n'),
-        meta: 'OpenYida · create-app',
+        meta: 'YidaConnector · create-app',
       }),
       confirmCard: null,
       isSending: false,
       bridgeBusy: false,
       bridgeMessage: '应用创建完成',
       statusText: '应用已创建',
-      toolRuns: prependToolRun('openyida.create-app', 'done', appType || appName),
+      toolRuns: prependToolRun('yidaconnector.create-app', 'done', appType || appName),
     });
     self.focusMainComposerInput();
   }).catch(function(err) {
@@ -3931,14 +3931,14 @@ export function executeCreateAppConfirmCard(card) {
     self.setCustomState({
       messages: replaceMessage(sessionId, pendingId, {
         status: 'error',
-        content: 'OpenYida 创建应用失败：' + message + '\n\n请确认右上角本地连接、宜搭登录态和 OpenYida 版本；修复后可以再次点击确认执行。',
-        meta: 'OpenYida · error',
+        content: 'YidaConnector 创建应用失败：' + message + '\n\n请确认右上角本地连接、宜搭登录态和 YidaConnector 版本；修复后可以再次点击确认执行。',
+        meta: 'YidaConnector · error',
       }),
       isSending: false,
       bridgeBusy: false,
       bridgeMessage: message,
       statusText: '创建应用失败',
-      toolRuns: prependToolRun('openyida.create-app', 'error', message),
+      toolRuns: prependToolRun('yidaconnector.create-app', 'error', message),
     });
     self.utils.toast({ title: message, type: 'error' });
     self.focusMainComposerInput();
@@ -4997,13 +4997,13 @@ export function sendMessage(inputId, stateKey) {
     role: 'assistant',
     type: 'text',
     status: 'thinking',
-    content: appListIntent ? '正在通过本地 OpenYida 查询应用列表' : (route.type === 'text' ? '正在查询知识库' : '正在识别图片并调用 Qwen'),
+    content: appListIntent ? '正在通过本地 YidaConnector 查询应用列表' : (route.type === 'text' ? '正在查询知识库' : '正在识别图片并调用 Qwen'),
     createdAt: getTimeLabel(),
-    meta: appListIntent ? 'OpenYida · 应用列表' : (route.type === 'text' ? (getProviderLabel(provider) + ' · 知识库查询') : (getProviderLabel(provider) + ' · ' + route.label)),
+    meta: appListIntent ? 'YidaConnector · 应用列表' : (route.type === 'text' ? (getProviderLabel(provider) + ' · 知识库查询') : (getProviderLabel(provider) + ' · ' + route.label)),
   };
   var initialRuns = createAppIntent
     ? prependToolRun('guardrail.confirm', 'done', '搭建需求需切换到强模型链路')
-    : (appListIntent ? prependToolRun('openyida.app-list', 'running', 'app-list') : prependToolRun(routeRunName, 'running', route.detail || prompt));
+    : (appListIntent ? prependToolRun('yidaconnector.app-list', 'running', 'app-list') : prependToolRun(routeRunName, 'running', route.detail || prompt));
   var patch = {
     messages: appendMessages(sessionId, [userMessage, pendingMessage]),
     sessions: touchSession(sessionId, limitText(userContent, 16)),
@@ -5026,7 +5026,7 @@ export function sendMessage(inputId, stateKey) {
       messages: replaceMessage(sessionId, pendingId, {
         status: 'done',
         content: buildCreateAppReadyAnswer(createAppIntent),
-        meta: 'OpenYida · 搭建建议',
+        meta: 'YidaConnector · 搭建建议',
       }),
       isSending: false,
       statusText: '建议切换强模型',
@@ -5177,13 +5177,13 @@ export function confirmMockAction() {
   if (!card) {
     return;
   }
-  if (card.action === 'openyida.create-app') {
+  if (card.action === 'yidaconnector.create-app') {
     this.setCustomState({
       confirmCard: null,
       statusText: '建议切换强模型',
       toolRuns: prependToolRun('guardrail.confirm', 'done', '搭建需求暂不在网页执行'),
     });
-    this.utils.toast({ title: '搭建类写入动作请切换到 Codex / OpenYida 执行', type: 'warning' });
+    this.utils.toast({ title: '搭建类写入动作请切换到 Codex / YidaConnector 执行', type: 'warning' });
     return;
   }
   var session = getActiveSession();
@@ -5193,7 +5193,7 @@ export function confirmMockAction() {
     role: 'assistant',
     type: 'text',
     status: 'done',
-    content: '**已确认执行方案。**\n\n当前 OpenYida 助手不会绕过确认直接改动真实应用。我会把这张确认卡作为后续接入 OpenYida 能力的执行契约：先校验 appType / formUuid，再按步骤调用命令，最后回写执行结果。',
+    content: '**已确认执行方案。**\n\n当前 YidaConnector 助手不会绕过确认直接改动真实应用。我会把这张确认卡作为后续接入 YidaConnector 能力的执行契约：先校验 appType / formUuid，再按步骤调用命令，最后回写执行结果。',
     createdAt: getTimeLabel(),
     meta: 'Agent',
   };
@@ -5866,7 +5866,7 @@ export function renderQuickStartPanel() {
   }
   return (
     <div className={tw.emptyHero} style={styles.emptyHero}>
-      <div className={tw.emptyTitle} style={styles.emptyTitle}>想让 OpenYida 帮你做什么?</div>
+      <div className={tw.emptyTitle} style={styles.emptyTitle}>想让 YidaConnector 帮你做什么?</div>
     </div>
   );
 }
@@ -6023,7 +6023,7 @@ export function renderToolRun(run) {
 export function renderConfirmCard() {
   var self = this;
   var card = _customState.confirmCard;
-  var primaryDisabled = card && card.action === 'openyida.create-app';
+  var primaryDisabled = card && card.action === 'yidaconnector.create-app';
   var primaryStyle = primaryDisabled ? Object.assign({}, styles.confirmPrimaryButton, styles.confirmPrimaryButtonDisabled) : styles.confirmPrimaryButton;
   if (!card) {
     return (
@@ -6051,7 +6051,7 @@ export function renderConfirmCard() {
         ))}
       </div>
       <div style={styles.confirmActions}>
-        <button type="button" disabled={primaryDisabled} onClick={(e) => { if (!primaryDisabled) { self.confirmMockAction(); } }} style={primaryStyle}>{card.action === 'openyida.create-app' ? '请切换强模型' : (primaryDisabled ? '需要升级' : (card.confirmText || '确认执行'))}</button>
+        <button type="button" disabled={primaryDisabled} onClick={(e) => { if (!primaryDisabled) { self.confirmMockAction(); } }} style={primaryStyle}>{card.action === 'yidaconnector.create-app' ? '请切换强模型' : (primaryDisabled ? '需要升级' : (card.confirmText || '确认执行'))}</button>
         <button type="button" onClick={(e) => { self.dismissConfirmCard(); }} style={styles.confirmSecondaryButton}>取消</button>
       </div>
     </div>
@@ -6064,7 +6064,7 @@ export function renderInlineConfirmCard() {
   if (!card) {
     return null;
   }
-  var primaryDisabled = card.action === 'openyida.create-app';
+  var primaryDisabled = card.action === 'yidaconnector.create-app';
   var primaryStyle = primaryDisabled ? Object.assign({}, styles.inlineConfirmPrimaryButton, styles.inlineConfirmPrimaryButtonDisabled) : styles.inlineConfirmPrimaryButton;
   return (
     <div style={styles.inlineConfirmCard}>
@@ -6074,11 +6074,11 @@ export function renderInlineConfirmCard() {
       </div>
       <div style={styles.inlineConfirmSource}>{card.source}</div>
       <div style={styles.inlineConfirmSummary}>{card.summary}</div>
-      {card.action === 'openyida.create-app' ? (
-        <div style={styles.inlineConfirmNote}>搭建类写入动作暂不在当前网页执行，请切换到 Codex / OpenYida 强模型链路。</div>
+      {card.action === 'yidaconnector.create-app' ? (
+        <div style={styles.inlineConfirmNote}>搭建类写入动作暂不在当前网页执行，请切换到 Codex / YidaConnector 强模型链路。</div>
       ) : null}
       <div style={styles.inlineConfirmActions}>
-        <button type="button" disabled={primaryDisabled} onClick={(e) => { if (!primaryDisabled) { self.confirmMockAction(); } }} style={primaryStyle}>{card.action === 'openyida.create-app' ? '请切换强模型' : (primaryDisabled ? '需要升级' : (card.confirmText || '确认执行'))}</button>
+        <button type="button" disabled={primaryDisabled} onClick={(e) => { if (!primaryDisabled) { self.confirmMockAction(); } }} style={primaryStyle}>{card.action === 'yidaconnector.create-app' ? '请切换强模型' : (primaryDisabled ? '需要升级' : (card.confirmText || '确认执行'))}</button>
         <button type="button" onClick={(e) => { self.dismissConfirmCard(); }} style={styles.inlineConfirmSecondaryButton}>取消</button>
       </div>
     </div>
@@ -6263,7 +6263,7 @@ export function renderSidebar(isMobile) {
   return (
     <aside className={tw.sidebar} style={styles.sidebar}>
       <div className={tw.brandRow} style={styles.brandRow}>
-        <div className={tw.brandTitle} style={styles.brandTitle}>OpenYida 助手</div>
+        <div className={tw.brandTitle} style={styles.brandTitle}>YidaConnector 助手</div>
         <button type="button" onClick={(e) => { self.toggleSidebar(); }} className={tw.sidebarToggle} style={styles.sidebarToggle}>{chatIcon('layout', 19)}</button>
       </div>
 
@@ -6325,7 +6325,7 @@ export function renderInspector(isMobile) {
       <section style={styles.inspectorSection}>
         <div style={styles.panelTitle}>当前状态</div>
       <div style={styles.contextGrid}>
-          {self.renderContextCard('能力', 'OpenYida 助手', 'ok')}
+          {self.renderContextCard('能力', 'YidaConnector 助手', 'ok')}
           {self.renderContextCard('输入', '文字 / 截图 / 附件', 'ok')}
           {self.renderContextCard('权限', '只看自己的数据', 'warn')}
           {self.renderContextCard('形态', _customState.widgetOpen ? '浮窗已打开' : '全页工作台', '')}
@@ -6335,7 +6335,7 @@ export function renderInspector(isMobile) {
         <div style={styles.panelTitle}>数据安全</div>
         <div style={styles.securityPanel}>
           <div style={styles.securityTitle}>最小权限原则</div>
-          <div style={styles.securityText}>OpenYida 助手默认只使用当前会话、上传附件和公开文档源。读取宜搭业务数据时，必须遵循当前登录人的数据权限：每个人只能看自己的数据。</div>
+          <div style={styles.securityText}>YidaConnector 助手默认只使用当前会话、上传附件和公开文档源。读取宜搭业务数据时，必须遵循当前登录人的数据权限：每个人只能看自己的数据。</div>
         </div>
       </section>
       <section style={styles.inspectorSection}>
@@ -6435,7 +6435,7 @@ export function renderComposer(centered) {
         </div>
       </div>
       <div className={tw.composerDisclaimer} style={styles.composerDisclaimer}>
-        当前网页侧优先支持资料检索、登录诊断和只读查询；搭建、创建、发布等写入需求建议切换到 Codex / OpenYida 强模型链路。知识问答由宜搭知识库与 Qwen 生成，请自行核验；宜搭 Qwen 当前不支持 stream，回答会一次性返回，可能较慢。
+        当前网页侧优先支持资料检索、登录诊断和只读查询；搭建、创建、发布等写入需求建议切换到 Codex / YidaConnector 强模型链路。知识问答由宜搭知识库与 Qwen 生成，请自行核验；宜搭 Qwen 当前不支持 stream，回答会一次性返回，可能较慢。
       </div>
     </div>
   );
@@ -6449,8 +6449,8 @@ export function renderBridgeButton() {
   return (
     <button
       type="button"
-      title="点击查看 OpenYida 本地连接详情"
-      aria-label="点击查看 OpenYida 本地连接详情"
+      title="点击查看 YidaConnector 本地连接详情"
+      aria-label="点击查看 YidaConnector 本地连接详情"
       onClick={(e) => { self.toggleBridgePanel(); }}
       style={buttonStyle}
     >
@@ -6478,7 +6478,7 @@ export function renderBridgePanel(isMobile) {
     <div style={panelStyle}>
       <div style={styles.bridgePanelHeader}>
         <div>
-          <div style={styles.bridgePanelTitle}>OpenYida Local Bridge</div>
+          <div style={styles.bridgePanelTitle}>YidaConnector Local Bridge</div>
           <div style={styles.bridgePanelSub}>{_customState.bridgeMessage}</div>
         </div>
         <button type="button" onClick={(e) => { self.toggleBridgePanel(); }} style={styles.bridgeCloseButton}>关闭</button>
@@ -6586,7 +6586,7 @@ export function renderChatHeader(isMobile) {
           <span className={tw.headerProjectTitle} style={styles.headerProjectTitle}>{project.title}</span>
         </div>
       ) : (
-        <div className={tw.headerTitle} style={styles.headerTitle}>{isMobile ? 'OpenYida 助手' : title}</div>
+        <div className={tw.headerTitle} style={styles.headerTitle}>{isMobile ? 'YidaConnector 助手' : title}</div>
       )}
       <div className={tw.headerActions} style={styles.headerActions}>
         {this.renderBridgeButton()}
@@ -6604,7 +6604,7 @@ export function renderFloatingWidget(isMobile) {
     return (
       <button type="button" onClick={(e) => { self.openWidget(); }} style={styles.widgetTrigger}>
         <span style={styles.widgetTriggerIcon}>OY</span>
-        <span style={styles.widgetTriggerText}>问 OpenYida 助手</span>
+        <span style={styles.widgetTriggerText}>问 YidaConnector 助手</span>
         <span style={styles.widgetTriggerBadge}>在线</span>
       </button>
     );
@@ -6615,7 +6615,7 @@ export function renderFloatingWidget(isMobile) {
         <div style={styles.widgetHeaderLeft}>
           <div style={styles.widgetLogo}>OY</div>
           <div>
-            <div style={styles.widgetTitle}>OpenYida 助手</div>
+            <div style={styles.widgetTitle}>YidaConnector 助手</div>
             <div style={styles.widgetSub}>应用搭建、排查和技能包接入</div>
           </div>
         </div>

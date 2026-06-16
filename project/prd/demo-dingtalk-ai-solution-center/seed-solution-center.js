@@ -363,7 +363,7 @@ function main() {
   const seed = readJson(options.seed);
   const payloads = buildSeedPayloads(seed, env, options, warnings);
 
-  console.log('OpenYida solution center seeder');
+  console.log('YidaConnector solution center seeder');
   console.log('AppType: ' + appType);
   console.log('Mode: ' + (options.execute ? 'execute' : 'dry-run'));
   console.log('Records: ' + payloads.length);

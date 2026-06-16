@@ -1,11 +1,11 @@
-# OpenYida 搭建计划
+# YidaConnector 搭建计划
 
 这份计划把「钉钉 AI 解决方案中心」从原型推进到可运行宜搭样板应用。当前文件不直接创建真实资源；拿到目标组织登录态后，按下面命令执行即可。
 
 ## 1. 创建应用
 
 ```bash
-openyida create-app --name "钉钉 AI 解决方案中心" --desc "面向钉钉 SA 的 AI 方案生产、客户拜访经营和主管大盘样板应用" --theme deepBlue
+yidaconnector create-app --name "钉钉 AI 解决方案中心" --desc "面向钉钉 SA 的 AI 方案生产、客户拜访经营和主管大盘样板应用" --theme deepBlue
 ```
 
 记录输出中的 `appType`，后续命令用 `APP_XXX` 替换。
@@ -34,13 +34,13 @@ node project/prd/demo-dingtalk-ai-solution-center/build-solution-center.js --app
 也可以手动逐条执行：
 
 ```bash
-openyida create-form create APP_XXX "客户档案" project/prd/demo-dingtalk-ai-solution-center/fields/customer-fields.json --no-open
-openyida create-form create APP_XXX "客户拜访" project/prd/demo-dingtalk-ai-solution-center/fields/visit-fields.json --no-open
-openyida create-form create APP_XXX "方案包" project/prd/demo-dingtalk-ai-solution-center/fields/solution-package-fields.json --no-open
-openyida create-form create APP_XXX "Demo 实例" project/prd/demo-dingtalk-ai-solution-center/fields/demo-instance-fields.json --no-open
-openyida create-form create APP_XXX "拜访纪要" project/prd/demo-dingtalk-ai-solution-center/fields/meeting-note-fields.json --no-open
-openyida create-form create APP_XXX "SA 周报" project/prd/demo-dingtalk-ai-solution-center/fields/sa-weekly-report-fields.json --no-open
-openyida create-form create APP_XXX "风险客户" project/prd/demo-dingtalk-ai-solution-center/fields/risk-customer-fields.json --no-open
+yidaconnector create-form create APP_XXX "客户档案" project/prd/demo-dingtalk-ai-solution-center/fields/customer-fields.json --no-open
+yidaconnector create-form create APP_XXX "客户拜访" project/prd/demo-dingtalk-ai-solution-center/fields/visit-fields.json --no-open
+yidaconnector create-form create APP_XXX "方案包" project/prd/demo-dingtalk-ai-solution-center/fields/solution-package-fields.json --no-open
+yidaconnector create-form create APP_XXX "Demo 实例" project/prd/demo-dingtalk-ai-solution-center/fields/demo-instance-fields.json --no-open
+yidaconnector create-form create APP_XXX "拜访纪要" project/prd/demo-dingtalk-ai-solution-center/fields/meeting-note-fields.json --no-open
+yidaconnector create-form create APP_XXX "SA 周报" project/prd/demo-dingtalk-ai-solution-center/fields/sa-weekly-report-fields.json --no-open
+yidaconnector create-form create APP_XXX "风险客户" project/prd/demo-dingtalk-ai-solution-center/fields/risk-customer-fields.json --no-open
 ```
 
 建议把每条命令返回的 `formUuid` 写入本目录下的 `created-forms.local.json`，不要提交真实组织的资源 ID。
@@ -48,15 +48,15 @@ openyida create-form create APP_XXX "风险客户" project/prd/demo-dingtalk-ai-
 ## 3. 创建自定义首页
 
 ```bash
-openyida create-page APP_XXX "AI 解决方案中心首页"
+yidaconnector create-page APP_XXX "AI 解决方案中心首页"
 ```
 
 记录输出中的首页 `formUuid`，然后发布页面：
 
 ```bash
-openyida check-page project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx
-openyida compile project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx
-openyida publish project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx APP_XXX FORM_HOME_XXX
+yidaconnector check-page project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx
+yidaconnector compile project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx
+yidaconnector publish project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx APP_XXX FORM_HOME_XXX
 ```
 
 ## 4. 表单关联增强
@@ -72,18 +72,18 @@ openyida publish project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx APP_
 | 拜访纪要 | 客户名称 | 改为关联「客户档案」 |
 | 风险客户 | 客户名称 | 改为关联「客户档案」 |
 
-关联字段需要先拿到真实 `formUuid` 和主字段 `fieldId`，再用 `openyida get-schema APP_XXX FORM_XXX` 确认。
+关联字段需要先拿到真实 `formUuid` 和主字段 `fieldId`，再用 `yidaconnector get-schema APP_XXX FORM_XXX` 确认。
 
 ## 5. 配置首页数据读取
 
 首页源码已经内置 `FORM_CONFIG`，默认使用示例数据。创建表单后按下面流程接入真实数据：
 
 ```bash
-openyida get-schema APP_XXX FORM_CUSTOMER_XXX > .cache/solution-center/customer-schema.json
-openyida get-schema APP_XXX FORM_VISIT_XXX > .cache/solution-center/visit-schema.json
-openyida get-schema APP_XXX FORM_DEMO_XXX > .cache/solution-center/demo-schema.json
-openyida get-schema APP_XXX FORM_RISK_XXX > .cache/solution-center/risk-schema.json
-openyida get-schema APP_XXX FORM_WEEKLY_XXX > .cache/solution-center/weekly-schema.json
+yidaconnector get-schema APP_XXX FORM_CUSTOMER_XXX > .cache/solution-center/customer-schema.json
+yidaconnector get-schema APP_XXX FORM_VISIT_XXX > .cache/solution-center/visit-schema.json
+yidaconnector get-schema APP_XXX FORM_DEMO_XXX > .cache/solution-center/demo-schema.json
+yidaconnector get-schema APP_XXX FORM_RISK_XXX > .cache/solution-center/risk-schema.json
+yidaconnector get-schema APP_XXX FORM_WEEKLY_XXX > .cache/solution-center/weekly-schema.json
 ```
 
 参考 `field-map.template.json`，把真实 `formUuid` 和 `fieldId` 填入：

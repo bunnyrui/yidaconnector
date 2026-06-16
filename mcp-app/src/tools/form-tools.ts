@@ -164,7 +164,7 @@ export function registerFormTools(server: McpServer): void {
 
       try {
         const output = execSync(
-          `openyida create-form create "${appType}" "${escapedTitle}" '${escapedFields}'`,
+          `yidaconnector create-form create "${appType}" "${escapedTitle}" '${escapedFields}'`,
           { encoding: "utf-8", timeout: 30000 },
         );
         return {

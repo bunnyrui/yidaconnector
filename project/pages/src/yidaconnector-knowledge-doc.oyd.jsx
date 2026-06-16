@@ -1,9 +1,9 @@
 /**
- * OpenYida Knowledge Document
+ * YidaConnector Knowledge Document
  *
- * A Notion-like read-only document page for OpenYida knowledge records.
+ * A Notion-like read-only document page for YidaConnector knowledge records.
  * It is intended to be opened from the assistant source links:
- *   /s/openyida-doc#doc=<knowledge formInstId>
+ *   /s/yidaconnector-doc#doc=<knowledge formInstId>
  */
 
 var MARKDOWN_IT_URL = 'https://g.alicdn.com/code/lib/markdown-it/13.0.1/markdown-it.min.js';
@@ -15,8 +15,8 @@ var REACT2_ESM_URL = 'https://esm.sh/react@18.2.0';
 var REACTDOM2_CLIENT_ESM_URL = 'https://esm.sh/react-dom@18.2.0/client';
 var BLOCKNOTE_CORE_CSS_URL = 'https://cdn.jsdelivr.net/npm/@blocknote/core@0.51.2/fonts/inter.css';
 var BLOCKNOTE_MANTINE_CSS_URL = 'https://cdn.jsdelivr.net/npm/@blocknote/mantine@0.51.2/style.css';
-var APP_HOME_PATH = '/s/openyida';
-var DOC_SHARE_PATH = '/s/openyida-doc';
+var APP_HOME_PATH = '/s/yidaconnector';
+var DOC_SHARE_PATH = '/s/yidaconnector-doc';
 var KNOWLEDGE_DATA_FORM_UUID = 'FORM-2FD50D15418B4C609998FFF364AF8DE0GJ7Z';
 var KNOWLEDGE_DATA_FIELDS = {
   title: 'textField_h8ys1jqwe',
@@ -42,7 +42,7 @@ var EDIT_SUGGESTION_FIELDS = {
   submitter: 'employeeField_sd0l9b95r',
 };
 var KNOWLEDGE_QUERY_PAGE_SIZE = 100;
-var KNOWLEDGE_CACHE_KEY = 'openyida.knowledgeBase.cache.v1.' + KNOWLEDGE_DATA_FORM_UUID;
+var KNOWLEDGE_CACHE_KEY = 'yidaconnector.knowledgeBase.cache.v1.' + KNOWLEDGE_DATA_FORM_UUID;
 var KNOWLEDGE_CACHE_TTL_MS = 30 * 60 * 1000;
 var KNOWLEDGE_CACHE_STALE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 var YIDA_SOURCE_ICON_DATA_URI = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%201024%201024%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cg%20fill%3D%22%230089ff%22%3E%3Cpath%20d%3D%22M966.743%200H57.498A57.197%2057.197%200%200%200%20.06%2057.077v218.07a61.772%2061.772%200%200%201%2012.042%204.936L348.538%20473.83l336.196-193.987a64.421%2064.421%200%200%201%2087.902%2023.36l34.92%2060.208a63.94%2063.94%200%200%201-23.24%2087.54L449.084%20643.613v379.905h517.78a57.197%2057.197%200%200%200%2056.714-56.594V57.077A57.197%2057.197%200%200%200%20966.743%200z%22%2F%3E%3Cpath%20d%3D%22M.663%20501.163v465.76a56.715%2056.715%200%200%200%2016.255%2040.34%2057.558%2057.558%200%200%200%2040.58%2016.255H252.93V646.141z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E';
@@ -385,12 +385,12 @@ function createBlockNoteSrcDoc(record) {
   var blocks = markdownToBlockNoteBlocks(buildDocumentMarkdown(record));
   var payload = {
     frameId: getBlockNoteFrameId(record && record.id),
-    title: record && record.title ? record.title : 'OpenYida 知识库',
+    title: record && record.title ? record.title : 'YidaConnector 知识库',
     blocks: blocks,
   };
   var moduleScript = [
     "var notify = function(message) {",
-    "  try { parent.postMessage(Object.assign({ source: 'openyida-blocknote', frameId: data.frameId }, message), '*'); } catch (err) {}",
+    "  try { parent.postMessage(Object.assign({ source: 'yidaconnector-blocknote', frameId: data.frameId }, message), '*'); } catch (err) {}",
     "};",
     "window.addEventListener('error', function(event) { notify({ status: 'error', error: event && event.message ? event.message : 'BlockNote load failed' }); });",
     "window.addEventListener('unhandledrejection', function(event) { notify({ status: 'error', error: event && event.reason && event.reason.message ? event.reason.message : 'BlockNote load failed' }); });",
@@ -468,7 +468,7 @@ function buildKnowledgeRecord(row) {
     keywords: normalizeKnowledgeValue(formData[KNOWLEDGE_DATA_FIELDS.keywords]),
     summary: normalizeKnowledgeValue(formData[KNOWLEDGE_DATA_FIELDS.summary]),
     body: normalizeKnowledgeValue(formData[KNOWLEDGE_DATA_FIELDS.body]),
-    source: normalizeKnowledgeValue(formData[KNOWLEDGE_DATA_FIELDS.source]) || 'OpenYida 助手知识库',
+    source: normalizeKnowledgeValue(formData[KNOWLEDGE_DATA_FIELDS.source]) || 'YidaConnector 助手知识库',
     status: normalizeKnowledgeValue(formData[KNOWLEDGE_DATA_FIELDS.status]),
     updatedAt: formData[KNOWLEDGE_DATA_FIELDS.updatedAt],
     contributors: contributors,
@@ -501,7 +501,7 @@ function normalizeKnowledgeCacheRecord(record) {
     keywords: normalizeKnowledgeValue(record.keywords),
     summary: normalizeKnowledgeValue(record.summary),
     body: normalizeKnowledgeValue(record.body),
-    source: normalizeKnowledgeValue(record.source) || 'OpenYida 助手知识库',
+    source: normalizeKnowledgeValue(record.source) || 'YidaConnector 助手知识库',
     status: normalizeKnowledgeValue(record.status),
     updatedAt: record.updatedAt || '',
   };
@@ -643,7 +643,7 @@ function updateDocumentTitle(record) {
   if (typeof document === 'undefined') {
     return;
   }
-  var title = record && record.title ? record.title + ' - OpenYida 知识库' : 'OpenYida 知识库';
+  var title = record && record.title ? record.title + ' - YidaConnector 知识库' : 'YidaConnector 知识库';
   document.title = title;
 }
 
@@ -720,7 +720,7 @@ export function scheduleBlockNoteMount() {
 
 export function handleBlockNoteMessage(event) {
   var data = event && event.data ? event.data : null;
-  if (!data || data.source !== 'openyida-blocknote' || !data.frameId || typeof document === 'undefined') {
+  if (!data || data.source !== 'yidaconnector-blocknote' || !data.frameId || typeof document === 'undefined') {
     return;
   }
   var frame = document.getElementById(data.frameId);
@@ -761,7 +761,7 @@ export function mountBlockNoteDocument() {
   var frame = document.createElement('iframe');
   frame.id = getBlockNoteFrameId(record.id);
   frame.className = 'oy-doc-blocknote-frame';
-  frame.title = record.title || 'OpenYida Knowledge';
+  frame.title = record.title || 'YidaConnector Knowledge';
   frame.style.height = '260px';
   frame.setAttribute('loading', 'lazy');
   frame.srcdoc = createBlockNoteSrcDoc(record);
@@ -779,7 +779,7 @@ export function loadDocument(options) {
       ready: true,
       status: 'error',
       docId: '',
-      error: '链接中没有指定文档 ID，请从 OpenYida 助手的资料来源链接进入。',
+      error: '链接中没有指定文档 ID，请从 YidaConnector 助手的资料来源链接进入。',
     });
     return;
   }
@@ -1020,7 +1020,7 @@ export function renderHeader() {
   var record = _customState.record;
   return (
     <header style={styles.header}>
-      <button type="button" onClick={(e) => { this.goHome(); }} style={styles.backButton}>返回 OpenYida</button>
+      <button type="button" onClick={(e) => { this.goHome(); }} style={styles.backButton}>返回 YidaConnector</button>
       <div style={styles.headerTitle}>
         <span style={styles.logoMark}><img src={YIDA_SOURCE_ICON_DATA_URI} alt="" style={styles.logoIcon} /></span>
         <span style={styles.headerName}>知识库文档</span>
@@ -1036,7 +1036,7 @@ export function renderHeader() {
 export function renderLoading() {
   return (
     <main style={styles.centerStage}>
-      <div style={styles.statusEyebrow}>OpenYida Knowledge</div>
+      <div style={styles.statusEyebrow}>YidaConnector Knowledge</div>
       <div style={styles.statusTitle}>正在读取资料</div>
       <div style={styles.statusText}>从宜搭知识库加载文档内容。</div>
     </main>
@@ -1046,12 +1046,12 @@ export function renderLoading() {
 export function renderError() {
   return (
     <main style={styles.centerStage}>
-      <div style={styles.statusEyebrow}>OpenYida Knowledge</div>
+      <div style={styles.statusEyebrow}>YidaConnector Knowledge</div>
       <div style={styles.statusTitle}>资料暂时不可用</div>
       <div style={styles.statusText}>{_customState.error || '请稍后重试。'}</div>
       <div style={styles.statusActions}>
         <button type="button" onClick={(e) => { this.reloadDocument(); }} style={styles.primaryButton}>重新读取</button>
-        <button type="button" onClick={(e) => { this.goHome(); }} style={styles.secondaryButton}>返回 OpenYida</button>
+        <button type="button" onClick={(e) => { this.goHome(); }} style={styles.secondaryButton}>返回 YidaConnector</button>
       </div>
     </main>
   );
@@ -1063,9 +1063,9 @@ export function renderDocList() {
   return (
     <main style={styles.listStage}>
       <div style={styles.listInner}>
-        <div style={styles.statusEyebrow}>OpenYida Knowledge</div>
+        <div style={styles.statusEyebrow}>YidaConnector Knowledge</div>
         <h1 style={styles.listTitle}>知识库文档</h1>
-        <p style={styles.listSummary}>这些文档来自 OpenYida 助手知识库，资料来源链接会打开对应的详情页。</p>
+        <p style={styles.listSummary}>这些文档来自 YidaConnector 助手知识库，资料来源链接会打开对应的详情页。</p>
         <div style={styles.docList}>
           {docs.length ? docs.map((record) => (
             <button key={record.id} type="button" onClick={(e) => { self.openDoc(record); }} style={styles.docListItem}>
@@ -1073,7 +1073,7 @@ export function renderDocList() {
                 <span style={styles.docListTitle}>{record.title}</span>
                 <span style={styles.docListType}>{record.type}</span>
               </span>
-              <span style={styles.docListText}>{record.summary || record.source || 'OpenYida 助手知识库'}</span>
+              <span style={styles.docListText}>{record.summary || record.source || 'YidaConnector 助手知识库'}</span>
             </button>
           )) : (
             <div style={styles.statusText}>当前没有已发布资料。</div>
@@ -1097,7 +1097,7 @@ export function renderDocument() {
   return (
     <main className="oy-doc-scroll" style={styles.documentScroll}>
       <article style={styles.article}>
-        <div style={styles.breadcrumb}>OpenYida 助手 / 知识库</div>
+        <div style={styles.breadcrumb}>YidaConnector 助手 / 知识库</div>
         <div style={styles.titleRow}>
           <h1 style={styles.title}>{record.title}</h1>
           <button type="button" onClick={(e) => { this.enterEditMode(); }} style={styles.editButton}>✏️ 编辑</button>
@@ -1141,7 +1141,7 @@ export function renderEditMode(record) {
   return (
     <main className="oy-doc-scroll" style={styles.documentScroll}>
       <article style={styles.article}>
-        <div style={styles.breadcrumb}>OpenYida 助手 / 知识库 / 编辑模式</div>
+        <div style={styles.breadcrumb}>YidaConnector 助手 / 知识库 / 编辑模式</div>
         <div style={styles.titleRow}>
           <h1 style={styles.title}>编辑文档</h1>
           <div style={styles.editActions}>

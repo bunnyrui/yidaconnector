@@ -24,7 +24,7 @@ function usage() {
     '  node project/prd/demo-dingtalk-ai-solution-center/generate-form-config.js [--schemas-dir .cache/solution-center]',
     '',
     'Options:',
-    '  --schemas-dir <dir>      Directory containing openyida get-schema outputs.',
+    '  --schemas-dir <dir>      Directory containing yidaconnector get-schema outputs.',
     '  --created-forms <file>   created-forms.local.json from build-solution-center.js.',
     '  --out <file>             Output JS snippet. Default: form-config.local.js.',
     '  --help                   Show this message.',

@@ -1,12 +1,12 @@
 /**
  * auth.ts — 认证适配层
  *
- * 桥接 MCP App Server 与 OpenYida 的 CommonJS 登录态模块（lib/core/utils.js）。
+ * 桥接 MCP App Server 与 YidaConnector 的 CommonJS 登录态模块（lib/core/utils.js）。
  * 通过 createRequire 在 ESM 中加载 CJS 模块。
  *
  * 路径解析策略（按优先级）：
  *   1. 同仓库开发模式：../lib/ 相对路径（monorepo 内直接引用）
- *   2. npm 安装模式：通过 require.resolve('openyida/package.json') 定位 openyida 包的 lib/
+ *   2. npm 安装模式：通过 require.resolve('yidaconnector/package.json') 定位 yidaconnector 包的 lib/
  */
 
 import { createRequire } from "node:module";
@@ -16,7 +16,7 @@ import fs from "node:fs";
 const require = createRequire(import.meta.url);
 
 /**
- * 定位 openyida 的 lib/ 目录。
+ * 定位 yidaconnector 的 lib/ 目录。
  * 优先使用同仓库相对路径（开发模式），否则从 node_modules 中查找。
  */
 function resolveLibRoot(): string {
@@ -26,16 +26,16 @@ function resolveLibRoot(): string {
     return monorepoLib;
   }
 
-  // 策略 2：npm 安装模式（从 node_modules/openyida/ 定位）
+  // 策略 2：npm 安装模式（从 node_modules/yidaconnector/ 定位）
   try {
-    const openyidaPkg = require.resolve("openyida/package.json");
-    return path.join(path.dirname(openyidaPkg), "lib");
+    const yidaconnectorPkg = require.resolve("yidaconnector/package.json");
+    return path.join(path.dirname(yidaconnectorPkg), "lib");
   } catch {
-    // 策略 3：全局安装模式（openyida 全局安装）
+    // 策略 3：全局安装模式（yidaconnector 全局安装）
     try {
       const { execSync } = require("node:child_process");
       const globalPrefix = execSync("npm prefix -g", { encoding: "utf-8" }).trim();
-      const globalLib = path.join(globalPrefix, "lib", "node_modules", "openyida", "lib");
+      const globalLib = path.join(globalPrefix, "lib", "node_modules", "yidaconnector", "lib");
       if (fs.existsSync(path.join(globalLib, "core", "utils.js"))) {
         return globalLib;
       }
@@ -45,7 +45,7 @@ function resolveLibRoot(): string {
   }
 
   throw new Error(
-    "Cannot locate openyida lib/. Please install openyida: npm install -g openyida",
+    "Cannot locate yidaconnector lib/. Please install yidaconnector: npm install -g yidaconnector",
   );
 }
 

@@ -1,6 +1,6 @@
 # Open Issues Coverage - 2026-05-26
 
-This snapshot was collected from <https://github.com/openyida/openyida/issues> on 2026-05-26. It records how the current PR treats each open issue so reviewers can check that no issue was silently skipped.
+This snapshot was collected from <https://github.com/bunnyrui/yidaconnector/issues> on 2026-05-26. It records how the current PR treats each open issue so reviewers can check that no issue was silently skipped.
 
 ## Direct Fixes In This PR
 
@@ -20,11 +20,11 @@ This snapshot was collected from <https://github.com/openyida/openyida/issues> o
 | #339 SLS log workbench skill | `yida-skills/skills/sls-log-workbench` is indexed in the root skill table. |
 | #325 yida-schema-render | Covered by `build-page`, page IR, custom page templates, and schema-driven page authoring pipeline. |
 | #324 LayoutContainer | Covered by form schema builder layout modes and page IR layout components. |
-| #323 navigation groups | `openyida nav-group`. |
+| #323 navigation groups | `yidaconnector nav-group`. |
 | #301 Wukong international | `--intl/--yidaapps` environment selectors and Wukong workspace handling. |
 | #297 Yida experience system | Feedback/VOC, doctor auto-submit, and knowledge-oriented chat page samples. |
 | #287 Qwen taxi-style Cool Card | Agent chatbox sample includes generated action/plan cards and Qwen routing. |
-| #263 data management page and extensions | `openyida data`, bridge APIs, and custom page data-source preservation. |
+| #263 data management page and extensions | `yidaconnector data`, bridge APIs, and custom page data-source preservation. |
 | #262 built-in form components | `create-form`, `form-detail`, and custom page compatibility checks. |
 | #252 remote maintenance for distributed apps | `export`, `import`, `update-app`, page publishing, permissions, and environment management. |
 | #234 yidaapps.com | `--intl`, `--global`, `--yidaapps`, and DingTalk International OAuth support. |
@@ -42,7 +42,7 @@ This snapshot was collected from <https://github.com/openyida/openyida/issues> o
 | #97 executive mode | `yida-dashboard`, report, chart, and corp-efficiency commands. |
 | #99 app diagnostics | `doctor`, `check-data`, `integration check`, feedback/VOC flows. |
 | #100 Tailwind CSS | Custom page template loads the verified Tailwind browser CDN with fallback. |
-| #101 yida-ai skill | `openyida ai text` and `openyida ai image`. |
+| #101 yida-ai skill | `yidaconnector ai text` and `yidaconnector ai image`. |
 | #67 intelligent form validation | `formula evaluate`, create-form rules, and page/form linting. |
 | #102 BPM process migration | `create-process`, `configure-process`, import/export primitives. |
 | #104 form style reset | `create-form patch`, form-detail, and page styling utilities. |

@@ -75,7 +75,7 @@ var FORM_CONFIG = {
       scenarios: 'multiSelectField_ahzv4vnkx',
       maturityLevel: 'selectField_ahzv541lj',
       maturityScore: 'numberField_ahzv6cx7u',
-      openyidaCoverage: 'numberField_ahzv7rxdj',
+      yidaconnectorCoverage: 'numberField_ahzv7rxdj',
       customerProblem: 'textareaField_ahzv8gccw',
       valueProp: 'textareaField_ahzv9rkh6',
       blueprint: 'textareaField_ahzwaay3p',
@@ -532,7 +532,7 @@ export function createDemo() {
   var activeSolution = this.getActiveSolution();
   var result = _customState.diagnosisResult || buildDiagnosisResult(_customState.diagnosisText || '', _customState.activeIndustry, activeSolution);
   var buildSpec = createBuildSpec(result, activeSolution);
-  var buildPrompt = buildOpenYidaRunnerPrompt(buildSpec);
+  var buildPrompt = buildYidaConnectorRunnerPrompt(buildSpec);
   this.setCustomState({
     activeNav: 'build',
     diagnosisMode: 'building',
@@ -1021,10 +1021,10 @@ function buildTaskOutput(name, index, playbook, solution) {
   return '将 appType、页面地址和执行日志回填到 Demo 实例。';
 }
 
-function buildOpenYidaRunnerPrompt(buildSpec) {
+function buildYidaConnectorRunnerPrompt(buildSpec) {
   return [
-    '请使用 OpenYida 在当前钉钉组织中搭建一个可演示 Demo。',
-    '必须先执行 openyida env --json 确认登录态，再创建应用、表单、流程、页面和演示数据。',
+    '请使用 YidaConnector 在当前钉钉组织中搭建一个可演示 Demo。',
+    '必须先执行 yidaconnector env --json 确认登录态，再创建应用、表单、流程、页面和演示数据。',
     '完成后请把 appType、首页地址、创建耗时和失败日志回填到 Demo 实例表。',
     '搭建规格 JSON：',
     JSON.stringify(buildSpec, null, 2)
@@ -2199,7 +2199,7 @@ export function renderBuildView(isMobile) {
   var activeSolution = this.getActiveSolution();
   var result = _customState.diagnosisResult || buildDiagnosisResult(_customState.diagnosisText || '', _customState.activeIndustry, activeSolution);
   var buildSpec = _customState.buildSpec || createBuildSpec(result, activeSolution);
-  var buildPrompt = _customState.buildPrompt || buildOpenYidaRunnerPrompt(buildSpec);
+  var buildPrompt = _customState.buildPrompt || buildYidaConnectorRunnerPrompt(buildSpec);
   var statusText = _customState.buildSubmitting ? '写入中' : _customState.buildTaskStatus;
   var resultText = '已准备应用蓝图：' + buildSpec.forms.length + ' 张表单、' + buildSpec.processes.length + ' 条流程、' + buildSpec.pages.length + ' 个页面、' + buildSpec.sampleData.length + ' 类演示数据。';
   return (

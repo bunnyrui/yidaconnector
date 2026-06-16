@@ -26,14 +26,14 @@
       "title": "方案包",
       "type": "receipt",
       "fieldsFile": "fields/solution-package-fields.json",
-      "purpose": "沉淀可复用行业方案、成熟度、OpenYida 覆盖度、Prompt 和交付资产。"
+      "purpose": "沉淀可复用行业方案、成熟度、YidaConnector 覆盖度、Prompt 和交付资产。"
     },
     {
       "key": "demoInstance",
       "title": "Demo 实例",
       "type": "receipt",
       "fieldsFile": "fields/demo-instance-fields.json",
-      "purpose": "跟踪 OpenYida 创建的样板应用、页面地址、搭建任务、演示反馈和改版状态。"
+      "purpose": "跟踪 YidaConnector 创建的样板应用、页面地址、搭建任务、演示反馈和改版状态。"
     },
     {
       "key": "meetingNote",
@@ -61,7 +61,7 @@
     {
       "title": "AI 解决方案中心首页",
       "source": "project/pages/src/demo-dingtalk-ai-solution-center.oyd.jsx",
-      "purpose": "SA 工作台、客户拜访、主管看板、方案包、OpenYida 搭建和客户材料。"
+      "purpose": "SA 工作台、客户拜访、主管看板、方案包、YidaConnector 搭建和客户材料。"
     }
   ],
   "automationIdeas": [

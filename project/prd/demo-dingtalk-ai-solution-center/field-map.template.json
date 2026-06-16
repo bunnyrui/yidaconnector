@@ -43,7 +43,7 @@
       "scenarios": { "label": "适用场景", "fieldId": "multiSelectField_xxx" },
       "maturityLevel": { "label": "成熟度等级", "fieldId": "selectField_xxx" },
       "maturityScore": { "label": "成熟度评分", "fieldId": "numberField_xxx" },
-      "openyidaCoverage": { "label": "OpenYida覆盖度", "fieldId": "numberField_xxx" },
+      "yidaconnectorCoverage": { "label": "YidaConnector覆盖度", "fieldId": "numberField_xxx" },
       "customerProblem": { "label": "客户问题", "fieldId": "textareaField_xxx" },
       "valueProp": { "label": "价值主张", "fieldId": "textareaField_xxx" },
       "blueprint": { "label": "应用蓝图", "fieldId": "textareaField_xxx" },

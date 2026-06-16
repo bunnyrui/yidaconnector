@@ -6,7 +6,7 @@
 
 ✅ **钉钉 CLI (dws) 完整集成**
 
-现在可以通过 `openyida dws` 命令直接使用钉钉官方 CLI 工具的所有功能，包括：
+现在可以通过 `yidaconnector dws` 命令直接使用钉钉官方 CLI 工具的所有功能，包括：
 
 - 📇 **通讯录管理** - 用户/部门搜索与管理
 - 📅 **日历日程** - 事件创建、闲忙查询、会议室预定
@@ -62,24 +62,24 @@
 
 #### 查看帮助
 ```bash
-openyida dws --help
+yidaconnector dws --help
 ```
 
 #### 安装钉钉 CLI
 ```bash
-openyida dws install
+yidaconnector dws install
 ```
 
 #### 使用钉钉 API
 ```bash
 # 搜索联系人
-openyida dws contact user search --keyword "悟空"
+yidaconnector dws contact user search --keyword "悟空"
 
 # 创建待办
-openyida dws todo task create --title "任务" --executors "userId"
+yidaconnector dws todo task create --title "任务" --executors "userId"
 
 # 列出日历事件
-openyida dws calendar event list
+yidaconnector dws calendar event list
 ```
 
 ### 技术实现
@@ -87,7 +87,7 @@ openyida dws calendar event list
 #### 架构设计
 ```
 ┌─────────────────────────────────────┐
-│   OpenYida (bin/yida.js)           │
+│   YidaConnector (bin/yida.js)           │
 │   ┌─────────────────────────────┐  │
 │   │ dws 命令路由                │  │
 │   └──────────┬──────────────────┘  │
@@ -114,7 +114,7 @@ openyida dws calendar event list
 ```
 
 #### 工作流程
-1. **命令接收**: `openyida dws <command>` → `bin/yida.js` 路由
+1. **命令接收**: `yidaconnector dws <command>` → `bin/yida.js` 路由
 2. **安装检测**: `dws-wrapper.js` 检查 dws 是否已安装
 3. **自动安装**: 如未安装，提示并引导用户安装
 4. **命令透传**: 使用 `spawn` 执行 dws 命令，继承 stdio
@@ -175,7 +175,7 @@ node tests/dws-integration.test.js
 - ✅ 使用系统安装的 dws 二进制文件
 
 #### 系统要求
-- Node.js >= 18 (OpenYida 已有要求)
+- Node.js >= 18 (YidaConnector 已有要求)
 - Go 1.21+ (仅构建时需要，用户无需安装)
 - macOS / Linux / Windows
 
@@ -224,14 +224,14 @@ node tests/dws-integration.test.js
 - [钉钉 CLI 官方仓库](https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli)
 - [钉钉开放平台](https://open.dingtalk.com/)
 - [MCP 协议规范](https://modelcontextprotocol.io/)
-- [OpenYida 项目文档](../README.md)
+- [YidaConnector 项目文档](../README.md)
 
 ### 贡献者
 
 感谢以下项目的开源贡献：
 - DingTalk-Real-AI/dingtalk-workspace-cli
-- OpenYida 社区
+- YidaConnector 社区
 
 ### 许可证
 
-遵循 OpenYida 项目的 MIT 许可证
+遵循 YidaConnector 项目的 MIT 许可证

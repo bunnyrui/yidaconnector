@@ -5,7 +5,7 @@
 ### 步骤 1: 安装钉钉 CLI
 
 ```bash
-openyida dws install
+yidaconnector dws install
 ```
 
 或手动安装：
@@ -37,13 +37,13 @@ export DWS_CLIENT_SECRET="your-client-secret"
 
 **方式二：命令参数**
 ```bash
-openyida dws auth login --client-id your-client-id --client-secret your-client-secret
+yidaconnector dws auth login --client-id your-client-id --client-secret your-client-secret
 ```
 
 ### 步骤 5: 登录
 
 ```bash
-openyida dws auth login
+yidaconnector dws auth login
 ```
 
 按照提示完成 OAuth 设备流认证。
@@ -54,53 +54,53 @@ openyida dws auth login
 
 ```bash
 # 基础搜索
-openyida dws contact user search --keyword "张三"
+yidaconnector dws contact user search --keyword "张三"
 
 # JSON 输出（适合 AI Agent）
-openyida dws contact user search --keyword "张三" -f json
+yidaconnector dws contact user search --keyword "张三" -f json
 
 # 保存到文件
-openyida dws contact user search --keyword "张三" -o contacts.json
+yidaconnector dws contact user search --keyword "张三" -o contacts.json
 ```
 
 ### 场景 2: 创建待办事项
 
 ```bash
 # 创建个人待办
-openyida dws todo task create --title "准备周报" --executors "your-userid"
+yidaconnector dws todo task create --title "准备周报" --executors "your-userid"
 
 # 创建团队待办
-openyida dws todo task create --title "项目评审" --executors "userid1,userid2,userid3"
+yidaconnector dws todo task create --title "项目评审" --executors "userid1,userid2,userid3"
 
 # 列出所有待办
-openyida dws todo task list
+yidaconnector dws todo task list
 ```
 
 ### 场景 3: 查询考勤记录
 
 ```bash
 # 查询今日打卡记录
-openyida dws attendance record list
+yidaconnector dws attendance record list
 
 # 查询指定用户的考勤
-openyida dws attendance record list --userids "your-userid"
+yidaconnector dws attendance record list --userids "your-userid"
 ```
 
 ### 场景 4: 管理日历日程
 
 ```bash
 # 列出今天的日程
-openyida dws calendar event list
+yidaconnector dws calendar event list
 
 # 创建会议
-openyida dws calendar event create \
+yidaconnector dws calendar event create \
   --title "周会" \
   --start-time "2026-03-29T10:00:00+08:00" \
   --end-time "2026-03-29T11:00:00+08:00" \
   --participants "userid1,userid2"
 
 # 查询闲忙状态
-openyida dws calendar free-busy query \
+yidaconnector dws calendar free-busy query \
   --userids "userid1,userid2" \
   --start-time "2026-03-29T09:00:00+08:00" \
   --end-time "2026-03-29T18:00:00+08:00"
@@ -110,25 +110,25 @@ openyida dws calendar free-busy query \
 
 ```bash
 # 发送文本消息
-openyida dws chat robot send --content "大家好，记得提交周报！"
+yidaconnector dws chat robot send --content "大家好，记得提交周报！"
 
 # 发送 Markdown 消息
-openyida dws chat robot send --content "## 会议通知\n时间：今天下午 3 点\n地点：会议室 A"
+yidaconnector dws chat robot send --content "## 会议通知\n时间：今天下午 3 点\n地点：会议室 A"
 ```
 
 ### 场景 6: 审批流程管理
 
 ```bash
 # 列出所有审批实例
-openyida dws approval instance list
+yidaconnector dws approval instance list
 
 # 创建请假审批
-openyida dws approval instance create \
+yidaconnector dws approval instance create \
   --processCode "leave" \
   --formData '{"duration": "3", "reason": "事假"}'
 
 # 查看审批详情
-openyida dws approval instance get --instanceId "INSTANCE-123"
+yidaconnector dws approval instance get --instanceId "INSTANCE-123"
 ```
 
 ## AI Agent 集成示例
@@ -140,14 +140,14 @@ openyida dws approval instance get --instanceId "INSTANCE-123"
 const { execSync } = require('child_process');
 
 // 搜索联系人
-const result = execSync('openyida dws contact user search --keyword "悟空" -f json', {
+const result = execSync('yidaconnector dws contact user search --keyword "悟空" -f json', {
   encoding: 'utf8'
 });
 const users = JSON.parse(result);
 console.log(users);
 
 // 创建待办
-execSync('openyida dws todo task create --title "代码审查" --executors "userId123"', {
+execSync('yidaconnector dws todo task create --title "代码审查" --executors "userId123"', {
   stdio: 'inherit'
 });
 ```
@@ -172,25 +172,25 @@ execSync('openyida dws todo task create --title "代码审查" --executors "user
 ### 1. 预览操作（不执行）
 
 ```bash
-openyida dws todo task list --dry-run
+yidaconnector dws todo task list --dry-run
 ```
 
 ### 2. 查看详细日志
 
 ```bash
-openyida dws contact user search --keyword "张三" --debug
+yidaconnector dws contact user search --keyword "张三" --debug
 ```
 
 ### 3. 检查版本
 
 ```bash
-openyida dws version
+yidaconnector dws version
 ```
 
 ### 4. 查看配置
 
 ```bash
-openyida dws config list
+yidaconnector dws config list
 ```
 
 ## 常见问题排查
@@ -201,16 +201,16 @@ openyida dws config list
 which dws
 
 # 如果未安装，执行
-openyida dws install
+yidaconnector dws install
 ```
 
 ### Q2: 提示「认证失败」
 ```bash
 # 检查是否已登录
-openyida dws auth status
+yidaconnector dws auth status
 
 # 重新登录
-openyida dws auth login
+yidaconnector dws auth login
 ```
 
 ### Q3: 提示「权限不足」
@@ -222,13 +222,13 @@ openyida dws auth login
 ### Q4: JSON 解析失败
 始终使用 `-f json` 参数获取结构化输出：
 ```bash
-openyida dws contact user search --keyword "张三" -f json
+yidaconnector dws contact user search --keyword "张三" -f json
 ```
 
 ## 下一步
 
-- 查看完整命令列表：`openyida dws help`
-- 查看特定服务帮助：`openyida dws contact --help`
+- 查看完整命令列表：`yidaconnector dws help`
+- 查看特定服务帮助：`yidaconnector dws contact --help`
 - 查看详细文档：`docs/dws-cli-guide.md`
 - 访问官方文档：https://github.com/DingTalk-Real-AI/dingtalk-workspace-cli
 
@@ -238,7 +238,7 @@ openyida dws contact user search --keyword "张三" -f json
 
 ```bash
 # 在 ~/.zshrc 或 ~/.bashrc 中添加
-alias dws='openyida dws'
+alias dws='yidaconnector dws'
 
 # 然后可以直接使用
 dws contact user search --keyword "张三"
@@ -248,7 +248,7 @@ dws contact user search --keyword "张三"
 
 ```bash
 # 搜索联系人并提取 userId
-openyida dws contact user search --keyword "张三" -f json | jq '.[0].userId'
+yidaconnector dws contact user search --keyword "张三" -f json | jq '.[0].userId'
 ```
 
 ### 技巧 3: 批量操作
@@ -256,7 +256,7 @@ openyida dws contact user search --keyword "张三" -f json | jq '.[0].userId'
 ```bash
 # 批量创建待办（从文件读取）
 cat tasks.json | while read task; do
-  openyida dws todo task create --title "$task" --executors "userId"
+  yidaconnector dws todo task create --title "$task" --executors "userId"
 done
 ```
 
@@ -264,5 +264,5 @@ done
 
 ```bash
 # 每天上午 9 点提醒提交日报（crontab）
-0 9 * * * openyida dws chat robot send --content "记得提交日报！" >> /tmp/daily-reminder.log
+0 9 * * * yidaconnector dws chat robot send --content "记得提交日报！" >> /tmp/daily-reminder.log
 ```

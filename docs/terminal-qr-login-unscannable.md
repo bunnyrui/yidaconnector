@@ -2,11 +2,11 @@
 
 ## Summary
 
-Running `openyida login` in the Yida terminal can render a QR code that DingTalk cannot recognize. The terminal output shows a distorted QR image with wrapped or stretched rows, so scanning the code fails before the login flow can continue.
+Running `yidaconnector login` in the Yida terminal can render a QR code that DingTalk cannot recognize. The terminal output shows a distorted QR image with wrapped or stretched rows, so scanning the code fails before the login flow can continue.
 
 ## Environment
 
-- Command: `openyida login`
+- Command: `yidaconnector login`
 - Shell: Windows PowerShell inside the Yida terminal
 - Platform observed: Windows
 - Scanner app: DingTalk
@@ -17,7 +17,7 @@ Running `openyida login` in the Yida terminal can render a QR code that DingTalk
 2. Run:
 
    ```powershell
-   openyida login
+   yidaconnector login
    ```
 
 3. Wait for the terminal QR code to render.

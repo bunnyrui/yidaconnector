@@ -12,7 +12,7 @@ import { registerDataTools } from "./tools/data-tools.js";
 import { registerReportTools } from "./tools/report-tools.js";
 import { registerAuthTools } from "./tools/auth-tools.js";
 
-const SERVER_NAME = "openyida-mcp-app";
+const SERVER_NAME = "yidaconnector-mcp-app";
 const SERVER_VERSION = "1.0.0";
 
 /**

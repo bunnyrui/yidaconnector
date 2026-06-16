@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * main.ts — OpenYida MCP App Server 入口
+ * main.ts — YidaConnector MCP App Server 入口
  *
  * 支持两种 transport：
  *   --stdio   本地客户端（Claude Desktop、Cursor 等）
  *   默认       Streamable HTTP（远程 Agent / Web 客户端）
  *
  * 用法：
- *   openyida-mcp --stdio          # stdio 模式
- *   openyida-mcp                  # HTTP 模式（默认端口 3001）
- *   PORT=8080 openyida-mcp        # 自定义端口
+ *   yidaconnector-mcp --stdio          # stdio 模式
+ *   yidaconnector-mcp                  # HTTP 模式（默认端口 3001）
+ *   PORT=8080 yidaconnector-mcp        # 自定义端口
  */
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -64,11 +64,11 @@ async function startStreamableHTTPServer(
 
   // Health check endpoint
   app.get("/health", (_req: Request, res: Response) => {
-    res.json({ status: "ok", server: "openyida-mcp-app" });
+    res.json({ status: "ok", server: "yidaconnector-mcp-app" });
   });
 
   const httpServer = app.listen(port, () => {
-    console.log(`OpenYida MCP App Server listening on http://localhost:${port}/mcp`);
+    console.log(`YidaConnector MCP App Server listening on http://localhost:${port}/mcp`);
   });
 
   const shutdown = () => {

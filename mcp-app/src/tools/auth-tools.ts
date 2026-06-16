@@ -24,7 +24,7 @@ export function registerAuthTools(server: McpServer): void {
               type: "text" as const,
               text: JSON.stringify({
                 loggedIn: false,
-                message: "Not logged in. Run 'openyida login' to authenticate.",
+                message: "Not logged in. Run 'yidaconnector login' to authenticate.",
               }),
             },
           ],
@@ -59,7 +59,7 @@ export function registerAuthTools(server: McpServer): void {
     async () => {
       const { execSync } = await import("node:child_process");
       try {
-        const output = execSync("openyida env", { encoding: "utf-8", timeout: 10000 });
+        const output = execSync("yidaconnector env", { encoding: "utf-8", timeout: 10000 });
         return { content: [{ type: "text" as const, text: output }] };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -84,7 +84,7 @@ export function registerAuthTools(server: McpServer): void {
       const { execSync } = await import("node:child_process");
       const qrFlag = method === "qr" ? " --qr" : "";
       try {
-        const output = execSync(`openyida login${qrFlag}`, {
+        const output = execSync(`yidaconnector login${qrFlag}`, {
           encoding: "utf-8",
           timeout: 120000,
         });

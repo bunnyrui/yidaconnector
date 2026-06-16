@@ -1,10 +1,10 @@
 <div align="center">
 
-# @openyida/mcp-app
+# @yidaconnector/mcp-app
 
 **Interactive UIs for Yida low-code platform — renders inline in Claude, ChatGPT, VS Code and other MCP hosts.**
 
-[![npm version](https://img.shields.io/npm/v/@openyida/mcp-app?color=brightgreen)](https://www.npmjs.com/package/@openyida/mcp-app)
+[![npm version](https://img.shields.io/npm/v/@yidaconnector/mcp-app?color=brightgreen)](https://www.npmjs.com/package/@yidaconnector/mcp-app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../LICENSE)
 [![Node.js ≥18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
@@ -14,7 +14,7 @@
 
 ## What is this?
 
-`@openyida/mcp-app` is an [MCP Apps](https://github.com/modelcontextprotocol/ext-apps) server that brings **interactive UIs** for [Yida (宜搭)](https://www.aliwork.com) low-code platform directly into AI chat conversations.
+`@yidaconnector/mcp-app` is an [MCP Apps](https://github.com/modelcontextprotocol/ext-apps) server that brings **interactive UIs** for [Yida (宜搭)](https://www.aliwork.com) low-code platform directly into AI chat conversations.
 
 Instead of getting plain text responses, you see:
 
@@ -31,9 +31,9 @@ Add to your MCP client config:
 ```json
 {
   "mcpServers": {
-    "openyida": {
+    "yidaconnector": {
       "command": "npx",
-      "args": ["-y", "@openyida/mcp-app", "--stdio"]
+      "args": ["-y", "@yidaconnector/mcp-app", "--stdio"]
     }
   }
 }
@@ -42,19 +42,19 @@ Add to your MCP client config:
 ### Use with HTTP transport
 
 ```bash
-npx @openyida/mcp-app
+npx @yidaconnector/mcp-app
 # Server listening on http://localhost:3001/mcp
 ```
 
 ## Prerequisites
 
 - **Node.js ≥ 18**
-- **openyida** CLI installed (`npm install -g openyida`) — needed for authentication
+- **yidaconnector** CLI installed (`npm install -g yidaconnector`) — needed for authentication
 
 Before using MCP tools, log in to Yida:
 
 ```bash
-openyida login
+yidaconnector login
 ```
 
 ## Available Tools

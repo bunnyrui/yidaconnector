@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-var CARD_TITLE = 'OpenYida compat compiler smoke test';
+var CARD_TITLE = 'YidaConnector compat compiler smoke test';
 
 export default function Page() {
   const [count, setCount] = useState(0);

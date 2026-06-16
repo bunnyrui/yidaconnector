@@ -327,12 +327,6 @@ npm run check:ci
 - 宜搭 API 请求使用当前环境的 base URL 和已认证的 Cookie。
 - 多组织账号在非交互式自动化场景中建议显式传 `--corp-id`。
 
-## 社区
-
-扫码加入 YidaConnector 钉钉用户群，获取更新与支持。
-
-![加入 YidaConnector 社区](https://img.alicdn.com/imgextra/i4/O1CN01RAlxmO1qF1cxRguyj_!!6000000005465-2-tps-350-356.png)
-
 ## 贡献者
 
 感谢所有为 YidaConnector 贡献过代码的人。阅读[贡献指南](./CONTRIBUTING.md)参与项目。

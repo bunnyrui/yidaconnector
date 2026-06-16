@@ -1,12 +1,12 @@
-# Contributing to OpenYida
+# Contributing to YidaConnector
 
-Welcome to OpenYida! 🎉 Thank you for your interest in contributing.
+Welcome to YidaConnector! 🎉 Thank you for your interest in contributing.
 
 ## Quick Links
 
-- **GitHub:** https://github.com/openyida/openyida
-- **Issues:** https://github.com/openyida/openyida/issues
-- **npm:** https://www.npmjs.com/package/openyida
+- **GitHub:** https://github.com/bunnyrui/yidaconnector
+- **Issues:** https://github.com/bunnyrui/yidaconnector/issues
+- **npm:** https://www.npmjs.com/package/yidaconnector
 
 ## Maintainers
 
@@ -29,8 +29,8 @@ Welcome to OpenYida! 🎉 Thank you for your interest in contributing.
 
 ```bash
 # 1. Fork and clone the repo
-git clone git@github.com:your-username/openyida.git
-cd openyida
+git clone git@github.com:your-username/yidaconnector.git
+cd yidaconnector
 
 # 2. Install dependencies
 npm install
@@ -45,7 +45,7 @@ npm link
 npm run check:ci
 ```
 
-Codex contributors do not need Playwright for the default login path. In Codex, use `openyida login` or `openyida login --codex` to hand off login to the Codex in-app browser. For terminal QR verification, use `openyida login --qr --corp-id <corpId>` when the account belongs to multiple organizations.
+Codex contributors do not need Playwright for the default login path. In Codex, use `yidaconnector login` or `yidaconnector login --codex` to hand off login to the Codex in-app browser. For terminal QR verification, use `yidaconnector login --qr --corp-id <corpId>` when the account belongs to multiple organizations.
 
 ## PR Checklist
 
@@ -85,7 +85,7 @@ chore: upgrade dependencies
 ## Project Structure
 
 ```
-openyida/
+yidaconnector/
 ├── bin/yida.js          # CLI entry point, command routing
 ├── lib/                 # Command implementation modules
 │   ├── core/            # Environment detection, i18n, utilities

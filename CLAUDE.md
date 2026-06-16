@@ -1,4 +1,4 @@
-# OpenYida — Claude Code 开发指引
+# YidaConnector — Claude Code 开发指引
 
 > 本文件专为 Claude Code 优化，提供快速上手所需的关键信息。
 > 更完整的项目上下文请参考 [AGENTS.md](./AGENTS.md)。
@@ -36,16 +36,16 @@ node --check lib/xxx.js  # 语法检查
 
 ## Codex 特殊说明
 
-- Codex 环境下 `openyida login` 默认缓存优先；无有效缓存时进入 Codex 内置浏览器登录模式
-- `openyida login --codex` 不需要 Playwright 或额外 Chromium
-- 测试终端二维码链路时使用 `openyida login --qr`
-- 多组织账号请显式传 `openyida login --qr --corp-id <corpId>`；不要由 AI 代理代替用户选择组织
+- Codex 环境下 `yidaconnector login` 默认缓存优先；无有效缓存时进入 Codex 内置浏览器登录模式
+- `yidaconnector login --codex` 不需要 Playwright 或额外 Chromium
+- 测试终端二维码链路时使用 `yidaconnector login --qr`
+- 多组织账号请显式传 `yidaconnector login --qr --corp-id <corpId>`；不要由 AI 代理代替用户选择组织
 
 ## 悟空（Wukong）特殊说明
 
 - 工作区路径含动态 uuid：`~/.real/users/{uuid}/workspace/`，通过 `AGENT_WORK_ROOT` 环境变量获取
 - `detectActiveTool()` 直接读取 `AGENT_WORK_ROOT` 作为 `workspaceRoot`，不能硬编码 `~/.real/workspace/`
-- `openyida copy` 在空目录时直接铺入 `project/` 内容（不创建 `project/` 子目录）
+- `yidaconnector copy` 在空目录时直接铺入 `project/` 内容（不创建 `project/` 子目录）
 - 悟空通过手动上传技能包，`postinstall` 不安装 `yida-skills/`
 
 ## 禁止事项

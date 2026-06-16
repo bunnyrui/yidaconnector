@@ -1,30 +1,30 @@
 <div align="center">
 
-![OpenYida](https://img.alicdn.com/imgextra/i3/O1CN01SKWbWu1aPzGXh293W_!!6000000003323-2-tps-1672-941.png)
+![YidaConnector](https://img.alicdn.com/imgextra/i3/O1CN01SKWbWu1aPzGXh293W_!!6000000003323-2-tps-1672-941.png)
 
-# OpenYida
+# YidaConnector
 
 **AI-native CLI for building DingTalk Yida low-code applications.**
 
-OpenYida connects AI coding agents with Yida's low-code platform, so developers can create apps, forms, workflows, custom pages, reports, integrations, and deployment configuration from a normal chat-driven development workflow.
+YidaConnector connects AI coding agents with Yida's low-code platform, so developers can create apps, forms, workflows, custom pages, reports, integrations, and deployment configuration from a normal chat-driven development workflow.
 
 [Quick Start](#quick-start) · [Capabilities](#capabilities) · [CLI Reference](#cli-reference) · [Examples](#examples) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md)
 
-[![npm version](https://img.shields.io/npm/v/openyida?color=brightgreen&label=npm)](https://www.npmjs.com/package/openyida)
-[![npm downloads](https://img.shields.io/npm/dm/openyida?color=blue)](https://www.npmjs.com/package/openyida)
-[![CI](https://github.com/openyida/openyida/actions/workflows/ci.yml/badge.svg)](https://github.com/openyida/openyida/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/yidaconnector?color=brightgreen&label=npm)](https://www.npmjs.com/package/yidaconnector)
+[![npm downloads](https://img.shields.io/npm/dm/yidaconnector?color=blue)](https://www.npmjs.com/package/yidaconnector)
+[![CI](https://github.com/bunnyrui/yidaconnector/actions/workflows/ci.yml/badge.svg)](https://github.com/bunnyrui/yidaconnector/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-**Documentation:** [English](https://openyida.ai/docs/en) · [简体中文](https://openyida.ai/docs) · [繁體中文](https://openyida.ai/docs/zh-Hant/) · [日本語](https://openyida.ai/docs/ja/) · [한국어](https://openyida.ai/docs/ko/) · [Français](https://openyida.ai/docs/fr/) · [Deutsch](https://openyida.ai/docs/de/) · [Español](https://openyida.ai/docs/es/) · [Português](https://openyida.ai/docs/pt/) · [Tiếng Việt](https://openyida.ai/docs/vi/) · [हिन्दी](https://openyida.ai/docs/hi/) · [العربية](https://openyida.ai/docs/ar/)
+**Documentation:** [GitHub README](https://github.com/bunnyrui/yidaconnector#readme)
 
 </div>
 
 ---
 
-## What OpenYida Provides
+## What YidaConnector Provides
 
-OpenYida is a bridge between AI coding tools and Yida. It gives agents a stable command-line interface for the full application lifecycle:
+YidaConnector is a bridge between AI coding tools and Yida. It gives agents a stable command-line interface for the full application lifecycle:
 
 | Area | What you can do |
 |------|-----------------|
@@ -43,56 +43,56 @@ The result remains a native Yida application: teams can continue editing it in Y
 ### 1. Install
 
 ```bash
-npm install -g openyida
+npm install -g yidaconnector
 ```
 
-OpenYida requires Node.js 18 or later. The package exposes both `openyida` and `yida` commands.
+YidaConnector requires Node.js 18 or later. The package exposes both `yidaconnector` and `yida` commands.
 
-If Codex is already installed, OpenYida also imports a local Codex plugin during postinstall. Restart Codex after installation, then type `@宜搭` or `@openyida` in the composer to attach the OpenYida context.
+If Codex is already installed, YidaConnector also imports a local Codex plugin during postinstall. Restart Codex after installation, then type `@宜搭` or `@yidaconnector` in the composer to attach the YidaConnector context.
 
 ### 2. Check Your Environment
 
-Run this from the AI coding workspace where you want OpenYida to operate:
+Run this from the AI coding workspace where you want YidaConnector to operate:
 
 ```bash
-openyida env
-openyida env --json
-openyida commands --json
+yidaconnector env
+yidaconnector env --json
+yidaconnector commands --json
 ```
 
-OpenYida detects the active agent environment, workspace path, login state, and organization context. Use `--json` when an agent needs a stable machine-readable snapshot.
-`openyida commands --json` emits the command manifest used by the CLI help, so agents can inspect available routes without scraping terminal output.
+YidaConnector detects the active agent environment, workspace path, login state, and organization context. Use `--json` when an agent needs a stable machine-readable snapshot.
+`yidaconnector commands --json` emits the command manifest used by the CLI help, so agents can inspect available routes without scraping terminal output.
 
 ### 3. Log In
 
 ```bash
-openyida login
+yidaconnector login
 ```
 
-In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, OpenYida first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `openyida login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
+In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, YidaConnector first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `yidaconnector login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
 
-When the user names a target Yida entry URL, pass it to the login command so OpenYida can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
+When the user names a target Yida entry URL, pass it to the login command so YidaConnector can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
 
 ```bash
-openyida login https://yida-group.alibaba-inc.com/
-openyida login --alibaba
+yidaconnector login https://yida-group.alibaba-inc.com/
+yidaconnector login --alibaba
 ```
 
 The explicit QR polling command remains available:
 
 ```bash
-openyida login --agent-qr
+yidaconnector login --agent-qr
 ```
 
 For terminal QR login, use:
 
 ```bash
-openyida login --qr
-openyida login --qr --corp-id dingxxxxxxxx
-openyida login --check-only --json
+yidaconnector login --qr
+yidaconnector login --qr --corp-id dingxxxxxxxx
+yidaconnector login --check-only --json
 ```
 
-OpenYida does not install Playwright by default.
+YidaConnector does not install Playwright by default.
 
 ### 4. Build With an AI Agent
 
@@ -104,13 +104,13 @@ Build an IPD workflow for chip production, including approval nodes and dashboar
 Generate a public landing page and publish it to my Yida app.
 ```
 
-The agent can then call OpenYida commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, QoderWork, Qoder, and Wukong environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
+The agent can then call YidaConnector commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, QoderWork, Qoder, and Wukong environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
 
 ## Wukong Installation
 
 Wukong uses manual skill package installation instead of npm:
 
-1. Download the latest `.zip` skill package from [GitHub Releases](https://github.com/openyida/openyida/releases).
+1. Download the latest `.zip` skill package from [GitHub Releases](https://github.com/bunnyrui/yidaconnector/releases).
 2. Open Wukong.
 3. Go to **Skill Center** > **Upload Skill** and select the downloaded package.
 
@@ -138,7 +138,7 @@ export PATH="$HOME/.real/.bin/node/bin:$PATH"
 
 ```mermaid
 flowchart LR
-  A["AI coding agent"] --> B["OpenYida CLI"]
+  A["AI coding agent"] --> B["YidaConnector CLI"]
   B --> C["Environment detection"]
   B --> D["Login and organization context"]
   B --> E["Yida API operations"]
@@ -147,12 +147,12 @@ flowchart LR
   F --> G
 ```
 
-OpenYida keeps platform-specific behavior inside the CLI, while agents interact with predictable commands and project files.
+YidaConnector keeps platform-specific behavior inside the CLI, while agents interact with predictable commands and project files.
 
 ## Project Layout
 
 ```text
-openyida/
+yidaconnector/
 ├── bin/yida.js                 # CLI entry and command routing
 ├── lib/
 │   ├── app/                    # Application, form, page, import/export commands
@@ -161,7 +161,7 @@ openyida/
 │   ├── core/                   # Environment detection, i18n, diagnostics, data commands
 │   ├── process/                # Process form creation, configuration, preview
 │   ├── report/                 # Yida report and chart generation
-│   └── samples/                # Templates emitted by openyida sample
+│   └── samples/                # Templates emitted by yidaconnector sample
 ├── project/                    # Default workspace template for generated Yida projects
 ├── yida-skills/                # Source skill docs and Yida API references
 └── scripts/                    # CI, packaging, and installation helpers
@@ -172,39 +172,39 @@ openyida/
 ### Application and Form Management
 
 ```bash
-openyida create-app "CRM"
-openyida create-app --name "CRM" --desc "Customer management" --theme deepBlue
-openyida app-list --size 20
-openyida corp-efficiency
-openyida create-form create APP_XXX "Customer" .cache/openyida/forms/customer-fields.json
-openyida create-form update APP_XXX FORM_XXX .cache/openyida/forms/customer-changes.json
-openyida get-schema APP_XXX FORM_XXX
-openyida get-schema APP_XXX --all --output-dir .cache/schemas
+yidaconnector create-app "CRM"
+yidaconnector create-app --name "CRM" --desc "Customer management" --theme deepBlue
+yidaconnector app-list --size 20
+yidaconnector corp-efficiency
+yidaconnector create-form create APP_XXX "Customer" .cache/yidaconnector/forms/customer-fields.json
+yidaconnector create-form update APP_XXX FORM_XXX .cache/yidaconnector/forms/customer-changes.json
+yidaconnector get-schema APP_XXX FORM_XXX
+yidaconnector get-schema APP_XXX --all --output-dir .cache/schemas
 ```
 
 ### Custom Page Development
 
 ```bash
-openyida create-page APP_XXX "Dashboard" --mode dashboard
-openyida generate-page product-homepage --spec .cache/openyida/page-specs/home.json --output pages/src/home.oyd.jsx --compile
-openyida generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile
-openyida check-page pages/src/home.oyd.jsx
-openyida compile pages/src/home.oyd.jsx
-openyida publish pages/src/home.oyd.jsx APP_XXX FORM_XXX
+yidaconnector create-page APP_XXX "Dashboard" --mode dashboard
+yidaconnector generate-page product-homepage --spec .cache/yidaconnector/page-specs/home.json --output pages/src/home.oyd.jsx --compile
+yidaconnector generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile
+yidaconnector check-page pages/src/home.oyd.jsx
+yidaconnector compile pages/src/home.oyd.jsx
+yidaconnector publish pages/src/home.oyd.jsx APP_XXX FORM_XXX
 ```
 
-`generate-page` turns a structured spec into a Page IR, renders a curated React 16-compatible template, writes a `.openyida-page.json` manifest, and optionally compiles the result. The manifest makes follow-up AI edits safer because agents can update known blocks instead of rewriting a large JSX file by hand.
+`generate-page` turns a structured spec into a Page IR, renders a curated React 16-compatible template, writes a `.yidaconnector-page.json` manifest, and optionally compiles the result. The manifest makes follow-up AI edits safer because agents can update known blocks instead of rewriting a large JSX file by hand.
 Built-in templates currently include `product-homepage` for product/portal pages and `todo-mvc` for a full interaction smoke page covering events, custom state, list rendering, editing, filtering, and localStorage persistence.
 
 ### Workflow, Data, and Permissions
 
 ```bash
-openyida create-process APP_XXX "Purchase Request" .cache/openyida/process/fields.json .cache/openyida/process/process.json
-openyida configure-process APP_XXX FORM_XXX .cache/openyida/process/process.json
-openyida process preview APP_XXX PROC_INST_XXX --output .cache/openyida/process/process.html
-openyida data query form APP_XXX FORM_XXX --page 1 --size 20
-openyida data create form APP_XXX FORM_XXX --data-file .cache/openyida/data-import/record.json
-openyida get-permission APP_XXX FORM_XXX
+yidaconnector create-process APP_XXX "Purchase Request" .cache/yidaconnector/process/fields.json .cache/yidaconnector/process/process.json
+yidaconnector configure-process APP_XXX FORM_XXX .cache/yidaconnector/process/process.json
+yidaconnector process preview APP_XXX PROC_INST_XXX --output .cache/yidaconnector/process/process.html
+yidaconnector data query form APP_XXX FORM_XXX --page 1 --size 20
+yidaconnector data create form APP_XXX FORM_XXX --data-file .cache/yidaconnector/data-import/record.json
+yidaconnector get-permission APP_XXX FORM_XXX
 ```
 
 `configure-process` 的流程 JSON 中，审批人可配置为发起人、指定成员、指定角色、部门主管或直属主管，例如：
@@ -225,21 +225,21 @@ openyida get-permission APP_XXX FORM_XXX
 }
 ```
 
-When creating or updating test data with `openyida data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
-Temporary JSON, CSV, and one-off import scripts should live under `.cache/openyida/` so generated run artifacts do not clutter the repository root.
+When creating or updating test data with `yidaconnector data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
+Temporary JSON, CSV, and one-off import scripts should live under `.cache/yidaconnector/` so generated run artifacts do not clutter the repository root.
 
 ### Real Environment E2E
 
-Most checks should stay offline, but OpenYida also includes an explicit real-environment smoke path for release and nightly validation:
+Most checks should stay offline, but YidaConnector also includes an explicit real-environment smoke path for release and nightly validation:
 
 ```bash
-OPENYIDA_E2E=1 npm run test:e2e:real
-OPENYIDA_E2E=1 npm run test:e2e:real:full
-OPENYIDA_E2E=1 OPENYIDA_E2E_FULL_STAGES=auth,app,form,process npm run test:e2e:real:full
+YIDACONNECTOR_E2E=1 npm run test:e2e:real
+YIDACONNECTOR_E2E=1 npm run test:e2e:real:full
+YIDACONNECTOR_E2E=1 YIDACONNECTOR_E2E_FULL_STAGES=auth,app,form,process npm run test:e2e:real:full
 npm run test:e2e:real:skills
 ```
 
-The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. To inject CI cookies without relying on a local login cache, pass `OPENYIDA_E2E_COOKIES_BASE64` as a base64 encoded cookie array or `{ "cookies": [...] }` object.
+The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. To inject CI cookies without relying on a local login cache, pass `YIDACONNECTOR_E2E_COOKIES_BASE64` as a base64 encoded cookie array or `{ "cookies": [...] }` object.
 
 `test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. AI-backed commands such as `flash-to-prd` are available as the optional `ai` stage because they depend on remote model availability. Workflow mutation is available as the opt-in `process` stage; it creates and republishes a workflow on the disposable E2E form and records advanced official-node fixtures for review.
 
@@ -251,178 +251,178 @@ Useful options:
 
 | Env var | Purpose |
 |---------|---------|
-| `OPENYIDA_E2E_PREFIX` | Override the disposable resource name prefix |
-| `OPENYIDA_E2E_CORP_ID` | Switch to the dedicated test organization before creating resources |
-| `OPENYIDA_E2E_RESULT_APP_NAME` | Override the final app name shown as the full-run result |
-| `OPENYIDA_E2E_BASE_URL` | Override the Yida base URL for private deployments |
-| `OPENYIDA_E2E_FIELDS_FILE` | Use a custom form fields fixture |
-| `OPENYIDA_E2E_PAGE_SOURCE` | Use a custom page source for publish verification |
-| `OPENYIDA_E2E_SKIP_PUBLISH=1` | Skip custom page creation and publish |
-| `OPENYIDA_E2E_REGISTRY_DIR` | Write registries outside `project/.cache/e2e-real/` |
-| `OPENYIDA_E2E_FULL_STAGES` | Comma-separated stage list for `test:e2e:real:full`; use `all` or omit for the default broad matrix |
+| `YIDACONNECTOR_E2E_PREFIX` | Override the disposable resource name prefix |
+| `YIDACONNECTOR_E2E_CORP_ID` | Switch to the dedicated test organization before creating resources |
+| `YIDACONNECTOR_E2E_RESULT_APP_NAME` | Override the final app name shown as the full-run result |
+| `YIDACONNECTOR_E2E_BASE_URL` | Override the Yida base URL for private deployments |
+| `YIDACONNECTOR_E2E_FIELDS_FILE` | Use a custom form fields fixture |
+| `YIDACONNECTOR_E2E_PAGE_SOURCE` | Use a custom page source for publish verification |
+| `YIDACONNECTOR_E2E_SKIP_PUBLISH=1` | Skip custom page creation and publish |
+| `YIDACONNECTOR_E2E_REGISTRY_DIR` | Write registries outside `project/.cache/e2e-real/` |
+| `YIDACONNECTOR_E2E_FULL_STAGES` | Comma-separated stage list for `test:e2e:real:full`; use `all` or omit for the default broad matrix |
 
-Use `npm run test:e2e:real:cleanup` to list recorded disposable resources. OpenYida does not yet expose a safe app/form deletion command, so cleanup is intentionally a registry-backed audit step rather than an automatic destructive action.
+Use `npm run test:e2e:real:cleanup` to list recorded disposable resources. YidaConnector does not yet expose a safe app/form deletion command, so cleanup is intentionally a registry-backed audit step rather than an automatic destructive action.
 
 ### Connectors, Integrations, and Reports
 
 ```bash
-openyida connector smart-create --curl "curl https://api.example.com/users"
-openyida connector list
-openyida integration create APP_XXX FORM_XXX "Sync customer data"
-openyida integration create APP_XXX FORM_XXX "Approval result notify" \
+yidaconnector connector smart-create --curl "curl https://api.example.com/users"
+yidaconnector connector list
+yidaconnector integration create APP_XXX FORM_XXX "Sync customer data"
+yidaconnector integration create APP_XXX FORM_XXX "Approval result notify" \
   --events processFinish --approval-actions agree,disagree --receivers 123456
-openyida create-report APP_XXX "Sales Dashboard" .cache/openyida/reports/charts.json
-openyida append-chart APP_XXX REPORT_XXX .cache/openyida/reports/chart.json
+yidaconnector create-report APP_XXX "Sales Dashboard" .cache/yidaconnector/reports/charts.json
+yidaconnector append-chart APP_XXX REPORT_XXX .cache/yidaconnector/reports/chart.json
 ```
 
 ## CLI Reference
 
-Run `openyida --help` or `openyida <command> --help` for detailed usage.
+Run `yidaconnector --help` or `yidaconnector <command> --help` for detailed usage.
 
-<!-- OPENYIDA_COMMANDS_START -->
+<!-- YIDACONNECTOR_COMMANDS_START -->
 <!-- This section is generated by `npm run docs:commands`. Do not edit command rows by hand. -->
 
 ### Auth & Environment
 
 | Command | Description |
 |---------|-------------|
-| `openyida login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
-| `openyida logout` | Logout / switch account |
-| `openyida auth <status\|login\|refresh\|logout>` | Login state management |
-| `openyida org <list\|switch>` | Organization management (list / switch) |
-| `openyida env [--json]` | Detect AI tool environment & login state |
-| `openyida env <setup\|list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
+| `yidaconnector login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
+| `yidaconnector logout` | Logout / switch account |
+| `yidaconnector auth <status\|login\|refresh\|logout>` | Login state management |
+| `yidaconnector org <list\|switch>` | Organization management (list / switch) |
+| `yidaconnector env [--json]` | Detect AI tool environment & login state |
+| `yidaconnector env <setup\|list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
 
 ### App Management
 
 | Command | Description |
 |---------|-------------|
-| `openyida app-list [--size N]` | List my Yida apps |
-| `openyida corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
-| `openyida create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
-| `openyida update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue]` | Update app info |
-| `openyida nav-group <list\|create\|rename\|delete\|move\|hide\|show> <appType> ...` | Manage app sidebar navigation groups |
-| `openyida app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary, data, and developer admins |
-| `openyida i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language config |
-| `openyida export <appType> [output]` | Export app (generate migration package) |
-| `openyida import <file> [name]` | Import migration package, rebuild app |
+| `yidaconnector app-list [--size N]` | List my Yida apps |
+| `yidaconnector corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
+| `yidaconnector create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
+| `yidaconnector update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue]` | Update app info |
+| `yidaconnector nav-group <list\|create\|rename\|delete\|move\|hide\|show> <appType> ...` | Manage app sidebar navigation groups |
+| `yidaconnector app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary, data, and developer admins |
+| `yidaconnector i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language config |
+| `yidaconnector export <appType> [output]` | Export app (generate migration package) |
+| `yidaconnector import <file> [name]` | Import migration package, rebuild app |
 
 ### Forms & Pages
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-form create <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
-| `openyida create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
-| `openyida create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `openyida create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `openyida create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `openyida add-validation <appType> <formUuid> --field <labelOrId> --type <phone\|regex\|idCard\|email\|...> [--message <text>]` | Update a form page |
-| `openyida create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `openyida create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Update a form page |
-| `openyida list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
-| `openyida aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
-| `openyida get-schema <appType> <formUuid\|--all>` | Get one form Schema or all form Schemas |
-| `openyida create-page <appType> "<name>" [--mode dashboard] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
-| `openyida generate-page <template>` | Generate page from curated template |
-| `openyida build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
-| `openyida check-page <src> [--compat]` | Check custom page standards |
-| `openyida compile <src>` | Compile custom page locally |
-| `openyida publish <src> <appType> <formUuid> [--health-check] [--force] [--open\|--no-open]` | Compile and publish custom page |
-| `openyida update-form-config <appType> ...` | Update form configuration |
+| `yidaconnector create-form create <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
+| `yidaconnector create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
+| `yidaconnector create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | Update a form page |
+| `yidaconnector create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | Update a form page |
+| `yidaconnector create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | Update a form page |
+| `yidaconnector add-validation <appType> <formUuid> --field <labelOrId> --type <phone\|regex\|idCard\|email\|...> [--message <text>]` | Update a form page |
+| `yidaconnector create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile> [--open\|--no-open]` | Update a form page |
+| `yidaconnector create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Update a form page |
+| `yidaconnector list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
+| `yidaconnector aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
+| `yidaconnector get-schema <appType> <formUuid\|--all>` | Get one form Schema or all form Schemas |
+| `yidaconnector create-page <appType> "<name>" [--mode dashboard] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
+| `yidaconnector generate-page <template>` | Generate page from curated template |
+| `yidaconnector build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
+| `yidaconnector check-page <src> [--compat]` | Check custom page standards |
+| `yidaconnector compile <src>` | Compile custom page locally |
+| `yidaconnector publish <src> <appType> <formUuid> [--health-check] [--force] [--open\|--no-open]` | Compile and publish custom page |
+| `yidaconnector update-form-config <appType> ...` | Update form configuration |
 
 ### Data & Permissions
 
 | Command | Description |
 |---------|-------------|
-| `openyida data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
-| `openyida task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
-| `openyida basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
-| `openyida get-permission <appType> <formUuid>` | Query form permission config |
-| `openyida save-permission <appType> <formUuid> ...` | Save form permission config |
-| `openyida corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
-| `openyida agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
+| `yidaconnector data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+| `yidaconnector task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
+| `yidaconnector basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
+| `yidaconnector get-permission <appType> <formUuid>` | Query form permission config |
+| `yidaconnector save-permission <appType> <formUuid> ...` | Save form permission config |
+| `yidaconnector corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
+| `yidaconnector agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
 
 ### Process
 
 | Command | Description |
 |---------|-------------|
-| `openyida configure-process <appType> ...` | Configure and publish process rules |
-| `openyida create-process <appType> ...` | Create process form (all-in-one) |
-| `openyida ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
-| `openyida process preview <appType> ...` | Preview process instance (visual flowchart) |
+| `yidaconnector configure-process <appType> ...` | Configure and publish process rules |
+| `yidaconnector create-process <appType> ...` | Create process form (all-in-one) |
+| `yidaconnector ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
+| `yidaconnector process preview <appType> ...` | Preview process instance (visual flowchart) |
 
 ### Page Config & Sharing
 
 | Command | Description |
 |---------|-------------|
-| `openyida verify-short-url <appType> ...` | Verify short URL |
-| `openyida save-share-config <appType> ...` | Save public access / share config |
-| `openyida get-page-config <appType> <formUuid>` | Query page public access config |
-| `openyida externalize-form <appType> <formUuid> [--schema-file file]` | Plan external access-safe mirror fields |
+| `yidaconnector verify-short-url <appType> ...` | Verify short URL |
+| `yidaconnector save-share-config <appType> ...` | Save public access / share config |
+| `yidaconnector get-page-config <appType> <formUuid>` | Query page public access config |
+| `yidaconnector externalize-form <appType> <formUuid> [--schema-file file]` | Plan external access-safe mirror fields |
 
 ### Reports
 
 | Command | Description |
 |---------|-------------|
-| `openyida create-report <appType> "<name>" ... [--open\|--no-open]` | Create a Yida report |
-| `openyida append-chart <appType> <reportId> ... [--open\|--no-open]` | Append chart to existing report |
+| `yidaconnector create-report <appType> "<name>" ... [--open\|--no-open]` | Create a Yida report |
+| `yidaconnector append-chart <appType> <reportId> ... [--open\|--no-open]` | Append chart to existing report |
 
 ### Connectors
 
 | Command | Description |
 |---------|-------------|
-| `openyida connector list` | List HTTP connectors |
-| `openyida connector create "name" "domain" ...` | Create a connector |
-| `openyida connector detail <id>` | View connector details |
-| `openyida connector delete <id>` | Delete a connector |
-| `openyida connector add-action --operations <file> --connector-id <id>` | Add an action |
-| `openyida connector list-actions <id>` | List actions |
-| `openyida connector delete-action <id> <operation-id>` | Delete an action |
-| `openyida connector test --connector-id <id> --action <actionId>` | Test an action |
-| `openyida connector list-connections <id>` | List auth connections |
-| `openyida connector create-connection <id> <name>` | Create an auth connection |
-| `openyida connector smart-create --curl "..."` | Smart create connector (from cURL) |
-| `openyida connector parse-api [options]` | Parse API information |
-| `openyida connector gen-template [output]` | Generate API document template |
+| `yidaconnector connector list` | List HTTP connectors |
+| `yidaconnector connector create "name" "domain" ...` | Create a connector |
+| `yidaconnector connector detail <id>` | View connector details |
+| `yidaconnector connector delete <id>` | Delete a connector |
+| `yidaconnector connector add-action --operations <file> --connector-id <id>` | Add an action |
+| `yidaconnector connector list-actions <id>` | List actions |
+| `yidaconnector connector delete-action <id> <operation-id>` | Delete an action |
+| `yidaconnector connector test --connector-id <id> --action <actionId>` | Test an action |
+| `yidaconnector connector list-connections <id>` | List auth connections |
+| `yidaconnector connector create-connection <id> <name>` | Create an auth connection |
+| `yidaconnector connector smart-create --curl "..."` | Smart create connector (from cURL) |
+| `yidaconnector connector parse-api [options]` | Parse API information |
+| `yidaconnector connector gen-template [output]` | Generate API document template |
 
 ### Integration & DingTalk
 
 | Command | Description |
 |---------|-------------|
-| `openyida integration create <appType> ...` | Create integration automation flow |
-| `openyida integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
-| `openyida integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
-| `openyida integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
-| `openyida integration check <appType...>` | Check abnormal integration automation run logs |
-| `openyida integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | Diagnose integration automation tickets and common pitfalls |
-| `openyida dws <command> [args]` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
-| `openyida dws contact user search --keyword <text>` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
-| `openyida dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink / legacy dingtalk:// page links |
+| `yidaconnector integration create <appType> ...` | Create integration automation flow |
+| `yidaconnector integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
+| `yidaconnector integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
+| `yidaconnector integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
+| `yidaconnector integration check <appType...>` | Check abnormal integration automation run logs |
+| `yidaconnector integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | Diagnose integration automation tickets and common pitfalls |
+| `yidaconnector dws <command> [args]` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
+| `yidaconnector dws contact user search --keyword <text>` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
+| `yidaconnector dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink / legacy dingtalk:// page links |
 
 ### Utility
 
 | Command | Description |
 |---------|-------------|
-| `openyida commands [--json]` | Output machine-readable command manifest |
-| `openyida a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
-| `openyida bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start OpenYida local web bridge service |
-| `openyida copy [--force]` | Copy project working directory |
-| `openyida sample [--list]` | Output code samples/templates |
-| `openyida doctor [--fix]` | Environment diagnostics & auto-fix |
-| `openyida db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
-| `openyida formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
-| `openyida update` | Check and update to latest version |
-| `openyida export-conversation [options]` | Export AI conversation records |
-| `openyida feedback <setup\|url\|dismiss\|status> [options]` | Configure experience feedback form and local reminder state |
-| `openyida batch <file> [--stop-on-error] [--json]` | Run OpenYida commands in batch |
-| `openyida batch --commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run OpenYida commands in batch |
-| `openyida flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
-| `openyida ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
-| `openyida cdn-config [options]` | Configure CDN / OSS upload |
-| `openyida cdn-upload <image-path>` | Upload image to CDN |
-| `openyida cdn-refresh [options]` | Refresh CDN cache |
+| `yidaconnector commands [--json]` | Output machine-readable command manifest |
+| `yidaconnector a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
+| `yidaconnector bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start YidaConnector local web bridge service |
+| `yidaconnector copy [--force]` | Copy project working directory |
+| `yidaconnector sample [--list]` | Output code samples/templates |
+| `yidaconnector doctor [--fix]` | Environment diagnostics & auto-fix |
+| `yidaconnector db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
+| `yidaconnector formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
+| `yidaconnector update` | Check and update to latest version |
+| `yidaconnector export-conversation [options]` | Export AI conversation records |
+| `yidaconnector feedback <setup\|url\|dismiss\|status> [options]` | Configure experience feedback form and local reminder state |
+| `yidaconnector batch <file> [--stop-on-error] [--json]` | Run YidaConnector commands in batch |
+| `yidaconnector batch --commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run YidaConnector commands in batch |
+| `yidaconnector flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
+| `yidaconnector ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
+| `yidaconnector cdn-config [options]` | Configure CDN / OSS upload |
+| `yidaconnector cdn-upload <image-path>` | Upload image to CDN |
+| `yidaconnector cdn-refresh [options]` | Refresh CDN cache |
 
-<!-- OPENYIDA_COMMANDS_END -->
+<!-- YIDACONNECTOR_COMMANDS_END -->
 
 ### CLI Notes
 
@@ -430,39 +430,39 @@ Run `openyida --help` or `openyida <command> --help` for detailed usage.
 
 Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run. The `intl` preset uses `https://www.yidaapps.com` as the built-in Global YiDA entrypoint (not the bare `https://yidaapps.com` domain) and DingTalk International OAuth at `https://login.dingtalk.io`; business API requests still use the authenticated environment `baseUrl`, so customer custom subdomains are supported.
 
-For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation commands, or set `OPENYIDA_CONTENT_LOCALE`. OpenYida writes YiDA resource names with `zh_CN`, `en_US`, and `ja_JP` values so Global YiDA does not fall back to Chinese-only metadata.
+For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation commands, or set `YIDACONNECTOR_CONTENT_LOCALE`. YidaConnector writes YiDA resource names with `zh_CN`, `en_US`, and `ja_JP` values so Global YiDA does not fall back to Chinese-only metadata.
 
 #### Forms and Pages
 
-Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; OpenYida form rules, validations, and `openyida data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
+Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; YidaConnector form rules, validations, and `yidaconnector data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
 
-`openyida publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
+`yidaconnector publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
 
 #### Data, Permissions, and Sharing
 
-`openyida externalize-form` is useful when a form contains fields such as `AssociationFormField`, `EmployeeField`, or `DepartmentSelectField` that depend on internal organization permissions. It produces a report plus optional `--mirror-fields-output` JSON that can be used with `openyida create-form create` to build a separate public intake form while keeping the internal form and its association fields private.
+`yidaconnector externalize-form` is useful when a form contains fields such as `AssociationFormField`, `EmployeeField`, or `DepartmentSelectField` that depend on internal organization permissions. It produces a report plus optional `--mirror-fields-output` JSON that can be used with `yidaconnector create-form create` to build a separate public intake form while keeping the internal form and its association fields private.
 
 #### Workflow, Reports, and Integrations
 
-`openyida integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`.
+`yidaconnector integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`.
 
 ## Agent Skills
 
-The `yida-skills/` directory is the source skill library used by OpenYida during development. Release assets for Wukong are generated by `npm run build:skills`: the expanded package is written to `dist/skills/openyida/`, and the upload-ready zip is written to `openyida-skills.zip`.
+The `yida-skills/` directory is the source skill library used by YidaConnector during development. Release assets for Wukong are generated by `npm run build:skills`: the expanded package is written to `dist/skills/yidaconnector/`, and the upload-ready zip is written to `yidaconnector-skills.zip`.
 
 | Path | Purpose |
 |------|---------|
 | `yida-skills/SKILL.md` | Entry point and skill index |
 | `yida-skills/skills/` | Self-contained sub-skills for app, form, process, page, data, and integration work |
 | `yida-skills/references/` | Shared Yida API, model API, and query-condition references |
-| `dist/skills/openyida/` | Generated Wukong upload package root; contains one root `SKILL.md` and reference-only subskill docs |
-| `openyida-skills.zip` | Generated Wukong upload package; upload this file in Wukong |
+| `dist/skills/yidaconnector/` | Generated Wukong upload package root; contains one root `SKILL.md` and reference-only subskill docs |
+| `yidaconnector-skills.zip` | Generated Wukong upload package; upload this file in Wukong |
 
-When OpenYida is used inside a supported AI coding environment, these skills help the agent choose the right command sequence and file conventions.
+When YidaConnector is used inside a supported AI coding environment, these skills help the agent choose the right command sequence and file conventions.
 
-For Wukong manual import, upload the generated `openyida-skills.zip`. The package follows Wukong's custom skill rules: folder name and `frontmatter.name` are both `openyida`, root frontmatter only contains `name` and `description`, and long references live under `references/`.
+For Wukong manual import, upload the generated `yidaconnector-skills.zip`. The package follows Wukong's custom skill rules: folder name and `frontmatter.name` are both `yidaconnector`, root frontmatter only contains `name` and `description`, and long references live under `references/`.
 
-For Codex, `npm install -g openyida` additionally creates a local plugin marketplace under `~/.openyida/codex-plugin` and enables `openyida@openyida` in `~/.codex/config.toml` when Codex is detected. This makes OpenYida show up in Codex's `@` plugin menu as **宜搭** after Codex reloads.
+For Codex, `npm install -g yidaconnector` additionally creates a local plugin marketplace under `~/.yidaconnector/codex-plugin` and enables `yidaconnector@yidaconnector` in `~/.codex/config.toml` when Codex is detected. This makes YidaConnector show up in Codex's `@` plugin menu as **宜搭** after Codex reloads.
 
 ## Examples
 
@@ -498,7 +498,7 @@ Export the application as a migration package.
 
 ## OpenClaw Integration
 
-Use OpenYida through [yida-app](https://clawhub.ai/nicky1108/yida-app) in OpenClaw:
+Use YidaConnector through [yida-app](https://clawhub.ai/nicky1108/yida-app) in OpenClaw:
 
 ```bash
 npx clawhub@latest install nicky1108/yida-app
@@ -507,8 +507,8 @@ npx clawhub@latest install nicky1108/yida-app
 ## Development
 
 ```bash
-git clone https://github.com/openyida/openyida.git
-cd openyida
+git clone https://github.com/bunnyrui/yidaconnector.git
+cd yidaconnector
 npm install
 npm run check:ci
 ```
@@ -539,17 +539,17 @@ When adding new CLI commands, register the route in `bin/yida.js`, add it to `li
 
 ## Community
 
-Scan the QR code to join the OpenYida DingTalk user group for updates and support.
+Scan the QR code to join the YidaConnector DingTalk user group for updates and support.
 
-![Join OpenYida Community](https://img.alicdn.com/imgextra/i4/O1CN01RAlxmO1qF1cxRguyj_!!6000000005465-2-tps-350-356.png)
+![Join YidaConnector Community](https://img.alicdn.com/imgextra/i4/O1CN01RAlxmO1qF1cxRguyj_!!6000000005465-2-tps-350-356.png)
 
 ## Contributors
 
-Thanks to everyone who has contributed to OpenYida. Read the [Contributing Guide](./CONTRIBUTING.md) to get involved.
+Thanks to everyone who has contributed to YidaConnector. Read the [Contributing Guide](./CONTRIBUTING.md) to get involved.
 
 Latest contributors: [DDlixin1](https://github.com/DDlixin1), [fcloud](https://github.com/fcloud).
 
-<!-- openyida-contributors:start -->
+<!-- yidaconnector-contributors:start -->
 
 <p>
   <a href="https://github.com/yize"><img src="https://github.com/yize.png?size=48" width="48" height="48" alt="九神" title="九神" /></a>
@@ -573,7 +573,7 @@ Latest contributors: [DDlixin1](https://github.com/DDlixin1), [fcloud](https://g
   <a href="https://github.com/nandanadileep"><img src="https://github.com/nandanadileep.png?size=48" width="48" height="48" alt="nandanadileep" title="nandanadileep" /></a>
 </p>
 
-<!-- openyida-contributors:end -->
+<!-- yidaconnector-contributors:end -->
 
 ## License
 

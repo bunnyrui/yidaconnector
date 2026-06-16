@@ -14,10 +14,10 @@
 If you discover a security vulnerability, please report it privately through one of the following channels:
 
 1. **GitHub Security Advisories (recommended)**
-   Go to [Security Advisories](https://github.com/openyida/openyida/security/advisories/new) to create a private security report.
+   Go to [Security Advisories](https://github.com/bunnyrui/yidaconnector/security/advisories/new) to create a private security report.
 
 2. **Email**
-   Send an email to the maintainers with the subject line `[SECURITY] OpenYida`.
+   Send an email to the maintainers with the subject line `[SECURITY] YidaConnector`.
 
 ## Response Timeline
 
@@ -37,7 +37,7 @@ If you discover a security vulnerability, please report it privately through one
 
 ## Security Best Practices
 
-When using OpenYida, please keep the following in mind:
+When using YidaConnector, please keep the following in mind:
 
 - **Credentials**: Cookie cache is stored locally under `project/.cache/` (for example `cookies.json` or environment-specific `cookies-*.json`) — do not commit these files to version control
 - **`.gitignore`**: The project ignores `.cache/` by default — do not remove this rule manually

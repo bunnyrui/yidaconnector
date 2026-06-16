@@ -7,7 +7,7 @@ node_modules/
 /dist/
 mcp-app/dist/
 *.tgz
-openyida-skills.zip
+yidaconnector-skills.zip
 
 # TypeScript build outputs
 **/*.d.ts
@@ -54,7 +54,7 @@ coverage/
 # 根目录缓存（临时文件，不入库）
 .cache/
 !project/.cache/
-# ── openyida 用户工作区 ────────────────────────────
+# ── yidaconnector 用户工作区 ────────────────────────────
 # 登录态 & Schema 缓存（敏感信息，不入库）
 project/.cache/*
 !project/.cache/.gitkeep
@@ -71,7 +71,7 @@ project/pages/src/*
 project/pages/assets/*
 project/pages/tmp/*
 !project/pages/src/demo-*
-!project/pages/src/openyida-knowledge-doc.oyd.jsx
+!project/pages/src/yidaconnector-knowledge-doc.oyd.jsx
 
 # 需求文档（保留 demo 示例）
 /prd/

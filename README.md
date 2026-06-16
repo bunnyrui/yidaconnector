@@ -1,14 +1,12 @@
 <div align="center">
 
-![YidaConnector](https://img.alicdn.com/imgextra/i3/O1CN01SKWbWu1aPzGXh293W_!!6000000003323-2-tps-1672-941.png)
-
 # YidaConnector
 
 **宜搭数据查询与登录态管理 CLI。**
 
-YidaConnector 让 AI 编程助手（悟空 / Claude Code / Codex / Cursor / OpenCode 等）和宜搭低代码平台对接，专注于表单、流程、任务、子表单数据的查询与变更，以及登录态、多组织、多环境的管理。
+YidaConnector 是一个命令行工具，用于查询宜搭表单、流程、任务数据并管理登录态。配合 AI 编程助手使用，实现用自然语言驱动宜搭数据操作。
 
-[Quick Start](#quick-start) · [Data Command](#data-command) · [CLI Reference](#cli-reference) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md)
+[快速开始](#快速开始) · [data 命令详解](#data-命令详解) · [命令参考](#命令参考) · [贡献指南](./CONTRIBUTING.md) · [更新日志](./CHANGELOG.md)
 
 [![npm version](https://img.shields.io/npm/v/yidaconnector?color=brightgreen&label=npm)](https://www.npmjs.com/package/yidaconnector)
 [![npm downloads](https://img.shields.io/npm/dm/yidaconnector?color=blue)](https://www.npmjs.com/package/yidaconnector)
@@ -16,25 +14,23 @@ YidaConnector 让 AI 编程助手（悟空 / Claude Code / Codex / Cursor / Open
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org)
 
-**Documentation:** [GitHub README](https://github.com/bunnyrui/yidaconnector#readme)
+**文档：** [GitHub README](https://github.com/bunnyrui/yidaconnector#readme)
 
 </div>
 
 ---
 
-## Quick Start
+## 快速开始
 
-### 1. Install
+### 1. 安装
 
 ```bash
 npm install -g yidaconnector
 ```
 
-YidaConnector requires Node.js 18 or later. The package exposes both `yidaconnector` and `yida` commands.
+要求 Node.js 18 或更高版本。安装后提供 `yidaconnector` 和 `yida` 两个命令。
 
-### 2. Check Your Environment
-
-Run this from the AI coding workspace where you want YidaConnector to operate:
+### 2. 检测环境
 
 ```bash
 yidaconnector env
@@ -42,31 +38,24 @@ yidaconnector env --json
 yidaconnector commands --json
 ```
 
-YidaConnector detects the active agent environment, workspace path, login state, and organization context. Use `--json` when an agent needs a stable machine-readable snapshot.
-`yidaconnector commands --json` emits the command manifest used by the CLI help, so agents can inspect available routes without scraping terminal output.
+`env` 会检测当前 AI 工具环境、工作区路径、登录态和组织信息。加 `--json` 输出机器可读格式，方便 AI 助手解析。`commands --json` 输出完整命令清单。
 
-### 3. Log In
+### 3. 登录
 
 ```bash
 yidaconnector login
 ```
 
-In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, YidaConnector first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The explicit `yidaconnector login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
-
-When the user names a target Yida entry URL, pass it to the login command so YidaConnector can select the matching environment and cookie file. For example, Alibaba intranet Yida:
+默认缓存优先；无缓存时自动尝试本地浏览器 CDP 登录，不可用则回退到二维码。如需指定入口（如阿里内网宜搭）：
 
 ```bash
 yidaconnector login https://yida-group.alibaba-inc.com/
 yidaconnector login --alibaba
 ```
 
-For terminal QR login, use:
+更多登录方式见下方[登录与环境](#登录与环境)章节。
 
-```bash
-yidaconnector login --qr
-```
-
-### 4. Query Data
+### 4. 查询数据
 
 ```bash
 # 查询表单数据（分页）
@@ -88,24 +77,24 @@ yidaconnector data query process APP_XXX FORM_XXX --page 1 --size 10
 yidaconnector data query tasks APP_XXX --type todo
 ```
 
-## What YidaConnector Does
+## 核心能力
 
-| Area | What you can do |
-|------|-----------------|
-| **Form data** | Query / get / create / update form instances; query subform rows |
-| **Process data** | Query / get / create / update process instances; query operation records |
-| **Task operations** | Query todo / done / submitted / cc tasks; execute (approve/reject) tasks |
-| **Login state** | Login (CDP / QR / browser handoff), logout, refresh, status check |
-| **Organization** | List and switch organizations (multi-org accounts) |
-| **Environment** | Detect AI tool environment; manage public / private deployment profiles |
+| 领域 | 能做什么 |
+|------|----------|
+| **表单数据** | 查询 / 获取 / 新建 / 更新表单实例；查询子表单明细 |
+| **流程数据** | 查询 / 获取 / 发起 / 更新流程实例；查询操作记录 |
+| **任务操作** | 查询待办 / 已处理 / 我发起的 / 抄送任务；执行审批（同意/驳回） |
+| **登录态** | 登录（CDP / 二维码 / 浏览器 handoff）、登出、刷新、状态查询 |
+| **组织管理** | 列出和切换组织（多组织账号） |
+| **环境管理** | 检测 AI 工具环境；管理公有云 / 私有化多环境配置 |
 
-All data operations respect the current Yida login user's data permissions — YidaConnector never bypasses platform security controls.
+所有数据操作都遵循当前登录用户的宜搭数据权限——YidaConnector 不会绕过平台安全控制。
 
-## Data Command
+## data 命令详解
 
-`yidaconnector data` is the unified entry point for all data operations. The syntax is `data <action> <resource> [args] [options]`.
+`yidaconnector data` 是所有数据操作的统一入口，语法为 `data <action> <resource> [参数] [选项]`。
 
-### Form Operations
+### 表单操作
 
 ```bash
 # 查询表单数据（分页 / 全量 / 按条件）
@@ -125,7 +114,7 @@ yidaconnector data update form <appType> --inst-id <formInstId> --data-file .cac
 yidaconnector data query subform <appType> <formUuid> --inst-id <formInstId> --table-field-id <fieldId>
 ```
 
-### Process Operations
+### 流程操作
 
 ```bash
 # 查询流程实例
@@ -144,7 +133,7 @@ yidaconnector data update process <appType> --process-inst-id <processInstanceId
 yidaconnector data query operation-records <appType> --process-inst-id <processInstanceId>
 ```
 
-### Task Operations
+### 任务操作
 
 ```bash
 # 查询任务列表（todo=待办 / done=已处理 / submitted=我发起的 / cc=抄送）
@@ -158,28 +147,28 @@ yidaconnector data execute task <appType> \
   --remark "审批意见"
 ```
 
-### Data Command Notes
+### 注意事项
 
-- **Component aliases**: Add `--resolve-aliases` to use field aliases (like `phone`) instead of raw field IDs (like `textField_xxx`) in `--data-json` / `--search-json`.
-- **Date fields**: Yida date fields require 13-digit millisecond timestamps (e.g. `1719705600000`), not `YYYY-MM-DD` strings.
-- **Page size**: Max 100 per page; `--all` auto-paginates; `--max-pages` caps the total pages fetched.
-- **Temporary files**: Write query results, search JSON, and import data to `.cache/yidaconnector/` to keep the repository root clean.
+- **组件别名**：加 `--resolve-aliases` 可在 `--data-json` / `--search-json` 中使用字段别名（如 `phone`）代替原始 fieldId（如 `textField_xxx`）。
+- **日期字段**：宜搭日期字段要求 13 位毫秒时间戳（如 `1719705600000`），不能传 `YYYY-MM-DD` 字符串。
+- **分页**：每页最大 100 条；`--all` 自动翻页；`--max-pages` 限制最大拉取页数。
+- **临时文件**：查询结果、查询条件 JSON、导入数据等建议写入 `.cache/yidaconnector/`，保持仓库根目录整洁。
 
-## Login & Environment
+## 登录与环境
 
-### Login Modes
+### 登录模式
 
-| Command | Behavior |
-|---------|----------|
-| `yidaconnector login` | Cache first; falls back to CDP, then QR handoff |
-| `yidaconnector login --browser` | Force local browser (CDP, Playwright fallback) |
-| `yidaconnector login --qr` | Force terminal QR code |
-| `yidaconnector login --agent-qr` | Force AI-dialog QR handoff |
-| `yidaconnector login --codex` / `--qoder` / `--wukong` | Tool-specific browser handoff |
-| `yidaconnector login --check-only` | Read-only login state check, no login triggered |
-| `yidaconnector login <url>` | Login to a specific Yida entry URL |
+| 命令 | 行为 |
+|---------|------|
+| `yidaconnector login` | 缓存优先；回退到 CDP，再到二维码 handoff |
+| `yidaconnector login --browser` | 强制本地浏览器（CDP，Playwright 兜底） |
+| `yidaconnector login --qr` | 强制终端二维码 |
+| `yidaconnector login --agent-qr` | 强制 AI 对话框二维码 handoff |
+| `yidaconnector login --codex` / `--qoder` / `--wukong` | 指定工具的浏览器 handoff |
+| `yidaconnector login --check-only` | 只读检查登录态，不触发登录 |
+| `yidaconnector login <url>` | 登录到指定宜搭入口 URL |
 
-### Environment Management
+### 环境管理
 
 ```bash
 # 查看当前环境（AI 工具、登录态、base URL）
@@ -192,43 +181,43 @@ yidaconnector env switch <name>
 yidaconnector env add <name>
 ```
 
-### Organization Switching
+### 组织切换
 
 ```bash
 yidaconnector org list
 yidaconnector org switch --corp-id <corpId>
 ```
 
-## How It Works
+## 工作原理
 
 ```mermaid
 flowchart LR
-  A["AI coding agent"] --> B["YidaConnector CLI"]
-  B --> C["Environment detection"]
-  B --> D["Login & org context"]
-  B --> E["Yida data API"]
-  E --> F["Form / process / task data"]
+  A["AI 编程助手"] --> B["YidaConnector CLI"]
+  B --> C["环境检测"]
+  B --> D["登录与组织上下文"]
+  B --> E["宜搭数据 API"]
+  E --> F["表单 / 流程 / 任务数据"]
 ```
 
-YidaConnector keeps platform-specific behavior inside the CLI, while agents interact with predictable commands and project files.
+YidaConnector 将平台相关的逻辑封装在 CLI 内部，AI 助手只需通过稳定的命令和 JSON 输入输出与之交互。
 
-## Project Layout
+## 项目结构
 
 ```text
 yidaconnector/
-├── bin/yida.js                 # CLI entry and command routing
+├── bin/yida.js                 # CLI 入口与命令路由
 ├── lib/
-│   ├── app/                    # Form schema helpers (get-schema, form-navigation)
-│   ├── auth/                   # Login (CDP / QR / Codex), auth state, org switch
-│   └── core/                   # Environment detection, i18n, data commands, HTTP client
-├── project/                    # Default workspace template
-├── yida-skills/                # Source skill docs and Yida API references
-└── scripts/                    # CI, packaging, and installation helpers
+│   ├── app/                    # 表单 Schema 辅助（get-schema、form-navigation）
+│   ├── auth/                   # 登录（CDP / 二维码 / Codex）、登录态管理、组织切换
+│   └── core/                   # 环境检测、国际化、数据命令、HTTP 客户端
+├── project/                    # 演示页面与 PRD 模板
+├── yida-skills/                # AI 技能包源码与宜搭 API 参考文档
+└── scripts/                    # CI、打包与安装辅助脚本
 ```
 
-## CLI Reference
+## 命令参考
 
-Run `yidaconnector --help` or `yidaconnector <command> --help` for detailed usage.
+运行 `yidaconnector --help` 或 `yidaconnector <命令> --help` 查看详细用法。
 
 <!-- YIDACONNECTOR_COMMANDS_START -->
 <!-- This section is generated by `npm run docs:commands`. Do not edit command rows by hand. -->
@@ -258,58 +247,56 @@ Run `yidaconnector --help` or `yidaconnector <command> --help` for detailed usag
 
 <!-- YIDACONNECTOR_COMMANDS_END -->
 
-### CLI Notes
+### 环境与本地化
 
-#### Environment and Localization
+登录时可用 `--env intl`、`--intl`、`--overseas`、`--global`、`--yidaapps` 等环境选择 flag 指定目标宜搭环境。`intl` 预设使用 `https://www.yidaapps.com` 作为国际版宜搭入口，通过 `https://login.dingtalk.io` 完成钉钉国际版 OAuth。
 
-Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login to choose the target Yida environment for that run. The `intl` preset uses `https://www.yidaapps.com` as the built-in Global YiDA entrypoint and DingTalk International OAuth at `https://login.dingtalk.io`.
+### 组件别名
 
-#### Component Aliases
+宜搭表单字段可配置别名（如 `phone` 代替 `textField_xxx`）。在 `data` 命令中加 `--resolve-aliases`，即可在 `--data-json` / `--search-json` 中使用别名；YidaConnector 会在发请求前自动翻译为 fieldId。
 
-Yida form fields can have aliases (e.g. `phone` instead of `textField_xxx`). Use `yidaconnector data ... --resolve-aliases` to accept aliases in `--data-json` / `--search-json` inputs; YidaConnector translates them to field IDs before sending requests.
+## AI 技能包
 
-## Agent Skills
+`yida-skills/` 是技能包源码目录。悟空发布包由 `npm run build:skills` 生成：展开目录写入 `dist/skills/yidaconnector/`，上传用 zip 写入 `yidaconnector-skills.zip`。
 
-The `yida-skills/` directory is the source skill library. Release assets for Wukong are generated by `npm run build:skills`: the expanded package is written to `dist/skills/yidaconnector/`, and the upload-ready zip is written to `yidaconnector-skills.zip`.
+| 技能 | 用途 |
+|------|------|
+| `yida-data-management` | 表单 / 子表单 / 流程 / 任务数据查询与变更 |
+| `yida-login` | 登录态管理（通常自动触发） |
+| `yida-logout` | 登出 / 切换账号 |
+| `large-file-write` | 大文件可靠写入辅助 |
 
-| Skill | Purpose |
-|------|---------|
-| `yida-data-management` | Form / subform / process / task data query and mutation |
-| `yida-login` | Login state management (usually auto-triggered) |
-| `yida-logout` | Logout / switch account |
-| `large-file-write` | Reliable large file write helper |
+悟空手动导入：上传生成的 `yidaconnector-skills.zip`。Codex 安装：`npm install -g yidaconnector` 后会在 `~/.yidaconnector/codex-plugin` 创建本地插件市场。
 
-For Wukong manual import, upload the generated `yidaconnector-skills.zip`. For Codex, `npm install -g yidaconnector` additionally creates a local plugin marketplace under `~/.yidaconnector/codex-plugin`.
+## 悟空安装
 
-## Wukong Installation
+悟空通过手动上传技能包安装，不走 npm：
 
-Wukong uses manual skill package installation instead of npm:
+1. 从 [GitHub Releases](https://github.com/bunnyrui/yidaconnector/releases) 下载最新的 `.zip` 技能包。
+2. 打开悟空。
+3. 进入 **技能中心** > **上传技能**，选择下载的包。
 
-1. Download the latest `.zip` skill package from [GitHub Releases](https://github.com/bunnyrui/yidaconnector/releases).
-2. Open Wukong.
-3. Go to **Skill Center** > **Upload Skill** and select the downloaded package.
-
-For Wukong terminal work, make sure its bundled Node.js path is active before running `node`, `npm`, or `npx` commands:
+在悟空终端中执行 `node` / `npm` / `npx` 前，务必先将其自带 Node.js 加入 PATH：
 
 ```bash
 export PATH="$HOME/.real/.bin/node/bin:$PATH"
 ```
 
-## Supported AI Coding Tools
+## 支持的 AI 编程工具
 
-| Tool | Support |
+| 工具 | 支持状态 |
 |------|---------|
-| [Codex](https://openai.com/codex/) | Full support |
-| [Claude Code](https://claude.ai/code) | Full support |
-| [Aone Copilot](https://copilot.code.alibaba-inc.com) | Full support |
-| [OpenCode](https://opencode.ai) | Full support |
-| [Cursor](https://cursor.com/) | Full support |
-| [Visual Studio Code](https://code.visualstudio.com/) | Full support |
-| [QoderWork](https://qoder.com) | Full support |
-| [Qoder](https://qoder.com) | Full support |
-| [Wukong](https://dingtalk.com/wukong) | Full support |
+| [Codex](https://openai.com/codex/) | 完整支持 |
+| [Claude Code](https://claude.ai/code) | 完整支持 |
+| [Aone Copilot](https://copilot.code.alibaba-inc.com) | 完整支持 |
+| [OpenCode](https://opencode.ai) | 完整支持 |
+| [Cursor](https://cursor.com/) | 完整支持 |
+| [Visual Studio Code](https://code.visualstudio.com/) | 完整支持 |
+| [QoderWork](https://qoder.com) | 完整支持 |
+| [Qoder](https://qoder.com) | 完整支持 |
+| [Wukong](https://dingtalk.com/wukong) | 完整支持 |
 
-## Development
+## 开发
 
 ```bash
 git clone https://github.com/bunnyrui/yidaconnector.git
@@ -318,39 +305,39 @@ npm install
 npm run check:ci
 ```
 
-Useful checks:
+常用校验命令：
 
-| Command | Purpose |
+| 命令 | 用途 |
 |---------|---------|
-| `npm test` | Run Jest tests |
-| `npm run lint` | Run ESLint |
-| `npm run check:quick` | Run structure, manifest, syntax, and lint checks |
-| `npm run check:commands` | Validate router, command manifest, and README alignment |
-| `npm run docs:commands` | Regenerate the README command index from the manifest |
-| `npm run check:docs` | Verify generated README command docs are current |
-| `npm run check:syntax` | Validate JavaScript syntax |
-| `npm run check:skills` | Validate agent skills structure and links |
+| `npm test` | 运行 Jest 测试 |
+| `npm run lint` | 运行 ESLint |
+| `npm run check:quick` | 结构、manifest、语法、lint 快检 |
+| `npm run check:commands` | 校验路由、命令清单与 README 一致性 |
+| `npm run docs:commands` | 从 manifest 重新生成 README 命令索引 |
+| `npm run check:docs` | 确认 README 命令文档是最新的 |
+| `npm run check:syntax` | JavaScript 语法校验 |
+| `npm run check:skills` | 技能包结构与链接校验 |
 
-When adding new CLI commands, register the route in `bin/yida.js`, add it to `lib/core/command-manifest.js`, regenerate the README command index with `npm run docs:commands`, and keep agent skills in `yida-skills/` aligned. `npm run check:commands` fails if the router, manifest, or README drift apart.
+新增 CLI 命令时，需在 `bin/yida.js` 注册路由、在 `lib/core/command-manifest.js` 添加元数据、用 `npm run docs:commands` 重新生成 README 命令索引，并同步 `yida-skills/` 技能文档。三者不一致时 `npm run check:commands` 会报错。
 
-## Security and Configuration
+## 安全与配置
 
-- Login cookies are cached locally and should never be hard-coded into source files.
-- Private deployment environments are managed through `lib/core/env-manager.js`.
-- Yida API requests use the active environment base URL and authenticated cookies.
-- For multi-organization accounts, prefer explicit `--corp-id` values in non-interactive automation.
+- 登录 Cookie 缓存在本地，绝不要硬编码到源码中。
+- 私有化部署环境通过 `lib/core/env-manager.js` 管理。
+- 宜搭 API 请求使用当前环境的 base URL 和已认证的 Cookie。
+- 多组织账号在非交互式自动化场景中建议显式传 `--corp-id`。
 
-## Community
+## 社区
 
-Scan the QR code to join the YidaConnector DingTalk user group for updates and support.
+扫码加入 YidaConnector 钉钉用户群，获取更新与支持。
 
-![Join YidaConnector Community](https://img.alicdn.com/imgextra/i4/O1CN01RAlxmO1qF1cxRguyj_!!6000000005465-2-tps-350-356.png)
+![加入 YidaConnector 社区](https://img.alicdn.com/imgextra/i4/O1CN01RAlxmO1qF1cxRguyj_!!6000000005465-2-tps-350-356.png)
 
-## Contributors
+## 贡献者
 
-Thanks to everyone who has contributed to YidaConnector. Read the [Contributing Guide](./CONTRIBUTING.md) to get involved.
+感谢所有为 YidaConnector 贡献过代码的人。阅读[贡献指南](./CONTRIBUTING.md)参与项目。
 
-Latest contributors: [DDlixin1](https://github.com/DDlixin1), [fcloud](https://github.com/fcloud).
+最新贡献者：[DDlixin1](https://github.com/DDlixin1)、[fcloud](https://github.com/fcloud)。
 
 <!-- yidaconnector-contributors:start -->
 
@@ -380,4 +367,4 @@ Latest contributors: [DDlixin1](https://github.com/DDlixin1), [fcloud](https://g
 
 ## License
 
-[MIT](./LICENSE) © 2026 Alibaba Group Holding Limited
+[MIT](./LICENSE) © 2026 bunnyruihan

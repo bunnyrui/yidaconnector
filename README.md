@@ -4,11 +4,11 @@
 
 # YidaConnector
 
-**AI-native CLI for building DingTalk Yida low-code applications.**
+**宜搭数据查询与登录态管理 CLI。**
 
-YidaConnector connects AI coding agents with Yida's low-code platform, so developers can create apps, forms, workflows, custom pages, reports, integrations, and deployment configuration from a normal chat-driven development workflow.
+YidaConnector 让 AI 编程助手（悟空 / Claude Code / Codex / Cursor / OpenCode 等）和宜搭低代码平台对接，专注于表单、流程、任务、子表单数据的查询与变更，以及登录态、多组织、多环境的管理。
 
-[Quick Start](#quick-start) · [Capabilities](#capabilities) · [CLI Reference](#cli-reference) · [Examples](#examples) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md)
+[Quick Start](#quick-start) · [Data Command](#data-command) · [CLI Reference](#cli-reference) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md)
 
 [![npm version](https://img.shields.io/npm/v/yidaconnector?color=brightgreen&label=npm)](https://www.npmjs.com/package/yidaconnector)
 [![npm downloads](https://img.shields.io/npm/dm/yidaconnector?color=blue)](https://www.npmjs.com/package/yidaconnector)
@@ -22,22 +22,6 @@ YidaConnector connects AI coding agents with Yida's low-code platform, so develo
 
 ---
 
-## What YidaConnector Provides
-
-YidaConnector is a bridge between AI coding tools and Yida. It gives agents a stable command-line interface for the full application lifecycle:
-
-| Area | What you can do |
-|------|-----------------|
-| Application delivery | Create, update, export, and import Yida applications |
-| Form modeling | Create forms, update fields, inspect schemas, and manage permissions |
-| Custom pages | Generate React-based pages, lint Yida runtime rules, compile, and publish |
-| Workflow automation | Create process forms, configure approval flows, preview process instances |
-| Data operations | Query form/process/task/subform data and run anomaly checks |
-| Integrations | Manage HTTP connectors, connector actions, auth accounts, and automation flows |
-| Operations | Diagnose environment issues, manage login state, configure sharing, upload CDN assets |
-
-The result remains a native Yida application: teams can continue editing it in Yida, use existing enterprise security controls, and deploy through the Yida platform.
-
 ## Quick Start
 
 ### 1. Install
@@ -47,8 +31,6 @@ npm install -g yidaconnector
 ```
 
 YidaConnector requires Node.js 18 or later. The package exposes both `yidaconnector` and `yida` commands.
-
-If Codex is already installed, YidaConnector also imports a local Codex plugin during postinstall. Restart Codex after installation, then type `@宜搭` or `@yidaconnector` in the composer to attach the YidaConnector context.
 
 ### 2. Check Your Environment
 
@@ -69,42 +51,235 @@ YidaConnector detects the active agent environment, workspace path, login state,
 yidaconnector login
 ```
 
-In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, YidaConnector first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The agent should render `qr_image_markdown` or paste `agent_response_markdown` directly in the conversation so the QR code is visible, then run `poll_command` after the user scans it with DingTalk. If image rendering is unavailable, fall back to `qr_url`. The explicit `yidaconnector login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
+In Codex, QoderWork, Qoder, Wukong, Claude Code, OpenCode, Cursor, and other detected AI tools, YidaConnector first tries local Chrome/Edge/Chromium CDP when no valid cached login exists. If local CDP is unavailable, it falls back to an AI-dialog QR handoff. The explicit `yidaconnector login --browser` command still prefers CDP first and uses Playwright as an optional browser fallback.
 
-When the user names a target Yida entry URL, pass it to the login command so YidaConnector can select the matching environment and cookie file. For example, Alibaba intranet Yida uses `cookies-alibaba.json`:
+When the user names a target Yida entry URL, pass it to the login command so YidaConnector can select the matching environment and cookie file. For example, Alibaba intranet Yida:
 
 ```bash
 yidaconnector login https://yida-group.alibaba-inc.com/
 yidaconnector login --alibaba
 ```
 
-The explicit QR polling command remains available:
-
-```bash
-yidaconnector login --agent-qr
-```
-
 For terminal QR login, use:
 
 ```bash
 yidaconnector login --qr
-yidaconnector login --qr --corp-id dingxxxxxxxx
-yidaconnector login --check-only --json
 ```
 
-YidaConnector does not install Playwright by default.
+### 4. Query Data
 
-### 4. Build With an AI Agent
+```bash
+# 查询表单数据（分页）
+yidaconnector data query form APP_XXX FORM_XXX --page 1 --size 20
 
-Ask your coding agent for a concrete Yida application or workflow:
+# 查询全部表单数据（自动翻页）
+yidaconnector data query form APP_XXX FORM_XXX --all
+
+# 按条件查询
+yidaconnector data query form APP_XXX FORM_XXX --search-json '[{"key":"radioField_xxx","op":"Equal","value":"合格"}]'
+
+# 获取单条表单实例
+yidaconnector data get form APP_XXX --inst-id FORM_INST_XXX
+
+# 查询流程实例
+yidaconnector data query process APP_XXX FORM_XXX --page 1 --size 10
+
+# 查询待办任务
+yidaconnector data query tasks APP_XXX --type todo
+```
+
+## What YidaConnector Does
+
+| Area | What you can do |
+|------|-----------------|
+| **Form data** | Query / get / create / update form instances; query subform rows |
+| **Process data** | Query / get / create / update process instances; query operation records |
+| **Task operations** | Query todo / done / submitted / cc tasks; execute (approve/reject) tasks |
+| **Login state** | Login (CDP / QR / browser handoff), logout, refresh, status check |
+| **Organization** | List and switch organizations (multi-org accounts) |
+| **Environment** | Detect AI tool environment; manage public / private deployment profiles |
+
+All data operations respect the current Yida login user's data permissions — YidaConnector never bypasses platform security controls.
+
+## Data Command
+
+`yidaconnector data` is the unified entry point for all data operations. The syntax is `data <action> <resource> [args] [options]`.
+
+### Form Operations
+
+```bash
+# 查询表单数据（分页 / 全量 / 按条件）
+yidaconnector data query form <appType> <formUuid> [--page N] [--size N] [--all]
+yidaconnector data query form <appType> <formUuid> --search-file .cache/yidaconnector/search.json
+
+# 获取单条表单实例
+yidaconnector data get form <appType> --inst-id <formInstId> [--form-uuid <formUuid>]
+
+# 新建表单实例
+yidaconnector data create form <appType> <formUuid> --data-file .cache/yidaconnector/data.json
+
+# 更新表单实例
+yidaconnector data update form <appType> --inst-id <formInstId> --data-file .cache/yidaconnector/data.json
+
+# 查询子表单明细
+yidaconnector data query subform <appType> <formUuid> --inst-id <formInstId> --table-field-id <fieldId>
+```
+
+### Process Operations
+
+```bash
+# 查询流程实例
+yidaconnector data query process <appType> <formUuid> [--page N] [--size N]
+
+# 获取单个流程实例
+yidaconnector data get process <appType> --process-inst-id <processInstanceId>
+
+# 发起流程
+yidaconnector data create process <appType> <formUuid> --process-code <processCode> --data-file .cache/yidaconnector/data.json
+
+# 更新流程表单数据
+yidaconnector data update process <appType> --process-inst-id <processInstanceId> --data-file .cache/yidaconnector/data.json
+
+# 查询操作记录
+yidaconnector data query operation-records <appType> --process-inst-id <processInstanceId>
+```
+
+### Task Operations
+
+```bash
+# 查询任务列表（todo=待办 / done=已处理 / submitted=我发起的 / cc=抄送）
+yidaconnector data query tasks <appType> --type <todo|done|submitted|cc> [--keyword <text>] [--page N] [--size N]
+
+# 执行审批任务（同意/驳回）
+yidaconnector data execute task <appType> \
+  --task-id <taskId> \
+  --process-inst-id <processInstanceId> \
+  --out-result <AGREE|DISAGREE> \
+  --remark "审批意见"
+```
+
+### Data Command Notes
+
+- **Component aliases**: Add `--resolve-aliases` to use field aliases (like `phone`) instead of raw field IDs (like `textField_xxx`) in `--data-json` / `--search-json`.
+- **Date fields**: Yida date fields require 13-digit millisecond timestamps (e.g. `1719705600000`), not `YYYY-MM-DD` strings.
+- **Page size**: Max 100 per page; `--all` auto-paginates; `--max-pages` caps the total pages fetched.
+- **Temporary files**: Write query results, search JSON, and import data to `.cache/yidaconnector/` to keep the repository root clean.
+
+## Login & Environment
+
+### Login Modes
+
+| Command | Behavior |
+|---------|----------|
+| `yidaconnector login` | Cache first; falls back to CDP, then QR handoff |
+| `yidaconnector login --browser` | Force local browser (CDP, Playwright fallback) |
+| `yidaconnector login --qr` | Force terminal QR code |
+| `yidaconnector login --agent-qr` | Force AI-dialog QR handoff |
+| `yidaconnector login --codex` / `--qoder` / `--wukong` | Tool-specific browser handoff |
+| `yidaconnector login --check-only` | Read-only login state check, no login triggered |
+| `yidaconnector login <url>` | Login to a specific Yida entry URL |
+
+### Environment Management
+
+```bash
+# 查看当前环境（AI 工具、登录态、base URL）
+yidaconnector env
+yidaconnector env --json
+
+# 多环境管理（公有云 / 国际版 / 阿里内部 / 私有化）
+yidaconnector env list
+yidaconnector env switch <name>
+yidaconnector env add <name>
+```
+
+### Organization Switching
+
+```bash
+yidaconnector org list
+yidaconnector org switch --corp-id <corpId>
+```
+
+## How It Works
+
+```mermaid
+flowchart LR
+  A["AI coding agent"] --> B["YidaConnector CLI"]
+  B --> C["Environment detection"]
+  B --> D["Login & org context"]
+  B --> E["Yida data API"]
+  E --> F["Form / process / task data"]
+```
+
+YidaConnector keeps platform-specific behavior inside the CLI, while agents interact with predictable commands and project files.
+
+## Project Layout
 
 ```text
-Create a CRM application in Yida with customer, contact, opportunity, and follow-up forms.
-Build an IPD workflow for chip production, including approval nodes and dashboard pages.
-Generate a public landing page and publish it to my Yida app.
+yidaconnector/
+├── bin/yida.js                 # CLI entry and command routing
+├── lib/
+│   ├── app/                    # Form schema helpers (get-schema, form-navigation)
+│   ├── auth/                   # Login (CDP / QR / Codex), auth state, org switch
+│   └── core/                   # Environment detection, i18n, data commands, HTTP client
+├── project/                    # Default workspace template
+├── yida-skills/                # Source skill docs and Yida API references
+└── scripts/                    # CI, packaging, and installation helpers
 ```
 
-The agent can then call YidaConnector commands to create the application, generate source files, publish pages, and return the final Yida URLs. In Codex, QoderWork, Qoder, and Wukong environments, successful creation and publish commands also include a browser handoff so the agent can open the resulting Yida page in the in-app browser. Use `--open` to force this handoff or `--no-open` to suppress it.
+## CLI Reference
+
+Run `yidaconnector --help` or `yidaconnector <command> --help` for detailed usage.
+
+<!-- YIDACONNECTOR_COMMANDS_START -->
+<!-- This section is generated by `npm run docs:commands`. Do not edit command rows by hand. -->
+
+### Auth & Environment
+
+| Command | Description |
+|---------|-------------|
+| `yidaconnector login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
+| `yidaconnector logout` | Logout / switch account |
+| `yidaconnector auth <status\|login\|refresh\|logout>` | Login state management |
+| `yidaconnector org <list\|switch>` | Organization management (list / switch) |
+| `yidaconnector env [--json]` | Detect AI tool environment & login state |
+| `yidaconnector env <setup\|list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
+
+### Data & Permissions
+
+| Command | Description |
+|---------|-------------|
+| `yidaconnector data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
+
+### Utility
+
+| Command | Description |
+|---------|-------------|
+| `yidaconnector commands [--json]` | Output machine-readable command manifest |
+
+<!-- YIDACONNECTOR_COMMANDS_END -->
+
+### CLI Notes
+
+#### Environment and Localization
+
+Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login to choose the target Yida environment for that run. The `intl` preset uses `https://www.yidaapps.com` as the built-in Global YiDA entrypoint and DingTalk International OAuth at `https://login.dingtalk.io`.
+
+#### Component Aliases
+
+Yida form fields can have aliases (e.g. `phone` instead of `textField_xxx`). Use `yidaconnector data ... --resolve-aliases` to accept aliases in `--data-json` / `--search-json` inputs; YidaConnector translates them to field IDs before sending requests.
+
+## Agent Skills
+
+The `yida-skills/` directory is the source skill library. Release assets for Wukong are generated by `npm run build:skills`: the expanded package is written to `dist/skills/yidaconnector/`, and the upload-ready zip is written to `yidaconnector-skills.zip`.
+
+| Skill | Purpose |
+|------|---------|
+| `yida-data-management` | Form / subform / process / task data query and mutation |
+| `yida-login` | Login state management (usually auto-triggered) |
+| `yida-logout` | Logout / switch account |
+| `large-file-write` | Reliable large file write helper |
+
+For Wukong manual import, upload the generated `yidaconnector-skills.zip`. For Codex, `npm install -g yidaconnector` additionally creates a local plugin marketplace under `~/.yidaconnector/codex-plugin`.
 
 ## Wukong Installation
 
@@ -134,376 +309,6 @@ export PATH="$HOME/.real/.bin/node/bin:$PATH"
 | [Qoder](https://qoder.com) | Full support |
 | [Wukong](https://dingtalk.com/wukong) | Full support |
 
-## How It Works
-
-```mermaid
-flowchart LR
-  A["AI coding agent"] --> B["YidaConnector CLI"]
-  B --> C["Environment detection"]
-  B --> D["Login and organization context"]
-  B --> E["Yida API operations"]
-  B --> F["Local page generation and compile"]
-  E --> G["Native Yida app"]
-  F --> G
-```
-
-YidaConnector keeps platform-specific behavior inside the CLI, while agents interact with predictable commands and project files.
-
-## Project Layout
-
-```text
-yidaconnector/
-├── bin/yida.js                 # CLI entry and command routing
-├── lib/
-│   ├── app/                    # Application, form, page, import/export commands
-│   ├── auth/                   # Login, QR login, browser handoff, organization switch
-│   ├── connector/              # HTTP connector lifecycle and smart creation
-│   ├── core/                   # Environment detection, i18n, diagnostics, data commands
-│   ├── process/                # Process form creation, configuration, preview
-│   ├── report/                 # Yida report and chart generation
-│   └── samples/                # Templates emitted by yidaconnector sample
-├── project/                    # Default workspace template for generated Yida projects
-├── yida-skills/                # Source skill docs and Yida API references
-└── scripts/                    # CI, packaging, and installation helpers
-```
-
-## Capabilities
-
-### Application and Form Management
-
-```bash
-yidaconnector create-app "CRM"
-yidaconnector create-app --name "CRM" --desc "Customer management" --theme deepBlue
-yidaconnector app-list --size 20
-yidaconnector corp-efficiency
-yidaconnector create-form create APP_XXX "Customer" .cache/yidaconnector/forms/customer-fields.json
-yidaconnector create-form update APP_XXX FORM_XXX .cache/yidaconnector/forms/customer-changes.json
-yidaconnector get-schema APP_XXX FORM_XXX
-yidaconnector get-schema APP_XXX --all --output-dir .cache/schemas
-```
-
-### Custom Page Development
-
-```bash
-yidaconnector create-page APP_XXX "Dashboard" --mode dashboard
-yidaconnector generate-page product-homepage --spec .cache/yidaconnector/page-specs/home.json --output pages/src/home.oyd.jsx --compile
-yidaconnector generate-page todo-mvc --output pages/src/todo-mvc.oyd.jsx --compile
-yidaconnector check-page pages/src/home.oyd.jsx
-yidaconnector compile pages/src/home.oyd.jsx
-yidaconnector publish pages/src/home.oyd.jsx APP_XXX FORM_XXX
-```
-
-`generate-page` turns a structured spec into a Page IR, renders a curated React 16-compatible template, writes a `.yidaconnector-page.json` manifest, and optionally compiles the result. The manifest makes follow-up AI edits safer because agents can update known blocks instead of rewriting a large JSX file by hand.
-Built-in templates currently include `product-homepage` for product/portal pages and `todo-mvc` for a full interaction smoke page covering events, custom state, list rendering, editing, filtering, and localStorage persistence.
-
-### Workflow, Data, and Permissions
-
-```bash
-yidaconnector create-process APP_XXX "Purchase Request" .cache/yidaconnector/process/fields.json .cache/yidaconnector/process/process.json
-yidaconnector configure-process APP_XXX FORM_XXX .cache/yidaconnector/process/process.json
-yidaconnector process preview APP_XXX PROC_INST_XXX --output .cache/yidaconnector/process/process.html
-yidaconnector data query form APP_XXX FORM_XXX --page 1 --size 20
-yidaconnector data create form APP_XXX FORM_XXX --data-file .cache/yidaconnector/data-import/record.json
-yidaconnector get-permission APP_XXX FORM_XXX
-```
-
-`configure-process` 的流程 JSON 中，审批人可配置为发起人、指定成员、指定角色、部门主管或直属主管，例如：
-
-```json
-{
-  "nodes": [
-    {
-      "type": "approval",
-      "name": "主管审批",
-      "approver": {
-        "type": "user",
-        "users": [{ "id": "manager7350", "name": "九神" }],
-        "multiApproverType": "all"
-      }
-    }
-  ]
-}
-```
-
-When creating or updating test data with `yidaconnector data`, Yida date fields must use 13-digit millisecond timestamps, for example `"dateField_xxx": 1719705600000`. Do not submit `YYYY-MM-DD` strings for `DateField` or `CascadeDateField` values.
-Temporary JSON, CSV, and one-off import scripts should live under `.cache/yidaconnector/` so generated run artifacts do not clutter the repository root.
-
-### Real Environment E2E
-
-Most checks should stay offline, but YidaConnector also includes an explicit real-environment smoke path for release and nightly validation:
-
-```bash
-YIDACONNECTOR_E2E=1 npm run test:e2e:real
-YIDACONNECTOR_E2E=1 npm run test:e2e:real:full
-YIDACONNECTOR_E2E=1 YIDACONNECTOR_E2E_FULL_STAGES=auth,app,form,process npm run test:e2e:real:full
-npm run test:e2e:real:skills
-```
-
-The runner creates a disposable app, form, and custom page with an `OY_E2E_*` prefix, then verifies login, app listing, schema fetch, data query, and page publish. It writes a registry to `project/.cache/e2e-real/` so created resources can be audited later. To inject CI cookies without relying on a local login cache, pass `YIDACONNECTOR_E2E_COOKIES_BASE64` as a base64 encoded cookie array or `{ "cookies": [...] }` object.
-
-`test:e2e:real:full` extends the smoke path into a broad deterministic feature matrix: auth/env, app update, form update and option mutation, page build/compile/generate/publish, data create/get/update/query, permission read, page config and short URL check, report create/append, dashboard skill verification, export/import, batch, task-center, formula/doctor/sample/CDN config, and local connector parsing/template generation. AI-backed commands such as `flash-to-prd` are available as the optional `ai` stage because they depend on remote model availability. Workflow mutation is available as the opt-in `process` stage; it creates and republishes a workflow on the disposable E2E form and records advanced official-node fixtures for review.
-
-`test:e2e:real:skills` enforces coverage for every directory under `yida-skills/skills/`. Each skill must be classified as real E2E, offline/unit, opt-in, or deprecated with an explicit reason. This prevents new skills from quietly bypassing the real-environment test plan.
-
-Each successful full run leaves a human-inspectable result app in the target organization. The final step publishes a dedicated `Full E2E Dashboard` custom page, renames the app to `OY_E2E_*_PASSED` by default, and prints direct links for the app, form, dashboard page, and report; the same links are saved under `resultApp` in the registry JSON.
-
-Useful options:
-
-| Env var | Purpose |
-|---------|---------|
-| `YIDACONNECTOR_E2E_PREFIX` | Override the disposable resource name prefix |
-| `YIDACONNECTOR_E2E_CORP_ID` | Switch to the dedicated test organization before creating resources |
-| `YIDACONNECTOR_E2E_RESULT_APP_NAME` | Override the final app name shown as the full-run result |
-| `YIDACONNECTOR_E2E_BASE_URL` | Override the Yida base URL for private deployments |
-| `YIDACONNECTOR_E2E_FIELDS_FILE` | Use a custom form fields fixture |
-| `YIDACONNECTOR_E2E_PAGE_SOURCE` | Use a custom page source for publish verification |
-| `YIDACONNECTOR_E2E_SKIP_PUBLISH=1` | Skip custom page creation and publish |
-| `YIDACONNECTOR_E2E_REGISTRY_DIR` | Write registries outside `project/.cache/e2e-real/` |
-| `YIDACONNECTOR_E2E_FULL_STAGES` | Comma-separated stage list for `test:e2e:real:full`; use `all` or omit for the default broad matrix |
-
-Use `npm run test:e2e:real:cleanup` to list recorded disposable resources. YidaConnector does not yet expose a safe app/form deletion command, so cleanup is intentionally a registry-backed audit step rather than an automatic destructive action.
-
-### Connectors, Integrations, and Reports
-
-```bash
-yidaconnector connector smart-create --curl "curl https://api.example.com/users"
-yidaconnector connector list
-yidaconnector integration create APP_XXX FORM_XXX "Sync customer data"
-yidaconnector integration create APP_XXX FORM_XXX "Approval result notify" \
-  --events processFinish --approval-actions agree,disagree --receivers 123456
-yidaconnector create-report APP_XXX "Sales Dashboard" .cache/yidaconnector/reports/charts.json
-yidaconnector append-chart APP_XXX REPORT_XXX .cache/yidaconnector/reports/chart.json
-```
-
-## CLI Reference
-
-Run `yidaconnector --help` or `yidaconnector <command> --help` for detailed usage.
-
-<!-- YIDACONNECTOR_COMMANDS_START -->
-<!-- This section is generated by `npm run docs:commands`. Do not edit command rows by hand. -->
-
-### Auth & Environment
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector login [target-url] [--qr\|--agent-qr\|--codex\|--browser] [--env <name>\|--intl\|--overseas\|--global\|--yidaapps\|--alibaba] [--corp-id <corpId>]` | Login (cache first, --browser or --agent-qr when needed) |
-| `yidaconnector logout` | Logout / switch account |
-| `yidaconnector auth <status\|login\|refresh\|logout>` | Login state management |
-| `yidaconnector org <list\|switch>` | Organization management (list / switch) |
-| `yidaconnector env [--json]` | Detect AI tool environment & login state |
-| `yidaconnector env <setup\|list\|show\|switch\|add\|remove>` | Manage public/private Yida environment profiles |
-
-### App Management
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector app-list [--size N]` | List my Yida apps |
-| `yidaconnector corp-efficiency [overview\|details\|detail\|groups\|notify] [options] [--open\|--no-open]` | Query enterprise efficiency overview and detail reports |
-| `yidaconnector create-app "<name>"\|--name <name> [options] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a Yida app |
-| `yidaconnector update-app <appType> [--name "..."] [--layout slide\|ver] [--theme deepBlue]` | Update app info |
-| `yidaconnector nav-group <list\|create\|rename\|delete\|move\|hide\|show> <appType> ...` | Manage app sidebar navigation groups |
-| `yidaconnector app-permission <get\|set\|add\|remove\|search-user> ...` | Manage app primary, data, and developer admins |
-| `yidaconnector i18n <overview\|config\|languages\|list\|upsert\|delete\|translate\|translate-all\|upgrade> <appType> ...` | Manage app multilingual copy and language config |
-| `yidaconnector export <appType> [output]` | Export app (generate migration package) |
-| `yidaconnector import <file> [name]` | Import migration package, rebuild app |
-
-### Forms & Pages
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector create-form create <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a form page |
-| `yidaconnector create-form update <appType> ... [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Update a form page |
-| `yidaconnector create-form patch <appType> <formUuid> <patchJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `yidaconnector create-form rule <appType> <formUuid> <rulesJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `yidaconnector create-form validation <appType> <formUuid> <validationsJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `yidaconnector add-validation <appType> <formUuid> --field <labelOrId> --type <phone\|regex\|idCard\|email\|...> [--message <text>]` | Update a form page |
-| `yidaconnector create-form bind-datasource <appType> <formUuid> <fieldLabelOrId> <dataSourceJsonOrFile> [--open\|--no-open]` | Update a form page |
-| `yidaconnector create-form add-option <appType> <formUuid> <fieldLabel> <option1> [option2] ...` | Update a form page |
-| `yidaconnector list-forms <appType> [--keyword <text>]` | List forms/pages in an app |
-| `yidaconnector aggregate-table <list\|create-empty\|inspect\|preview\|save\|publish\|status> <appType> ...` | Manage aggregate tables (virtualView) |
-| `yidaconnector get-schema <appType> <formUuid\|--all>` | Get one form Schema or all form Schemas |
-| `yidaconnector create-page <appType> "<name>" [--mode dashboard] [--locale zh_CN\|en_US\|ja_JP] [--open\|--no-open]` | Create a custom display page |
-| `yidaconnector generate-page <template>` | Generate page from curated template |
-| `yidaconnector build-page <sourceFile> [--output file\|--write]` | Build Yida-compatible page source |
-| `yidaconnector check-page <src> [--compat]` | Check custom page standards |
-| `yidaconnector compile <src>` | Compile custom page locally |
-| `yidaconnector publish <src> <appType> <formUuid> [--health-check] [--force] [--open\|--no-open]` | Compile and publish custom page |
-| `yidaconnector update-form-config <appType> ...` | Update form configuration |
-
-### Data & Permissions
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector data <action> <resource> [args]` | Unified data management (form/process/task/subform) |
-| `yidaconnector task-center <type> [options]` | Global task center (todo/processed/cc etc.) |
-| `yidaconnector basic-info <overview\|commodity\|grant\|capacity\|quota\|abs-path\|dataflow\|i18n\|domain>` | Query organization basic info, capacity, quotas, and domain settings |
-| `yidaconnector get-permission <appType> <formUuid>` | Query form permission config |
-| `yidaconnector save-permission <appType> <formUuid> ...` | Save form permission config |
-| `yidaconnector corp-manager <search-user\|list\|add\|remove\|address-book> ...` | Manage platform admins and address book permissions |
-| `yidaconnector agent-center <list\|create\|update\|cancel\|range\|search-user> ...` | Manage process and departure delegation |
-
-### Process
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector configure-process <appType> ...` | Configure and publish process rules |
-| `yidaconnector create-process <appType> ...` | Create process form (all-in-one) |
-| `yidaconnector ai-form-setting <get\|fields\|models\|enable\|disable\|save> <appType> ...` | Manage process form AI approval prompts |
-| `yidaconnector process preview <appType> ...` | Preview process instance (visual flowchart) |
-
-### Page Config & Sharing
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector verify-short-url <appType> ...` | Verify short URL |
-| `yidaconnector save-share-config <appType> ...` | Save public access / share config |
-| `yidaconnector get-page-config <appType> <formUuid>` | Query page public access config |
-| `yidaconnector externalize-form <appType> <formUuid> [--schema-file file]` | Plan external access-safe mirror fields |
-
-### Reports
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector create-report <appType> "<name>" ... [--open\|--no-open]` | Create a Yida report |
-| `yidaconnector append-chart <appType> <reportId> ... [--open\|--no-open]` | Append chart to existing report |
-
-### Connectors
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector connector list` | List HTTP connectors |
-| `yidaconnector connector create "name" "domain" ...` | Create a connector |
-| `yidaconnector connector detail <id>` | View connector details |
-| `yidaconnector connector delete <id>` | Delete a connector |
-| `yidaconnector connector add-action --operations <file> --connector-id <id>` | Add an action |
-| `yidaconnector connector list-actions <id>` | List actions |
-| `yidaconnector connector delete-action <id> <operation-id>` | Delete an action |
-| `yidaconnector connector test --connector-id <id> --action <actionId>` | Test an action |
-| `yidaconnector connector list-connections <id>` | List auth connections |
-| `yidaconnector connector create-connection <id> <name>` | Create an auth connection |
-| `yidaconnector connector smart-create --curl "..."` | Smart create connector (from cURL) |
-| `yidaconnector connector parse-api [options]` | Parse API information |
-| `yidaconnector connector gen-template [output]` | Generate API document template |
-
-### Integration & DingTalk
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector integration create <appType> ...` | Create integration automation flow |
-| `yidaconnector integration list <appType> [--form-uuid <uuid>] [--status y\|n] [--json]` | List integration automation flows |
-| `yidaconnector integration enable <appType> <formUuid> <processCode>` | Enable integration automation flow |
-| `yidaconnector integration disable <appType> <formUuid> <processCode>` | Disable integration automation flow |
-| `yidaconnector integration check <appType...>` | Check abnormal integration automation run logs |
-| `yidaconnector integration diagnose (--text <text>\|--file <path>\|--rules) [--json]` | Diagnose integration automation tickets and common pitfalls |
-| `yidaconnector dws <command> [args]` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
-| `yidaconnector dws contact user search --keyword <text>` | DingTalk CLI (contacts/calendar/todo/approval etc.) |
-| `yidaconnector dingtalk-link <url> [--target fullScreen] [--legacy-scheme] [--json]` | Generate DingTalk AppLink / legacy dingtalk:// page links |
-
-### Utility
-
-| Command | Description |
-|---------|-------------|
-| `yidaconnector commands [--json]` | Output machine-readable command manifest |
-| `yidaconnector a2a <serve\|agent-card> [options]` | Start local read-only A2A adapter or print Agent Card |
-| `yidaconnector bridge start [--token <pair-token>] [--port 6736] [--origin https://demo.aliwork.com] [--open\|--no-open]` | Start YidaConnector local web bridge service |
-| `yidaconnector copy [--force]` | Copy project working directory |
-| `yidaconnector sample [--list]` | Output code samples/templates |
-| `yidaconnector doctor [--fix]` | Environment diagnostics & auto-fix |
-| `yidaconnector db-seq-fix [--fix]` | Detect and repair PostgreSQL sequence drift |
-| `yidaconnector formula evaluate <formula\|file> [--schema file]` | Static-check Yida formula syntax and field refs |
-| `yidaconnector update` | Check and update to latest version |
-| `yidaconnector export-conversation [options]` | Export AI conversation records |
-| `yidaconnector feedback <setup\|url\|dismiss\|status> [options]` | Configure experience feedback form and local reminder state |
-| `yidaconnector batch <file> [--stop-on-error] [--json]` | Run YidaConnector commands in batch |
-| `yidaconnector batch --commands "cmd1 ; cmd2" [--stop-on-error] [--json]` | Run YidaConnector commands in batch |
-| `yidaconnector flash-to-prd --file <path> --name "<project>"` | Convert flash notes or meeting notes to a PRD prompt |
-| `yidaconnector ai <text\|image> [options]` | Call Yida AI text and image recognition APIs |
-| `yidaconnector cdn-config [options]` | Configure CDN / OSS upload |
-| `yidaconnector cdn-upload <image-path>` | Upload image to CDN |
-| `yidaconnector cdn-refresh [options]` | Refresh CDN cache |
-
-<!-- YIDACONNECTOR_COMMANDS_END -->
-
-### CLI Notes
-
-#### Environment and Localization
-
-Environment selectors such as `--env intl`, `--intl`, `--overseas`, `--global`, and `--yidaapps` can be used on login-required commands to choose the target Yida environment for that run. The `intl` preset uses `https://www.yidaapps.com` as the built-in Global YiDA entrypoint (not the bare `https://yidaapps.com` domain) and DingTalk International OAuth at `https://login.dingtalk.io`; business API requests still use the authenticated environment `baseUrl`, so customer custom subdomains are supported.
-
-For overseas apps, pass `--locale en_US` or `--locale ja_JP` on creation commands, or set `YIDACONNECTOR_CONTENT_LOCALE`. YidaConnector writes YiDA resource names with `zh_CN`, `en_US`, and `ja_JP` values so Global YiDA does not fall back to Chinese-only metadata.
-
-#### Forms and Pages
-
-Form field definitions can include `alias` or `componentAlias` to populate Yida designer component aliases, stored as `pages[0].componentAlias.items`. Yida runtime resolves these aliases in page JS, so `this.$('phone')` can be used instead of `this.$('textField_xxx')`; YidaConnector form rules, validations, and `yidaconnector data ... --resolve-aliases` JSON inputs also accept aliases as field references. For server-side DingTalk OpenAPI calls, use `GET /v2.0/yida/forms/component/alias/{appType}/{formUuid}` to read the `{ fieldId, alias }` mapping, then translate aliases before sending form data/search JSON. That endpoint requires `systemToken`, `userId`, an access token, and the Yida form data read permission; grant that permission in DingTalk developer console API permissions and publish the DingTalk app. Yida app code and app secret are available under app settings > deployment/maintenance.
-
-`yidaconnector publish` preserves existing custom page data sources by default. Before saving the new compiled JSX Schema, it reads the current page Schema and merges the Page-level `dataSource` with the built-in `urlParams` and `timestamp` sources, so manually configured data sources are not deleted during republish.
-
-#### Data, Permissions, and Sharing
-
-`yidaconnector externalize-form` is useful when a form contains fields such as `AssociationFormField`, `EmployeeField`, or `DepartmentSelectField` that depend on internal organization permissions. It produces a report plus optional `--mirror-fields-output` JSON that can be used with `yidaconnector create-form create` to build a separate public intake form while keeping the internal form and its association fields private.
-
-#### Workflow, Reports, and Integrations
-
-`yidaconnector integration create` supports form events (`insert`, `update`, `delete`, `comment`) and approval events (`processFinish`, `activityTask`; aliases: `approval`, `approvalNode`). Approval events require `--approval-actions agree,disagree,terminated`; `activityTask` also requires `--approval-node-ids <nodeId,...>`.
-
-## Agent Skills
-
-The `yida-skills/` directory is the source skill library used by YidaConnector during development. Release assets for Wukong are generated by `npm run build:skills`: the expanded package is written to `dist/skills/yidaconnector/`, and the upload-ready zip is written to `yidaconnector-skills.zip`.
-
-| Path | Purpose |
-|------|---------|
-| `yida-skills/SKILL.md` | Entry point and skill index |
-| `yida-skills/skills/` | Self-contained sub-skills for app, form, process, page, data, and integration work |
-| `yida-skills/references/` | Shared Yida API, model API, and query-condition references |
-| `dist/skills/yidaconnector/` | Generated Wukong upload package root; contains one root `SKILL.md` and reference-only subskill docs |
-| `yidaconnector-skills.zip` | Generated Wukong upload package; upload this file in Wukong |
-
-When YidaConnector is used inside a supported AI coding environment, these skills help the agent choose the right command sequence and file conventions.
-
-For Wukong manual import, upload the generated `yidaconnector-skills.zip`. The package follows Wukong's custom skill rules: folder name and `frontmatter.name` are both `yidaconnector`, root frontmatter only contains `name` and `description`, and long references live under `references/`.
-
-For Codex, `npm install -g yidaconnector` additionally creates a local plugin marketplace under `~/.yidaconnector/codex-plugin` and enables `yidaconnector@yidaconnector` in `~/.codex/config.toml` when Codex is detected. This makes YidaConnector show up in Codex's `@` plugin menu as **宜搭** after Codex reloads.
-
-## Examples
-
-### Business Systems: IPD and CRM
-
-Describe your requirements in one sentence; the agent can create a complete multi-form Yida application.
-
-![IPD](https://img.alicdn.com/imgextra/i2/O1CN01YBEMa929J7sD9v8U1_!!6000000008046-2-tps-3840-3366.png)
-
-![CRM](https://img.alicdn.com/imgextra/i3/O1CN01kn0Vcn1H5OkbQaizA_!!6000000000706-2-tps-3840-2168.png)
-
-### Custom Pages and Utilities
-
-![Salary Calculator](https://gw.alicdn.com/imgextra/i2/O1CN017TeJuE1reVH2Dj7b7_!!6000000005656-2-tps-5114-2468.png)
-
-![Enterprise Collaboration](https://gw.alicdn.com/imgextra/i1/O1CN01EZtvfs1cxXV00UaXi_!!6000000003667-2-tps-5118-2470.png)
-
-### Interactive Campaigns
-
-![Lantern Riddle Game](https://img.alicdn.com/imgextra/i3/O1CN01dCoscP25jSAtAB9o3_!!6000000007562-2-tps-2144-1156.png)
-
-## Common Prompts
-
-```text
-Build a Yida application for [business scenario].
-Generate an app from this requirements document.
-Create a [name] form page with these fields.
-Add a required [field type] field named [field name] to [form name].
-Publish this custom page to the Yida app.
-Make this page publicly accessible.
-Export the application as a migration package.
-```
-
-## OpenClaw Integration
-
-Use YidaConnector through [yida-app](https://clawhub.ai/nicky1108/yida-app) in OpenClaw:
-
-```bash
-npx clawhub@latest install nicky1108/yida-app
-```
-
 ## Development
 
 ```bash
@@ -524,17 +329,15 @@ Useful checks:
 | `npm run docs:commands` | Regenerate the README command index from the manifest |
 | `npm run check:docs` | Verify generated README command docs are current |
 | `npm run check:syntax` | Validate JavaScript syntax |
-| `npm run check:structure` | Validate project structure |
-| `npm run check:package-size` | Validate npm package size and file-count budget |
-| `npm run check:package` | Validate npm package contents |
+| `npm run check:skills` | Validate agent skills structure and links |
 
-When adding new CLI commands, register the route in `bin/yida.js`, add it to `lib/core/command-manifest.js`, regenerate the README command index with `npm run docs:commands`, and keep agent skills in `yida-skills/` aligned when the workflow changes. `npm run check:commands` fails if the router, manifest, or README drift apart.
+When adding new CLI commands, register the route in `bin/yida.js`, add it to `lib/core/command-manifest.js`, regenerate the README command index with `npm run docs:commands`, and keep agent skills in `yida-skills/` aligned. `npm run check:commands` fails if the router, manifest, or README drift apart.
 
 ## Security and Configuration
 
 - Login cookies are cached locally and should never be hard-coded into source files.
 - Private deployment environments are managed through `lib/core/env-manager.js`.
-- Yida API requests should use the active environment base URL and authenticated cookies.
+- Yida API requests use the active environment base URL and authenticated cookies.
 - For multi-organization accounts, prefer explicit `--corp-id` values in non-interactive automation.
 
 ## Community
